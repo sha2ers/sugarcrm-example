@@ -1,6 +1,6 @@
 /*********************************************************************************
  * SugarCRM Community Edition is a customer relationship management program developed by
- * SugarCRM, Inc. Copyright (C) 2004-2011 SugarCRM Inc.
+ * SugarCRM, Inc. Copyright (C) 2004-2012 SugarCRM Inc.
  * 
  * This program is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Affero General Public License version 3 as published by the
@@ -93,6 +93,7 @@ function subp_nav(m,i,a,t,r){
 * This is done to minimize page size
 * */
 function sub_p_rem(sp,lf,li,rp){
+
 	return_url = "index.php?module="+get_module_name()+"&action=SubPanelViewer&subpanel="+sp+"&record="+get_record_id()+"&sugar_body_only=1&inline=1";
 
 	remove_url = "index.php?module="+ get_module_name()
@@ -194,6 +195,10 @@ function set_return_and_save_background(popup_reply_data)
 		} else {
 			if (prop=='module_name') {
 				query_array.push('subpanel_module_name='+escape(passthru_data[prop]));
+			} else if(prop == 'prospect_ids'){
+				for(var i=0;i<passthru_data[prop].length;i++){
+					query_array.push(prop + '[]=' + escape(passthru_data[prop][i]));
+				}
 			} else {
 				query_array.push(prop+'='+escape(passthru_data[prop]));
 			}
@@ -205,7 +210,13 @@ function set_return_and_save_background(popup_reply_data)
 
 	var returnstuff = http_fetch_sync('index.php',query_string);
 	request_id++;
- 	got_data(returnstuff, true);
+
+	// Bug 52843
+	// If returnstuff.responseText is empty, don't process, because it will blank the innerHTML
+	if (typeof returnstuff != 'undefined' && typeof returnstuff.responseText != 'undefined' && returnstuff.responseText.length != 0) {
+		got_data(returnstuff, true);
+	}
+	
  	if(refresh_page == 1){
  		document.location.reload(true);
  	}
@@ -222,43 +233,9 @@ function got_data(args, inline)
 		var child_field = request_map[args.request_id].toLowerCase();
 		if(inline){
 
-			//CCL - 21752
-			//if this is an inline operation, get the original buttons in the td element
-			//so that we may replace them later
-			buttonHTML = '';
-			trEls = list_subpanel.getElementsByTagName('tr');
-			if(trEls && trEls.length > 0) {
-				for(x in trEls) {
-					if(trEls[x] && trEls[x].className == 'pagination') {
-					   tableEls = trEls[x].getElementsByTagName('table');
-					   tdEls = tableEls[0].getElementsByTagName('td');
-					   span = tdEls[0].getElementsByTagName('span');
-					   if(span) {
-					      buttonHTML = span[0].innerHTML;
-					   }
-					   break;
-					}
-				}
-			}
-
 			child_field_loaded[child_field] = 2;
 			list_subpanel.innerHTML='';
-			list_subpanel.innerHTML=args.responseText;
-
-			//now if the trPagination element is set then let's replace the new tr element with this
-			if(buttonHTML != '') {
-				list_subpanel = document.getElementById('list_subpanel_'+request_map[args.request_id].toLowerCase());
-				trEls = list_subpanel.getElementsByTagName('tr');
-				for(x in trEls) {
-					if(trEls[x] && trEls[x].className == 'pagination') {
-					   tableEls = trEls[x].getElementsByTagName('table');
-					   tdEls = tableEls[0].getElementsByTagName('td');
-					   span = tdEls[0].getElementsByTagName('span');
-					   span[0].innerHTML = buttonHTML;
-					   break;
-					}
-				}
-			}
+			list_subpanel.innerHTML=args.responseText;			
 
 		} else {
 			child_field_loaded[child_field] = 1;
@@ -283,6 +260,10 @@ function got_data(args, inline)
 			//hideSubPanel(current_child_field);
 		}
 		current_child_field = child_field;
+		//reinit action menus
+		$("ul.clickMenu").each(function(index, node){
+	  		$(node).sugarActionMenu();
+	  	});
 	}
 }
 
@@ -468,12 +449,16 @@ SUGAR.subpanelUtils = function() {
 			}
             // reload page if we are setting status to Held
             var reloadpage = false;
-            if ((buttonName == 'Meetings_subpanel_save_button' || buttonName == 'Calls_subpanel_save_button' )
-                 && typeof(theForm) !='undefined' && typeof(document.getElementById(theForm)) != 'undefined'
-                 && typeof(document.getElementById(theForm).status) != 'undefined'
-                 && document.getElementById(theForm).status[document.getElementById(theForm).status.selectedIndex].value == 'Held') {
-                reloadpage = true;
-            }
+            // Bug #51388 - Captivea (qch)
+            reloadpage = reloadpage || ((buttonName == 'Meetings_subpanel_save_button' || buttonName == 'Calls_subpanel_save_button' )
+                	&& typeof(theForm) !='undefined' && typeof(document.getElementById(theForm)) != 'undefined'
+                    && typeof(document.getElementById(theForm).status) != 'undefined'
+                    && document.getElementById(theForm).status[document.getElementById(theForm).status.selectedIndex].value == 'Held');
+            reloadpage = reloadpage || (buttonName == 'Tasks_subpanel_save_button'
+	            	&& typeof(theForm) !='undefined' && typeof(document.getElementById(theForm)) != 'undefined'
+	                && typeof(document.getElementById(theForm).status) != 'undefined'
+	                && document.getElementById(theForm).status[document.getElementById(theForm).status.selectedIndex].value == 'Completed');
+	                
             YAHOO.util.Connect.setForm(theForm, true, true);
 			var cObj = YAHOO.util.Connect.asyncRequest('POST', 'index.php', {success: success, failure: success, upload:success});
 			return false;
@@ -488,12 +473,44 @@ SUGAR.subpanelUtils = function() {
          * @param loadingStr
          */
 		sendAndRetrieve: function(theForm, theDiv, loadingStr) {
+            // look whether a quick create form is currently opened
+            var quickCreateDiv = YAHOO.util.Selector.query("div.quickcreate", null, true);
+            if (quickCreateDiv)
+            {
+                var form = YAHOO.util.Selector.query("form", quickCreateDiv, true);
+                if (form)
+                {
+                    // discover cancelCreate function parameters needed
+                    var moduleName = form.id.replace(/.*?_([^_]+)$/, "$1");
+                    var buttonName = moduleName + "_subpanel_cancel_button";
+                    var cancelled  = false;
+
+                    // try to cancel form submission
+                    SUGAR.subpanelUtils.cancelCreate(buttonName, function()
+                    {
+                        cancelled = true;
+                    });
+
+                    // if submission cancellation was cancelled, do nothing
+                    if (cancelled)
+                    {
+                        return false;
+                    }
+                }
+            }
+
 			function success(data) {
 				var theDivObj = document.getElementById(theDiv),
                     divName = theDiv + '_newDiv',
                     form_el;
                 SUGAR.subpanelUtils.dataToDOMAvail = false;
 
+                // Show buttons before we remove subpanel
+                if (typeof currentPanelDiv != 'undefined' && currentPanelDiv != null) {            
+                    var button_elements = YAHOO.util.Selector.query('td.buttons', currentPanelDiv, false);
+                    YAHOO.util.Dom.setStyle(button_elements, 'display', ''); 
+                }
+               
                 // Check if preview subpanel form exists, remove if it does.
                 SUGAR.subpanelUtils.removeSubPanel();
 
@@ -506,6 +523,8 @@ SUGAR.subpanelUtils = function() {
 
 				// Grab the buttons from the subpanel and hide them
 				var button_elements = YAHOO.util.Selector.query('td.buttons', theDiv, false);
+				YAHOO.util.Dom.setStyle(button_elements, 'display', 'none');
+				button_elements = YAHOO.util.Selector.query('ul.SugarActionMenu', theDiv, false);
 				YAHOO.util.Dom.setStyle(button_elements, 'display', 'none');
 
                 // Add the form object to the DOM
@@ -538,7 +557,13 @@ SUGAR.subpanelUtils = function() {
 			return false;
 		},
 
-		cancelCreate: function(buttonName) {
+        // as long as formerly the function used to be always returning false,
+        // there was no possibility to determine, was the creation cancelled or not.
+        // we couldn't modify function return value in case of user cancels the
+        // cancellation as long as it (false) is used in multiple places to
+        // prevent DOM event propagation. thus, cancelCallback optional
+        // parameter is added to be able to track this case
+		cancelCreate: function(buttonName, cancelCallback) {
 			var element = document.getElementById(buttonName),
                 theForm = element.form,
                 confirmMsg = onUnloadEditView(theForm);
@@ -554,6 +579,10 @@ SUGAR.subpanelUtils = function() {
 
             if ( confirmMsg != null ) {
                 if ( !confirm(confirmMsg) ) {
+                    if ("function" === typeof cancelCallback)
+                    {
+                        cancelCallback();
+                    }
                     return false;
                 } else {
                     disableOnUnloadEditView(theForm);
@@ -562,6 +591,8 @@ SUGAR.subpanelUtils = function() {
 
             SUGAR.subpanelUtils.removeSubPanel();
             var button_elements = YAHOO.util.Selector.query('td.buttons', theDiv, false);
+            YAHOO.util.Dom.setStyle(button_elements, 'display', '');
+            button_elements = YAHOO.util.Selector.query('ul.SugarActionMenu', theDiv, false);
             YAHOO.util.Dom.setStyle(button_elements, 'display', '');
             
 			return false;
@@ -592,7 +623,10 @@ SUGAR.subpanelUtils = function() {
          * Removes the current subpanel if it exists.
          */
         removeSubPanel: function() {
-            var currentPanelEl = document.getElementById(currentPanelDiv);
+            var currentPanelEl = null;
+            if (typeof currentPanelDiv != 'undefined' && currentPanelDiv != null) {
+                currentPanelEl = document.getElementById(currentPanelDiv);
+            }
 
             if (currentPanelEl != null) {
                 currentPanelEl.parentNode.removeChild(currentPanelEl);
@@ -615,11 +649,13 @@ SUGAR.subpanelUtils = function() {
 
 		loadSubpanelGroup: function(group){
 			if(group == SUGAR.subpanelUtils.currentSubpanelGroup) return;
+
 			if(SUGAR.subpanelUtils.loadedGroups[group]){
 				SUGAR.subpanelUtils.updateSubpanel(group);
 			}else{
+
 				SUGAR.subpanelUtils.loadedGroups.push(group);
-				var needed = Array();
+				var needed = [];
 				for(group_sp in SUGAR.subpanelUtils.subpanelGroups[group]){
 					if(typeof(SUGAR.subpanelUtils.subpanelGroups[group][group_sp]) == 'string' && !document.getElementById('whole_subpanel_'+SUGAR.subpanelUtils.subpanelGroups[group][group_sp])){
 						needed.push(SUGAR.subpanelUtils.subpanelGroups[group][group_sp]);
@@ -632,6 +668,7 @@ SUGAR.subpanelUtils = function() {
 				/* needed to retrieve each of the specified subpanels and install them ...*/
 				/* load them in bulk, insert via innerHTML, then sort nodes later. */
 				if(needed.length){
+
 					ajaxStatus.showStatus(SUGAR.language.get('app_strings', 'LBL_LOADING'));
 					SUGAR.util.retrieveAndFill(SUGAR.subpanelUtils.requestUrl + needed.join(','),'subpanel_list', null, success, null, true);
 				}else{
@@ -656,17 +693,23 @@ SUGAR.subpanelUtils = function() {
 					sp_list.childNodes[sp].style.display = 'none';
 				}
 			}
-			for(group_sp in SUGAR.subpanelUtils.subpanelGroups[group]){
-                if ( typeof(SUGAR.subpanelUtils.subpanelGroups[group][group_sp]) != 'string' ) continue;
-				var cur = document.getElementById('whole_subpanel_'+SUGAR.subpanelUtils.subpanelGroups[group][group_sp]);
-				cur.style.display = 'block';
-				/* use YDD swapNodes this and first, second, etc. */
-				try{
-					YAHOO.util.DDM.swapNode(cur, sp_list.getElementsByTagName('LI')[group_sp]);
-				}catch(e){
 
-				}
+			for(group_sp in SUGAR.subpanelUtils.subpanelGroups[group]){
+                if ( typeof(SUGAR.subpanelUtils.subpanelGroups[group][group_sp]) != 'string' )
+                {
+                    continue;
+                }
+				var cur = document.getElementById('whole_subpanel_'+SUGAR.subpanelUtils.subpanelGroups[group][group_sp]);
+			    
+                if(cur == null)
+                {
+                    continue;
+                }
+
+                cur.style.display = 'block';
+
 			}
+
 			SUGAR.subpanelUtils.updateSubpanelTabs(group);
 		},
 

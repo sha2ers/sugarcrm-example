@@ -2,7 +2,7 @@
 if(!defined('sugarEntry') || !sugarEntry) die('Not A Valid Entry Point');
 /*********************************************************************************
  * SugarCRM Community Edition is a customer relationship management program developed by
- * SugarCRM, Inc. Copyright (C) 2004-2011 SugarCRM Inc.
+ * SugarCRM, Inc. Copyright (C) 2004-2012 SugarCRM Inc.
  * 
  * This program is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Affero General Public License version 3 as published by the
@@ -38,7 +38,7 @@ if(!defined('sugarEntry') || !sugarEntry) die('Not A Valid Entry Point');
 
 
 
-require_once('include/generic/SugarWidgets/SugarWidgetField.php');
+
 //this widget is used only by the document subpanel under contracts.
 class SugarWidgetSubPanelLoadSignedButton extends SugarWidgetField
 {
@@ -65,8 +65,7 @@ class SugarWidgetSubPanelLoadSignedButton extends SugarWidgetField
 			. '&selected_revision_id=' . $layout_def['fields']['SELECTED_REVISION_ID']	
 			;
 
-		$edit_icon_html = SugarThemeRegistry::current()->getImage( 'loadSignedDocument',
-			'align="absmiddle" alt="' . $app_strings['LNK_LOAD_SIGNED'] . '" border="0"');
+		$edit_icon_html = SugarThemeRegistry::current()->getImage( 'loadSignedDocument','align="absmiddle" border="0"',null,null,'.gif',$app_strings['LNK_LOAD_SIGNED']);
 		//if the contract state is executed or document is not a template hide this action.
 		if ((!empty($layout_def['fields']['CONTRACT_STATUS']) && $layout_def['fields']['CONTRACT_STATUS']=='executed') or
 			empty($layout_def['fields']['IS_TEMPLATE']) or $layout_def['fields']['IS_TEMPLATE']==0) {

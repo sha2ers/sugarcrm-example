@@ -2,7 +2,7 @@
 if(!defined('sugarEntry') || !sugarEntry) die('Not A Valid Entry Point');
 /*********************************************************************************
  * SugarCRM Community Edition is a customer relationship management program developed by
- * SugarCRM, Inc. Copyright (C) 2004-2011 SugarCRM Inc.
+ * SugarCRM, Inc. Copyright (C) 2004-2012 SugarCRM Inc.
  * 
  * This program is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Affero General Public License version 3 as published by the
@@ -84,10 +84,17 @@ class Administration extends SugarBean {
         // Check for a cache hit
         if(!empty($settings_cache)) {
             $this->settings = $settings_cache;
-            return $this;
+            if (!empty($this->settings[$category]))
+            {
+                return $this;
+            }
         }
 
-        $query = "SELECT category, name, value FROM {$this->table_name}";
+        if ( ! empty($category) ) {
+            $query = "SELECT category, name, value FROM {$this->table_name} WHERE category = '{$category}'";
+        } else {
+            $query = "SELECT category, name, value FROM {$this->table_name}";
+        }
 
         $result = $this->db->query($query, true, "Unable to retrieve system settings");
 
@@ -95,12 +102,13 @@ class Administration extends SugarBean {
             return NULL;
         }
 
-        while($row = $this->db->fetchByAssoc($result, -1, true)) {
+        while($row = $this->db->fetchByAssoc($result)) {
             if($row['category']."_".$row['name'] == 'ldap_admin_password' || $row['category']."_".$row['name'] == 'proxy_password')
                 $this->settings[$row['category']."_".$row['name']] = $this->decrypt_after_retrieve($row['value']);
             else
                 $this->settings[$row['category']."_".$row['name']] = $row['value'];
         }
+        $this->settings[$category] = true;
 
         // outbound email settings
         $oe = new OutboundEmail();
@@ -148,7 +156,7 @@ class Administration extends SugarBean {
 
     function saveSetting($category, $key, $value) {
         $result = $this->db->query("SELECT count(*) AS the_count FROM config WHERE category = '{$category}' AND name = '{$key}'");
-        $row = $this->db->fetchByAssoc( $result, -1, true );
+        $row = $this->db->fetchByAssoc($result);
         $row_count = $row['the_count'];
 
         if($category."_".$key == 'ldap_admin_password' || $category."_".$key == 'proxy_password')
@@ -161,7 +169,7 @@ class Administration extends SugarBean {
             $result = $this->db->query("UPDATE config SET value = '{$value}' WHERE category = '{$category}' AND name = '{$key}'");
         }
         sugar_cache_clear('admin_settings_cache');
-        return $this->db->getAffectedRowCount();
+        return $this->db->getAffectedRowCount($result);
     }
 
     function get_config_prefix($str) {

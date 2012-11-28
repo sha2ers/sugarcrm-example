@@ -3,7 +3,7 @@ if(!defined('sugarEntry') || !sugarEntry) die('Not A Valid Entry Point');
 
 /*********************************************************************************
  * SugarCRM Community Edition is a customer relationship management program developed by
- * SugarCRM, Inc. Copyright (C) 2004-2011 SugarCRM Inc.
+ * SugarCRM, Inc. Copyright (C) 2004-2012 SugarCRM Inc.
  * 
  * This program is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Affero General Public License version 3 as published by the
@@ -54,19 +54,17 @@ class ImportDuplicateCheck
      * holds current field when a duplicate has been found
      */
     public $_dupedFields =array();
-    
-    /** 
+
+    /**
      * Constructor
      *
-     * @param object $focus bean 
+     * @param object $focus bean
      */
-    public function __construct(
-        &$focus
-        )
+    public function __construct($focus)
     {
-        $this->_focus = &$focus;
+        $this->_focus = $focus;
     }
-    
+
     /**
      * Returns an array of indices for the current module
      *
@@ -94,10 +92,10 @@ class ImportDuplicateCheck
                 'type' => 'index',
                 'fields' => array('email2')
                 );
-        
+
         return $indexes;
     }
-    
+
     /**
      * Returns an array with an element for each index
      *
@@ -105,11 +103,11 @@ class ImportDuplicateCheck
      */
     public function getDuplicateCheckIndexes()
     {
-        $super_language_pack = sugarArrayMerge(
-            return_module_language($GLOBALS['current_language'], $this->_focus->module_dir), 
+        $super_language_pack = sugarLangArrayMerge(
+            return_module_language($GLOBALS['current_language'], $this->_focus->module_dir),
             $GLOBALS['app_strings']
             );
-        
+
         $index_array = array();
         foreach ($this->_getIndexVardefs() as $index){
             if ($index['type'] == "index"){
@@ -125,7 +123,7 @@ class ImportDuplicateCheck
                 $index_array[$index['name']] = str_replace(":", "",implode(", ",$labelsArray));
             }
         }
-        
+
         return $index_array;
     }
 
@@ -184,6 +182,18 @@ class ImportDuplicateCheck
      */
     public function isADuplicateRecord( $indexlist )
     {
+        // Bug #51264 : Importing updates to rows prevented by duplicates check
+        if ( !empty($this->_focus) && ($this->_focus instanceof SugarBean) && !empty($this->_focus->id) )
+        {
+            $_focus = clone $this->_focus;
+            $_focus->id = null;
+            $_focus->retrieve($this->_focus->id);
+            if ( !empty($_focus->id) )
+            {
+                return false;
+            }
+            unset($_focus);
+        }
 
         //lets strip the indexes of the name field in the value and leave only the index name
         $origIndexList = $indexlist;
@@ -200,7 +210,9 @@ class ImportDuplicateCheck
             }else{
                 //this is not a custom field, so place in index list
                 $indexlist[] = $field_index_array[0];
-                $fieldlist[] = $field_index_array[1];
+                if(isset($field_index_array[1])) {
+                    $fieldlist[] = $field_index_array[1];
+                }
             }
         }
 
@@ -277,7 +289,7 @@ class ImportDuplicateCheck
         if(!empty($this->_dupedFields)){
             return true;
         }
-        
+
         return false;
     }
 

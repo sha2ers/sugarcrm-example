@@ -1,7 +1,7 @@
 {*
 /*********************************************************************************
  * SugarCRM Community Edition is a customer relationship management program developed by
- * SugarCRM, Inc. Copyright (C) 2004-2011 SugarCRM Inc.
+ * SugarCRM, Inc. Copyright (C) 2004-2012 SugarCRM Inc.
  * 
  * This program is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Affero General Public License version 3 as published by the
@@ -37,6 +37,7 @@
 *}
 {include file="_head.tpl" theme_template=true}
 <body onMouseOut="closeMenus();">
+<a name="top"></a>
 {$SUGAR_DCJS}
 <div id="header">
     {include file="_companyLogo.tpl" theme_template=true}
@@ -56,7 +57,7 @@
 </div>
 
 {literal}
-<iframe id='ajaxUI-history-iframe' src='index.php?entryPoint=getImage&imageName=blank.png' style='display:none'></iframe>
+<iframe id='ajaxUI-history-iframe' src='index.php?entryPoint=getImage&imageName=blank.png'  title='empty' style='display:none'></iframe>
 <input id='ajaxUI-history-field' type='hidden'>
 <script type='text/javascript'>
 if (SUGAR.ajaxUI && !SUGAR.ajaxUI.hist_loaded)

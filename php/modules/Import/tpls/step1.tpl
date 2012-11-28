@@ -2,7 +2,7 @@
 
 /*********************************************************************************
  * SugarCRM Community Edition is a customer relationship management program developed by
- * SugarCRM, Inc. Copyright (C) 2004-2011 SugarCRM Inc.
+ * SugarCRM, Inc. Copyright (C) 2004-2012 SugarCRM Inc.
  * 
  * This program is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Affero General Public License version 3 as published by the
@@ -39,11 +39,16 @@
 
 {literal}
 <style>
+#smtpButtonGroup .yui-button {
+    padding-top: 10px;
+}
 #smtpButtonGroup .yui-radio-button-checked button, .yui-checkbox-button-checked button {
     background-color: #CCCCCC;
     color: #FFFFFF;
     text-shadow: none;
 }
+
+
 {/literal}
 </style>
 {if $ERROR != ''}
@@ -55,7 +60,6 @@
 <input type="hidden" name="module" value="Import">
 <input type="hidden" name="action" value="Step2">
 <input type="hidden" name="current_step" value="1">
-<input type="hidden" name="return_action" value="Step1">
 <input type="hidden" name="external_source" value="">
 <input type="hidden" name="from_admin_wizard" value="{$FROM_ADMIN}">
 <input type="hidden" name="import_module" value="{$IMPORT_MODULE}">
@@ -94,7 +98,7 @@
 <br>
 <table width="100%" cellpadding="0" cellspacing="0" border="0">
     <tr>
-      <td align="left"><input title="{$MOD.LBL_NEXT}" accessKey="" class="button" type="submit" name="button" value="  {$MOD.LBL_NEXT}  "  id="gonext"></td>
+      <td align="left"><input title="{$MOD.LBL_NEXT}"  class="button" type="submit" name="button" value="  {$MOD.LBL_NEXT}  "  id="gonext"></td>
     </tr>
-</table>    
+</table>
 </form>

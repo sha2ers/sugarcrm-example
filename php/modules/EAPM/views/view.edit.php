@@ -3,7 +3,7 @@ if(!defined('sugarEntry') || !sugarEntry) die('Not A Valid Entry Point');
 
 /*********************************************************************************
  * SugarCRM Community Edition is a customer relationship management program developed by
- * SugarCRM, Inc. Copyright (C) 2004-2011 SugarCRM Inc.
+ * SugarCRM, Inc. Copyright (C) 2004-2012 SugarCRM Inc.
  * 
  * This program is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Affero General Public License version 3 as published by the
@@ -90,7 +90,8 @@ class EAPMViewEdit extends ViewEdit {
         $iconPath = $this->getModuleTitleIconPath($this->module);
         $params = array();
         if (!empty($iconPath) && !$browserTitle) {
-            $params[] = "<a href='index.php?module=Users&action=index'><img src='{$iconPath}' alt='".translate('LBL_MODULE_NAME','Users')."' title='".translate('LBL_MODULE_NAME','Users')."' align='absmiddle'></a>";
+            $params[] = "<a href='index.php?module=Users&action=index'><!--not_in_theme!--><img src='{$iconPath}' alt='".translate('LBL_MODULE_NAME','Users')."' title='".translate('LBL_MODULE_NAME','Users')."' align='absmiddle'></a>";
+
         }
         else {
             $params[] = translate('LBL_MODULE_NAME','Users');
@@ -130,3 +131,5 @@ class EAPMViewEdit extends ViewEdit {
         }
  	}
 }
+
+?>

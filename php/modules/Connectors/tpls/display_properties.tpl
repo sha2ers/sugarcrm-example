@@ -1,7 +1,7 @@
 {*
 /*********************************************************************************
  * SugarCRM Community Edition is a customer relationship management program developed by
- * SugarCRM, Inc. Copyright (C) 2004-2011 SugarCRM Inc.
+ * SugarCRM, Inc. Copyright (C) 2004-2012 SugarCRM Inc.
  * 
  * This program is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Affero General Public License version 3 as published by the
@@ -88,12 +88,12 @@ init: function() {
 	new YAHOO.util.DDTarget("{$source_id}:enabled_ul");
 	new YAHOO.util.DDTarget("{$source_id}:disabled_ul");
 
-	{foreach from=$enabled_modules item=module key=moduleKey}
-	     new YAHOO.example.DDList("{$source_id}:{$moduleKey}");
+	{foreach from=$enabled_modules item=module}
+	     new YAHOO.example.DDList("{$source_id}:{$module}");
 	{/foreach}
 
-	{foreach from=$disabled_modules item=module key=moduleKey}
-	     new YAHOO.example.DDList("{$source_id}:{$moduleKey}");
+	{foreach from=$disabled_modules item=module}
+	     new YAHOO.example.DDList("{$source_id}:{$module}");
 	{/foreach}
 {literal}
 }

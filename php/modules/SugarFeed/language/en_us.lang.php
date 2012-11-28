@@ -1,7 +1,7 @@
 <?php
 /*********************************************************************************
  * SugarCRM Community Edition is a customer relationship management program developed by
- * SugarCRM, Inc. Copyright (C) 2004-2011 SugarCRM Inc.
+ * SugarCRM, Inc. Copyright (C) 2004-2012 SugarCRM Inc.
  * 
  * This program is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Affero General Public License version 3 as published by the
@@ -113,5 +113,13 @@ $mod_strings = array (
   'LBL_EXTERNAL_WARNING' => 'Items labeled "external" require an <a href="?module=EAPM">external account</a>.',
   'LBL_AUTHENTICATE' => 'Connect to',
   'LBL_AUTHENTICATION_PENDING' => 'Not all of the external accounts you have selected have been authenticated. Click \'Cancel\' to return to the Options window to authenticate the external accounts, or click \'Ok\' to proceed without authenticating.',
+	'LBL_ADVANCED_SEARCH' => 'Advanced Search' /*for 508 compliance fix*/,
+	'LBL_BASICSEARCH' => 'Basic Search' /*for 508 compliance fix*/,
+    'LBL_SHOW_MORE_OPTIONS' => 'Show More Options',
+    'LBL_HIDE_OPTIONS' => 'Hide Options',
+    'LBL_VIEW' => 'View',
+    'LBL_POST_TITLE' =>'Post Status Update for ',
+    'LBL_URL_LINK_TITLE' => 'URL Link to use',
+    'LBL_TEAM_VISIBILITY_TITLE' => 'team that can see this post',
 );
 ?>

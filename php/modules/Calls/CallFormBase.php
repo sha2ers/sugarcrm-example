@@ -2,7 +2,7 @@
 if(!defined('sugarEntry') || !sugarEntry) die('Not A Valid Entry Point');
 /*********************************************************************************
  * SugarCRM Community Edition is a customer relationship management program developed by
- * SugarCRM, Inc. Copyright (C) 2004-2011 SugarCRM Inc.
+ * SugarCRM, Inc. Copyright (C) 2004-2012 SugarCRM Inc.
  * 
  * This program is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Affero General Public License version 3 as published by the
@@ -43,7 +43,9 @@ if(!defined('sugarEntry') || !sugarEntry) die('Not A Valid Entry Point');
  * Contributor(s): ______________________________________..
  ********************************************************************************/
 
-class CallFormBase{
+require_once('include/SugarObjects/forms/FormBase.php');
+
+class CallFormBase extends FormBase {
 
 function getFormBody($prefix, $mod='', $formname='',$cal_date='',$cal_time=''){
 if(!ACLController::checkAccess('Calls', 'edit', true)){
@@ -172,9 +174,8 @@ function getFormFooter($prefic, $mod=''){
 global $app_strings;
 global $app_list_strings;
 $lbl_save_button_title = $app_strings['LBL_SAVE_BUTTON_TITLE'];
-$lbl_save_button_key = $app_strings['LBL_SAVE_BUTTON_KEY'];
 $lbl_save_button_label = $app_strings['LBL_SAVE_BUTTON_LABEL'];
-$the_form = "	<p><input title='$lbl_save_button_title' accessKey='$lbl_save_button_key' class='button' type='submit' name='button' value=' $lbl_save_button_label ' ></p></form>";
+$the_form = "	<p><input title='$lbl_save_button_title' class='button' type='submit' name='button' value=' $lbl_save_button_label ' ></p></form>";
 $the_form .= get_left_form_footer();
 $the_form .= get_validate_record_js();
 return $the_form;
@@ -220,6 +221,17 @@ function handleSave($prefix,$redirect=true,$useRequired=false) {
 		$_POST[$prefix.'reminder_time'] = $current_user->getPreference('reminder_time');
 	}
 
+	if(!isset($_POST['email_reminder_checked']) || (isset($_POST['email_reminder_checked']) && $_POST['email_reminder_checked'] == '0')) {
+		$_POST['email_reminder_time'] = -1;
+	}
+	if(!isset($_POST['email_reminder_time'])){
+		$_POST['email_reminder_time'] = $current_user->getPreference('email_reminder_time');
+		$_POST['email_reminder_checked'] = 1;
+	}
+
+	// don't allow to set recurring_source from a form
+	unset($_POST['recurring_source']);
+
 	$time_format = $timedate->get_user_time_format();
     $time_separator = ":";
     if(preg_match('/\d+([^\d])\d+([^\d]*)/s', $time_format, $match)) {
@@ -253,29 +265,32 @@ function handleSave($prefix,$redirect=true,$useRequired=false) {
   			$_POST['user_invitees'] .= ','.$_POST['assigned_user_id'].', ';
   			$_POST['user_invitees'] = str_replace(',,', ',', $_POST['user_invitees']);
   		}
-  	}elseif (empty($focus->id) ){
+  	}else {
 	  	//this is not from long form so add assigned and current user automatically as there is no invitee list UI.
 	  	//This call could be through an ajax call from subpanels or shortcut bar
 	  	$_POST['user_invitees'] .= ','.$_POST['assigned_user_id'].', ';
 
 	  	//add current user if the assigned to user is different than current user.
-	  	if($current_user->id != $_POST['assigned_user_id']){
+	  	if($current_user->id != $_POST['assigned_user_id'] && $_REQUEST['module'] != "Calendar"){
 	  		$_POST['user_invitees'] .= ','.$current_user->id.', ';
 	  	}
 
-	  	//remove any double comma's introduced during appending
+	  	//remove any double commas introduced during appending
 	    $_POST['user_invitees'] = str_replace(',,', ',', $_POST['user_invitees']);
   	}
 
-    if(isset($_POST['isSaveFromDetailView']) && $_POST['isSaveFromDetailView'] == 'true'){
+    if( (isset($_POST['isSaveFromDetailView']) && $_POST['isSaveFromDetailView'] == 'true') ||
+        (isset($_POST['is_ajax_call']) && !empty($_POST['is_ajax_call']) && !empty($focus->id) ||
+        (isset($_POST['return_action']) && $_POST['return_action'] == 'SubPanelViewer') && !empty($focus->id))
+    ){
         $focus->save(true);
         $return_id = $focus->id;
     }else{
 
-	    if(empty($_REQUEST['return_module']) && empty($_REQUEST['return_action']) && $focus->status == 'Held'){
-    		//if we are closing the call, and the request does not have a return module AND return action set, then
-    		//the request is coming from a dashlet or subpanel close icon and there is no need to process user invitees,
-    		//just save the current values.
+        if($focus->status == 'Held' && $this->isEmptyReturnModuleAndAction() && !$this->isSaveFromDCMenu()){
+    		//if we are closing the meeting, and the request does not have a return module AND return action set and it is not a save
+            //being triggered by the DCMenu (shortcut bar) then the request is coming from a dashlet or subpanel close icon and there is no
+            //need to process user invitees, just save the current values.
     		$focus->save(true);
 	    }else{
 	    	///////////////////////////////////////////////////////////////////////////
@@ -396,6 +411,7 @@ function handleSave($prefix,$redirect=true,$useRequired=false) {
 	    	}
 	    	// Call the Call module's save function to handle saving other fields besides
 	    	// the users and contacts relationships
+            $focus->update_vcal = false;    // Bug #49195 : don't update vcal b/s related users aren't saved yet, create vcal cache below
 	    	$focus->save(true);
 	    	$return_id = $focus->id;
 
@@ -467,6 +483,9 @@ function handleSave($prefix,$redirect=true,$useRequired=false) {
 	    		}
 	    	}
 
+            // Bug #49195 : update vcal
+            vCal::cache_sugar_vcal($current_user);
+            
 	    	// CCL - Comment out call to set $current_user as invitee
 	    	//set organizer to auto-accept
 	    	//$focus->set_accept_status($current_user, 'accept');
@@ -579,7 +598,7 @@ $form .=	<<<EOQ
 <td scope='row'>$lbl_date&nbsp;<span class="required">$lbl_required_symbol</span>&nbsp;<span class="dateFormat">$ntc_date_format</span></td>
 </tr>
 <tr>
-<td ><input onblur="parseDate(this, '$cal_dateformat');" name='${prefix}date_start' size="12" id='${prefix}jscal_field' maxlength='10' type="text" value="${default_date_start}"> <img src="{$jscalenderImage}" alt="{$app_strings['LBL_ENTER_DATE']}"  id="${prefix}jscal_trigger" align="absmiddle"></td>
+<td ><input onblur="parseDate(this, '$cal_dateformat');" name='${prefix}date_start' size="12" id='${prefix}jscal_field' maxlength='10' type="text" value="${default_date_start}"> <!--not_in_theme!--><img src="{$jscalenderImage}" alt="{$app_strings['LBL_ENTER_DATE']}"  id="${prefix}jscal_trigger" align="absmiddle"></td>
 </tr>
 
 <tr>

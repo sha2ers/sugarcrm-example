@@ -3,7 +3,7 @@ if (! defined ( 'sugarEntry' ) || ! sugarEntry)
     die ( 'Not A Valid Entry Point' ) ;
 /*********************************************************************************
  * SugarCRM Community Edition is a customer relationship management program developed by
- * SugarCRM, Inc. Copyright (C) 2004-2011 SugarCRM Inc.
+ * SugarCRM, Inc. Copyright (C) 2004-2012 SugarCRM Inc.
  * 
  * This program is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Affero General Public License version 3 as published by the
@@ -129,8 +129,13 @@ class ViewListView extends ViewEdit
                 $ajax->addCrumb ( translate ( 'LBL_AVAILABLE_SUBPANELS', 'ModuleBuilder' ), '' ) ;
                 if ($this->subpanelLabel)
                 {
-                    $ajax->addCrumb ( $this->subpanelLabel, '' ) ;
-                    $this->translatedViewType = $this->subpanelLabel . "&nbsp;" . translate("LBL_SUBPANEL", "ModuleBuilder");
+                    $subpanelLabel = $this->subpanelLabel;
+                    // If the subpanel title has changed, use that for the label instead
+                    if( !empty($_REQUEST['subpanel_title'] ) && $_REQUEST['subpanelLabel'] != $_REQUEST['subpanel_title'] )
+                        $subpanelLabel = $_REQUEST['subpanel_title'];
+
+                    $ajax->addCrumb( $subpanelLabel, '' );
+                    $this->translatedViewType = $subpanelLabel . "&nbsp;" . translate("LBL_SUBPANEL", "ModuleBuilder");
                 } else
                 {
                     $ajax->addCrumb ( $this->subpanel, '' ) ;
@@ -151,8 +156,13 @@ class ViewListView extends ViewEdit
                 $ajax->addCrumb ( translate ( 'LBL_SUBPANELS', 'ModuleBuilder' ), 'ModuleBuilder.getContent("module=ModuleBuilder&action=wizard&view=subpanels&view_module=' . $this->editModule . '")' ) ;
                 if ($this->subpanelLabel)
                 {
-                    $ajax->addCrumb ( $this->subpanelLabel, '' ) ;
-                    $this->translatedViewType = $this->subpanelLabel . "&nbsp;" . translate("LBL_SUBPANEL", "ModuleBuilder");
+                    $subpanelLabel = $this->subpanelLabel;
+                    // If the subpanel title has changed, use that for the label instead
+                    if( !empty($_REQUEST['subpanel_title'] ) && $_REQUEST['subpanelLabel'] != $_REQUEST['subpanel_title'] )
+                        $subpanelLabel = $_REQUEST['subpanel_title'];
+
+                    $ajax->addCrumb( $subpanelLabel, '' );
+                    $this->translatedViewType = $subpanelLabel . "&nbsp;" . translate("LBL_SUBPANEL", "ModuleBuilder");
                 } else
                 {
                     $ajax->addCrumb ( $this->subpanel, '' ) ;
@@ -169,6 +179,7 @@ class ViewListView extends ViewEdit
 
     function constructSmarty ($parser)
     {
+        global $mod_strings;
         $smarty = new Sugar_Smarty ( ) ;
         $smarty->assign ( 'translate', true ) ;
         $smarty->assign ( 'language', $parser->getLanguage () ) ;
@@ -221,9 +232,11 @@ class ViewListView extends ViewEdit
         $smarty->assign ( 'groups', $groups ) ;
         $smarty->assign('from_mb', $this->fromModuleBuilder);
 
-        global $image_path ;
-        $imageSave = SugarThemeRegistry::current()->getImage('studio_save') ;
+        global $image_path;
+        $imageSave = SugarThemeRegistry::current()->getImage('studio_save','',null,null,'.gif',$mod_strings['LBL_BTN_SAVE']) ;
+
 //        $imageHelp = SugarThemeRegistry::current()->getImage('help') ;
+
 
         $history = $parser->getHistory () ;
 
@@ -243,9 +256,11 @@ class ViewListView extends ViewEdit
 
         $smarty->assign ( 'buttons', $this->_buildImageButtons ( $buttons ) ) ;
 
-        $editImage = SugarThemeRegistry::current()->getImage('edit_inline') ;
+        $editImage = SugarThemeRegistry::current()->getImage('edit_inline','',null,null,'.gif',$mod_strings['LBL_EDIT']) ;
+
         $smarty->assign ( 'editImage', $editImage ) ;
-        $deleteImage = SugarThemeRegistry::current()->getImage('delete_inline') ;
+        $deleteImage = SugarThemeRegistry::current()->getImage('delete_inline','',null,null,'.gif',$mod_strings['LBL_MB_DELETE']) ;
+
         $smarty->assign ( 'deleteImage', $deleteImage ) ;
         $smarty->assign ( 'MOD', $GLOBALS [ 'mod_strings' ] ) ;
 

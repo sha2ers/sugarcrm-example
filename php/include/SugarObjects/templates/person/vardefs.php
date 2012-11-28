@@ -1,7 +1,7 @@
 <?php
 /*********************************************************************************
  * SugarCRM Community Edition is a customer relationship management program developed by
- * SugarCRM, Inc. Copyright (C) 2004-2011 SugarCRM Inc.
+ * SugarCRM, Inc. Copyright (C) 2004-2012 SugarCRM Inc.
  * 
  * This program is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Affero General Public License version 3 as published by the
@@ -53,6 +53,7 @@ $vardefs =array(
 			'type' => 'varchar',
 			'len' => '100',
 			'unified_search' => true,
+			'full_text_search' => array('boost' => 3),
 			'comment' => 'First name of the contact',
             'merge_filter' => 'selected',     
             
@@ -64,6 +65,7 @@ $vardefs =array(
 			'type' => 'varchar',
 			'len' => '100',
 			'unified_search' => true, 
+			'full_text_search' => array('boost' => 3),
 			'comment' => 'Last name of the contact',
             'merge_filter' => 'selected',
             'required'=>true,
@@ -132,8 +134,23 @@ $vardefs =array(
 			'dbType' => 'varchar',
 			'len' => 100,
 			'unified_search' => true, 
+			'full_text_search' => array('boost' => 1),
 			'comment' => 'Home phone number of the contact',
             'merge_filter' => 'enabled',
+		),
+		//bug 42902
+		'email'=> array(
+			'name' => 'email',
+			'type' => 'email',
+			'query_type' => 'default',
+			'source' => 'non-db',
+			'operator' => 'subquery',
+			'subquery' => 'SELECT eabr.bean_id FROM email_addr_bean_rel eabr JOIN email_addresses ea ON (ea.id = eabr.email_address_id) WHERE eabr.deleted=0 AND ea.email_address LIKE',
+			'db_field' => array(
+				'id',
+			),
+			'vname' =>'LBL_ANY_EMAIL',
+			'studio' => array('visible'=>false, 'searchview'=>true),
 		),
 	'phone_mobile' =>
 		array (
@@ -143,6 +160,7 @@ $vardefs =array(
 			'dbType' => 'varchar',
 			'len' => 100,
 			'unified_search' => true,
+			'full_text_search' => array('boost' => 1),
 			'comment' => 'Mobile phone number of the contact',
             'merge_filter' => 'enabled',
 		),
@@ -155,6 +173,7 @@ $vardefs =array(
 			'len' => 100,
 			'audited'=>true,
 			'unified_search' => true,
+			'full_text_search' => array('boost' => 1),
 			'comment' => 'Work phone number of the contact',
             'merge_filter' => 'enabled',
 		),
@@ -166,6 +185,7 @@ $vardefs =array(
 			'dbType' => 'varchar',
 			'len' => 100,
 			'unified_search' => true,
+			'full_text_search' => array('boost' => 1),
 			'comment' => 'Other phone number for the contact',
             'merge_filter' => 'enabled',
 		),
@@ -177,6 +197,7 @@ $vardefs =array(
 			'dbType' => 'varchar',
 			'len' => 100,
 			'unified_search' => true,
+			'full_text_search' => array('boost' => 1),
 			'comment' => 'Contact fax number',
             'merge_filter' => 'enabled',
 		),
@@ -191,7 +212,8 @@ $vardefs =array(
 			'source'	=> 'non-db',
 			'group'=>'email1',
             'merge_filter' => 'enabled',
-		    'studio' => array('editField' => true, 'searchview' => false),
+		    'studio' => array('editview' => true, 'editField' => true, 'searchview' => false, 'popupsearch' => false), // bug 46859 
+		    'full_text_search' => array('boost' => 3, 'index' => 'not_analyzed'), //bug 54567
 		),
 	'email2' => 
 		array(
@@ -224,6 +246,7 @@ $vardefs =array(
 		    'massupdate' => false,
 			'studio'=>'false',
 		),
+		
 	'primary_address_street' =>
 		array (
 			'name' => 'primary_address_street',
@@ -362,6 +385,7 @@ $vardefs =array(
 			'type' => 'varchar',
 			'len' => '75',
 			'unified_search' => true,
+			'full_text_search' => array('boost' => 2),
 			'comment' => 'Name of the assistant of the contact',
             'merge_filter' => 'enabled',
 		),
@@ -374,9 +398,11 @@ $vardefs =array(
 			'len' => 100,
 			'group'=>'assistant',
 			'unified_search' => true,
+			'full_text_search' => array('boost' => 1),
 			'comment' => 'Phone number of the assistant of the contact',
             'merge_filter' => 'enabled',
 		),
+		
 	'email_addresses_primary' => 
 		array (
             'name' => 'email_addresses_primary',

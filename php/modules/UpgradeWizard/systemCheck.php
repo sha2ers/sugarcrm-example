@@ -2,7 +2,7 @@
 if(!defined('sugarEntry') || !sugarEntry) die('Not A Valid Entry Point');
 /*********************************************************************************
  * SugarCRM Community Edition is a customer relationship management program developed by
- * SugarCRM, Inc. Copyright (C) 2004-2011 SugarCRM Inc.
+ * SugarCRM, Inc. Copyright (C) 2004-2012 SugarCRM Inc.
  * 
  * This program is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Affero General Public License version 3 as published by the
@@ -126,20 +126,20 @@ $dbOut = "
 		<th align='left'>{$mod_strings['LBL_UW_DB_PERMS']}</th>
 	</tr>";
 
-$db =& DBManagerFactory::getInstance();
+$db = DBManagerFactory::getInstance();
 $outs = array();
 $outs['skip'] = false;
 $outs['db'] = array();
 $outs['dbOut'] = $dbOut;
-$outs = testPermsCreate($db->dbType, $outs);
-$outs = testPermsInsert($db->dbType, $outs, $outs['skip']);
-$outs = testPermsUpdate($db->dbType, $outs, $outs['skip']);
-$outs = testPermsSelect($db->dbType, $outs, $outs['skip']);
-$outs = testPermsDelete($db->dbType, $outs, $outs['skip']);
-$outs = testPermsAlterTableAdd($db->dbType, $outs, $outs['skip']);
-$outs = testPermsAlterTableChange($db->dbType, $outs, $outs['skip']);
-$outs = testPermsAlterTableDrop($db->dbType, $outs, $outs['skip']);
-$outs = testPermsDropTable($db->dbType, $outs, $outs['skip']);
+$outs = testPermsCreate($db, $outs);
+$outs = testPermsInsert($db, $outs, $outs['skip']);
+$outs = testPermsUpdate($db, $outs, $outs['skip']);
+$outs = testPermsSelect($db, $outs, $outs['skip']);
+$outs = testPermsDelete($db, $outs, $outs['skip']);
+$outs = testPermsAlterTableAdd($db, $outs, $outs['skip']);
+$outs = testPermsAlterTableChange($db, $outs, $outs['skip']);
+$outs = testPermsAlterTableDrop($db, $outs, $outs['skip']);
+$outs = testPermsDropTable($db, $outs, $outs['skip']);
 $outs['dbOut'] .= '</table>';
 
 
@@ -158,8 +158,7 @@ $dbOut = $outs['dbOut'];
 $result = checkSystemCompliance();
 $checks = array(
 	'phpVersion'				=> $mod_strings['LBL_UW_COMPLIANCE_PHP_VERSION'],
-	'mysqlVersion'				=> $mod_strings['LBL_UW_COMPLIANCE_MYSQL'],
-	'mssqlStatus'				=> $mod_strings['LBL_UW_COMPLIANCE_MSSQL_MAGIC_QUOTES'],
+    'dbVersion'                 => $mod_strings['LBL_UW_COMPLIANCE_DB'],
 	'xmlStatus'					=> $mod_strings['LBL_UW_COMPLIANCE_XML'],
 	'curlStatus'				=> $mod_strings['LBL_UW_COMPLIANCE_CURL'],
 	'imapStatus'				=> $mod_strings['LBL_UW_COMPLIANCE_IMAP'],
@@ -167,6 +166,8 @@ $checks = array(
 	'safeModeStatus'			=> $mod_strings['LBL_UW_COMPLIANCE_SAFEMODE'],
 	'callTimeStatus'			=> $mod_strings['LBL_UW_COMPLIANCE_CALLTIME'],
 	'memory_msg'				=> $mod_strings['LBL_UW_COMPLIANCE_MEMORY'],
+    'stream_msg'                => $mod_strings['LBL_UW_COMPLIANCE_STREAM'],
+    'ZipStatus'			        => $mod_strings['LBL_UW_COMPLIANCE_ZIPARCHIVE'],
 	//commenting mbstring overload.
 	//'mbstring.func_overload'	=> $mod_strings['LBL_UW_COMPLIANCE_MBSTRING_FUNC_OVERLOAD'],
 );
@@ -275,7 +276,7 @@ $uwMain =<<<eoq
 <div id="upgradeDiv" style="display:none">
     <table border="0" cellspacing="0" cellpadding="0">
         <tr><td>
-           <p><img src='modules/UpgradeWizard/processing.gif'> <br></p>
+           <p><!--not_in_theme!--><img src='modules/UpgradeWizard/processing.gif' alt='Processing'> <br></p>
         </td></tr>
      </table>
  </div>

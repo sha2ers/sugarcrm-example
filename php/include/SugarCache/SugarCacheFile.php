@@ -1,7 +1,7 @@
 <?php
 /*********************************************************************************
  * SugarCRM Community Edition is a customer relationship management program developed by
- * SugarCRM, Inc. Copyright (C) 2004-2011 SugarCRM Inc.
+ * SugarCRM, Inc. Copyright (C) 2004-2012 SugarCRM Inc.
  * 
  * This program is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Affero General Public License version 3 as published by the
@@ -92,8 +92,19 @@ class SugarCacheFile extends SugarCacheAbstract
         parent::__destruct();
 
         if ( $this->_cacheChanged )
-            sugar_file_put_contents($GLOBALS['sugar_config']['cache_dir'].'/'.$this->_cacheFileName,
-                serialize($this->_localStore));
+            sugar_file_put_contents(sugar_cached($this->_cacheFileName), serialize($this->_localStore));
+    }
+
+    /**
+	 * This is needed to prevent unserialize vulnerability
+     */
+    public function __wakeup()
+    {
+        // clean all properties
+        foreach(get_object_vars($this) as $k => $v) {
+            $this->$k = null;
+        }
+        throw new Exception("Not a serializable object");
     }
 
     /**
@@ -117,9 +128,8 @@ class SugarCacheFile extends SugarCacheAbstract
         )
     {
         // load up the external cache file
-        if ( sugar_is_file($GLOBALS['sugar_config']['cache_dir'].'/'.$this->_cacheFileName) )
-            $this->localCache = unserialize(
-                file_get_contents($GLOBALS['sugar_config']['cache_dir'].'/'.$this->_cacheFileName));
+        if ( sugar_is_file($cachedfile = sugar_cached($this->_cacheFileName)))
+            $this->localCache = unserialize(file_get_contents($cachedfile));
 
         if ( isset($this->_localStore[$key]) )
             return $this->_localStore[$key];

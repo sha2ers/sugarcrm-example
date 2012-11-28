@@ -2,7 +2,7 @@
 if(!defined('sugarEntry') || !sugarEntry) die('Not A Valid Entry Point');
 /*********************************************************************************
  * SugarCRM Community Edition is a customer relationship management program developed by
- * SugarCRM, Inc. Copyright (C) 2004-2011 SugarCRM Inc.
+ * SugarCRM, Inc. Copyright (C) 2004-2012 SugarCRM Inc.
  * 
  * This program is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Affero General Public License version 3 as published by the
@@ -103,6 +103,27 @@ $GLOBALS['log']->info("EmailTemplate detail view");
 $xtpl=new XTemplate ('modules/EmailTemplates/DetailView.html');
 $xtpl->assign("MOD", $mod_strings);
 $xtpl->assign("APP", $app_strings);
+$buttons = array(
+    <<<EOD
+            <input type="submit" class="button" id="editEmailTemplatesButton" title="{$app_strings['LBL_EDIT_BUTTON_TITLE']}" accessKey="{$app_strings['LBL_EDIT_BUTTON_KEY']}" onclick="this.form.return_module.value='EmailTemplates'; this.form.return_action.value='DetailView'; this.form.return_id.value='{$focus->id}'; this.form.action.value='EditView'" value="{$app_strings['LBL_EDIT_BUTTON_LABEL']}">
+EOD
+,
+    <<<EOD
+            <input title="{$app_strings['LBL_DUPLICATE_BUTTON_TITLE']}" accessKey="{$app_strings['LBL_DUPLICATE_BUTTON_KEY']}" class="button" onclick="this.form.return_module.value='EmailTemplates'; this.form.return_action.value='index'; this.form.isDuplicate.value=true; this.form.action.value='EditView'" type="submit" name="button" value="{$app_strings['LBL_DUPLICATE_BUTTON_LABEL']}">
+EOD
+,
+    <<<EOD
+            <input title="{$app_strings['LBL_DELETE_BUTTON_TITLE']}" accessKey="{$app_strings['LBL_DELETE_BUTTON_KEY']}" class="button" onclick="check_deletable_EmailTemplate();" type="button" name="button" value="{$app_strings['LBL_DELETE_BUTTON_LABEL']}">
+EOD
+);
+require_once('include/Smarty/plugins/function.sugar_action_menu.php');
+$action_button = smarty_function_sugar_action_menu(array(
+    'id' => 'detail_header_action_menu',
+    'buttons' => $buttons,
+    'class' => 'clickMenu fancymenu',
+), $xtpl);
+
+$xtpl->assign("ACTION_BUTTON", $action_button);
 
 if(isset($_REQUEST['return_module'])) $xtpl->assign("RETURN_MODULE", $_REQUEST['return_module']);
 if(isset($_REQUEST['return_action'])) $xtpl->assign("RETURN_ACTION", $_REQUEST['return_action']);
@@ -120,11 +141,12 @@ $xtpl->assign("NAME", $focus->name);
 $xtpl->assign("DESCRIPTION", $focus->description);
 $xtpl->assign("SUBJECT", $focus->subject);
 $xtpl->assign("BODY", $focus->body);
-$xtpl->assign("BODY_HTML", from_html($focus->body_html));
+$xtpl->assign("BODY_HTML", json_encode(from_html($focus->body_html)));
 $xtpl->assign("DATE_MODIFIED", $focus->date_modified);
 $xtpl->assign("DATE_ENTERED", $focus->date_entered);
 $xtpl->assign("ASSIGNED_USER_NAME", $focus->assigned_user_name);
 
+$xtpl->assign("TYPE", $app_list_strings['emailTemplates_type_list'][$focus->type]);
 
 if($focus->ACLAccess('EditView')) {
 	$xtpl->parse("main.edit");
@@ -156,8 +178,7 @@ if(! isset($notes_list)) {
 $attachments = '';
 for($i=0; $i<count($notes_list); $i++) {
 	$the_note = $notes_list[$i];
-	//$attachments .= "<a href=\"".UploadFile::get_url($the_note->filename,$the_note->id)."\" target=\"_blank\">". $the_note->filename ."</a><br>";
-	$attachments .= "<a href=\"index.php?entryPoint=download&id=".$the_note->id."&type=Notes\">".$the_note->name.$the_note->description."</a><br />";
+	$attachments .= "<a href=\"index.php?entryPoint=download&id={$the_note->id}&type=Notes\">".$the_note->name."</a><br />";
 }
 
 $xtpl->assign("ATTACHMENTS", $attachments);
@@ -166,7 +187,7 @@ $xtpl->assign("ATTACHMENTS", $attachments);
 global $current_user;
 if(is_admin($current_user) && $_REQUEST['module'] != 'DynamicLayout' && !empty($_SESSION['editinplace'])) {
 
-	$xtpl->assign("ADMIN_EDIT","<a href='index.php?action=index&module=DynamicLayout&from_action=".$_REQUEST['action'] ."&from_module=".$_REQUEST['module'] ."&record=".$_REQUEST['record']. "'>".SugarThemeRegistry::current()->getImage("EditLayout","border='0' alt='Edit Layout' align='bottom'")."</a>");
+	$xtpl->assign("ADMIN_EDIT","<a href='index.php?action=index&module=DynamicLayout&from_action=".$_REQUEST['action'] ."&from_module=".$_REQUEST['module'] ."&record=".$_REQUEST['record']. "'>".SugarThemeRegistry::current()->getImage("EditLayout","border='0' align='bottom'",null,null,'.gif',$mod_strings['LBL_EDIT_LAYOUT'])."</a>");
 }
 
 $xtpl->assign("DESCRIPTION", $focus->description);

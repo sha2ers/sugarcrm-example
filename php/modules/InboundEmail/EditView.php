@@ -2,7 +2,7 @@
 if(!defined('sugarEntry') || !sugarEntry) die('Not A Valid Entry Point');
 /*********************************************************************************
  * SugarCRM Community Edition is a customer relationship management program developed by
- * SugarCRM, Inc. Copyright (C) 2004-2011 SugarCRM Inc.
+ * SugarCRM, Inc. Copyright (C) 2004-2012 SugarCRM Inc.
  * 
  * This program is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Affero General Public License version 3 as published by the
@@ -196,7 +196,9 @@ $javascript->setFormName('EditView');
 
 //If we are creating a duplicate, remove the email_password from being required since this
 //can be derived from the InboundEmail we are duplicating from
-if($isDuplicate && isset($focus->required_fields['email_password']))
+// Bug 47863 - email_password shouldn't be required on a modified Inbound Email account
+// either.
+if(($isDuplicate || !$validatePass) && isset($focus->required_fields['email_password']))
 {
    unset($focus->required_fields['email_password']);
 }
@@ -238,7 +240,7 @@ $xtpl->assign('RETURN_ACTION', $return_action);
 // module specific
 //$xtpl->assign('ROLLOVER', $email->rolloverStyle);
 $xtpl->assign("EMAIL_OPTIONS", $mod_strings['LBL_EMAIL_OPTIONS']);
-$xtpl->assign('MODULE_TITLE', getClassicModuleTitle($mod_strings['LBL_MODULE_TITLE'], array($mod_strings['LBL_MODULE_NAME'],$focus->name), true));
+$xtpl->assign('MODULE_TITLE', getClassicModuleTitle('InboundEmail', array($mod_strings['LBL_MODULE_NAME'],$focus->name), true));
 $xtpl->assign('ID', $focus->id);
 $xtpl->assign('NAME', $focus->name);
 $xtpl->assign('STATUS', $status);
@@ -354,6 +356,32 @@ $quicksearch_js = "";
 //$javascript = get_set_focus_js(). $javascript->getScript() . $quicksearch_js;
 $xtpl->assign('JAVASCRIPT', get_set_focus_js(). $javascript->getScript() . $quicksearch_js);
 
+require_once('include/Smarty/plugins/function.sugar_help.php');
+$tipsStrings = array(
+    'LBL_SSL_DESC',
+    'LBL_ASSIGN_TO_TEAM_DESC',
+    'LBL_ASSIGN_TO_GROUP_FOLDER_DESC',
+    'LBL_FROM_ADDR_DESC',
+    'LBL_CREATE_CASE_HELP',
+    'LBL_CREATE_CASE_REPLY_TEMPLATE_HELP',
+    'LBL_ALLOW_OUTBOUND_GROUP_USAGE_DESC',
+    'LBL_AUTOREPLY_HELP',
+    'LBL_FILTER_DOMAIN_DESC',
+    'LBL_MAX_AUTO_REPLIES_DESC',
+);
+$smarty = null;
+$tips = array();
+foreach ($tipsStrings as $string)
+{
+    if (!empty($mod_strings[$string]))
+    {
+        $tips[$string] = smarty_function_sugar_help(array(
+            'text' => $mod_strings[$string]
+        ), $smarty);
+    }
+}
+$xtpl->assign('TIPS', $tips);
+
 // WINDOWS work arounds
 //if(is_windows()) {
 //	$xtpl->assign('MAYBE', '<style> div.maybe { display:none; }</style>');
@@ -362,7 +390,7 @@ $xtpl->assign('JAVASCRIPT', get_set_focus_js(). $javascript->getScript() . $quic
 //Overrides for bounce mailbox accounts
 if ($focus->mailbox_type == 'bounce')
 {
-    $xtpl->assign('MODULE_TITLE', getClassicModuleTitle($mod_strings['LBL_MODULE_TITLE'], array($mod_strings['LBL_BOUNCE_MODULE_NAME'],$focus->name), true));
+    $xtpl->assign('MODULE_TITLE', getClassicModuleTitle('InboundEmail', array($mod_strings['LBL_BOUNCE_MODULE_NAME'],$focus->name), true));
     $xtpl->assign("EMAIL_OPTIONS", $mod_strings['LBL_EMAIL_BOUNCE_OPTIONS']);
     $xtpl->assign('MAILBOX_TYPE_STYLE', "display:none");
     $xtpl->assign('AUTO_IMPORT_STYLE', "display:none");
@@ -371,7 +399,7 @@ elseif ($focus->mailbox_type == 'createcase')
     $xtpl->assign("IS_CREATE_CASE", 'checked');
 
 else if( $focus->is_personal == '1')
-     $xtpl->assign('MODULE_TITLE', getClassicModuleTitle($mod_strings['LBL_MODULE_TITLE'], array($mod_strings['LBL_PERSONAL_MODULE_NAME'],$focus->name), true));
+     $xtpl->assign('MODULE_TITLE', getClassicModuleTitle('InboundEmail', array($mod_strings['LBL_PERSONAL_MODULE_NAME'],$focus->name), true));
 
 //else
 

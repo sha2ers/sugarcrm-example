@@ -2,7 +2,7 @@
 if(!defined('sugarEntry') || !sugarEntry) die('Not A Valid Entry Point');
 /*********************************************************************************
  * SugarCRM Community Edition is a customer relationship management program developed by
- * SugarCRM, Inc. Copyright (C) 2004-2011 SugarCRM Inc.
+ * SugarCRM, Inc. Copyright (C) 2004-2012 SugarCRM Inc.
  * 
  * This program is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Affero General Public License version 3 as published by the
@@ -105,8 +105,10 @@ if(!empty($_REQUEST['assigned_user_id'])){
  $xtpl->assign("APP", $app_strings);
  $Web_To_Lead_Form_html = '';
  $Web_To_Lead_Form_html .='<link rel="stylesheet" type="text/css" media="all" href="' . getJSPath(SugarThemeRegistry::current()->getCSSURL('calendar-win2k-cold-1.css')) . '">';
- $Web_To_Lead_Form_html .= "<script type=\"text/javascript\" src='" . getJSPath($site_url.'/include/javascript/sugar_grp1.js') . "'></script>";
- $Web_To_Lead_Form_html .= '<script type="text/javascript" src="' . getJSPath($site_url.'/include/javascript/calendar.js') . '"></script>';
+
+ $Web_To_Lead_Form_html .= "<script type=\"text/javascript\" src='" . getJSPath($site_url.'/cache/include/javascript/sugar_grp1.js') . "'></script>";
+ $Web_To_Lead_Form_html .= '<script type="text/javascript" src="' . getJSPath($site_url.'/cache/include/javascript/calendar.js') . '"></script>';
+
  $Web_To_Lead_Form_html .="<form action='$web_post_url' name='WebToLeadForm' method='POST' id='WebToLeadForm'>";
  $Web_To_Lead_Form_html .= "<table width='100%' style='border-top: 1px solid;
 border-bottom: 1px solid;
@@ -165,6 +167,12 @@ for($i= 0; $i<$columns;$i++){
          else{
             $field_type= $lead->field_defs[$colsFirstField]['type'];
          }
+         
+         //bug: 47574 - make sure, that webtolead_email1 field has same required attribute as email1 field
+         if($colsFirstField == 'webtolead_email1' && isset($lead->field_defs['email1']) && isset($lead->field_defs['email1']['required'])){
+             $lead->field_defs['webtolead_email1']['required'] = $lead->field_defs['email1']['required'];
+         }
+         
          $field_required = '';
          if(isset($lead->field_defs[$colsFirstField]['required']) && $lead->field_defs[$colsFirstField]['required'] != null
              && $lead->field_defs[$colsFirstField]['required'] != 0)
@@ -193,6 +201,12 @@ for($i= 0; $i<$columns;$i++){
          else{
             $field1_type= $lead->field_defs[$colsSecondField]['type'];
          }
+         
+         //bug: 47574 - make sure, that webtolead_email1 field has same required attribute as email1 field
+         if($colsSecondField == 'webtolead_email1' && isset($lead->field_defs['email1']) && isset($lead->field_defs['email1']['required'])){
+             $lead->field_defs['webtolead_email1']['required'] = $lead->field_defs['email1']['required'];
+         }
+         
          $field1_required = '';
          if(isset($lead->field_defs[$colsSecondField]['required']) && $lead->field_defs[$colsSecondField]['required'] != null
              && $lead->field_defs[$colsSecondField]['required'] != 0){
@@ -227,7 +241,7 @@ for($i= 0; $i<$columns;$i++){
                 $Web_To_Lead_Form_html .= "<td width='15%' style='text-align: left; font-size: 12px; font-weight: normal;'><span sugar='slot'>$field_label</span sugar='slot'></td>";
              }
           if(isset($lead->field_defs[$colsFirstField]['isMultiSelect']) && $lead->field_defs[$colsFirstField]['isMultiSelect'] ==1){
-            $Web_To_Lead_Form_html .= "<td width='35%' style='font-size: 12px; font-weight: normal;'><span sugar='slot'><select id='{$field_name}' multiple='true' name='{$field_name}' tabindex='1'>$lead_options</select></span sugar='slot'></td>";
+            $Web_To_Lead_Form_html .= "<td width='35%' style='font-size: 12px; font-weight: normal;'><span sugar='slot'><select id='{$field_name}' multiple='true' name='{$field_name}[]' tabindex='1'>$lead_options</select></span sugar='slot'></td>";
           }elseif(ifRadioButton($lead->field_defs[$colsFirstField]['name'])){
             $Web_To_Lead_Form_html .="<td width='35%' style='font-size: 12px; font-weight: normal;'><span sugar='slot'>";
             foreach($app_list_strings[$field_options] as $field_option_key => $field_option){
@@ -268,6 +282,7 @@ for($i= 0; $i<$columns;$i++){
           else{
                 $Web_To_Lead_Form_html .= "<td width='15%' style='text-align: left; font-size: 12px; font-weight: normal;'><span sugar='slot'>$field_label</span sugar='slot'></td>";
           }
+
 			$Web_To_Lead_Form_html .= "
 				<td width='35%' style='font-size: 12px; font-weight: normal;'>
 				<script type='text/javascript'>
@@ -303,6 +318,7 @@ for($i= 0; $i<$columns;$i++){
           	}
           	$Web_To_Lead_Form_html .= "</span></td>";
 	     } // if
+
          if( $field_type=='varchar' ||  $field_type=='name'
           ||  $field_type=='phone' || $field_type=='currency' || $field_type=='url' || $field_type=='int'){
            if($field_name=='last_name' ||   $field_required){
@@ -311,7 +327,11 @@ for($i= 0; $i<$columns;$i++){
             else{
                 $Web_To_Lead_Form_html .= "<td width='15%' style='text-align: left; font-size: 12px; font-weight: normal;'><span sugar='slot'>$field_label</span sugar='slot'></td>";
              }
-           $Web_To_Lead_Form_html .= "<td width='35%' style='font-size: 12px; font-weight: normal;'><span sugar='slot'><input id=$field_name name=$field_name type='text'></span sugar='slot'></td>";
+             if ( $field_name=='email1'||$field_name=='email2' ){
+                 $Web_To_Lead_Form_html .= "<td width='35%' style='font-size: 12px; font-weight: normal;'><span sugar='slot'><input id=$field_name name=$field_name type='text' onchange='validateEmailAdd();'></span sugar='slot'></td>";
+             } else {
+                $Web_To_Lead_Form_html .= "<td width='35%' style='font-size: 12px; font-weight: normal;'><span sugar='slot'><input id=$field_name name=$field_name type='text'></span sugar='slot'></td>";
+             }
             }
           if ( $field_type == 'text' ) {
                $Web_To_Lead_Form_html .= "<td width='15%' style='text-align: left; font-size: 12px; font-weight: normal;'><span sugar='slot'>$field_label</span sugar='slot'></td>";
@@ -352,7 +372,7 @@ for($i= 0; $i<$columns;$i++){
                 $Web_To_Lead_Form_html .= "<td width='15%' style='text-align: left; font-size: 12px; font-weight: normal;'><span sugar='slot'>$field1_label</span sugar='slot'></td>";
              }
             if(isset($lead->field_defs[$colsSecondField]['isMultiSelect']) && $lead->field_defs[$colsSecondField]['isMultiSelect'] ==1){
-                $Web_To_Lead_Form_html .= "<td width='35%' style='font-size: 12px; font-weight: normal;'><span sugar='slot'><select id='{$field1_name}' name='{$field1_name}' multiple='true' tabindex='1'>$lead1_options</select></span sugar='slot'></td>";
+                $Web_To_Lead_Form_html .= "<td width='35%' style='font-size: 12px; font-weight: normal;'><span sugar='slot'><select id='{$field1_name}' name='{$field1_name}[]' multiple='true' tabindex='1'>$lead1_options</select></span sugar='slot'></td>";
             }elseif(ifRadioButton($lead->field_defs[$colsSecondField]['name'])){
                 $Web_To_Lead_Form_html .="<td width='35%' style='font-size: 12px; font-weight: normal;'><span sugar='slot'>";
                 foreach($app_list_strings[$field1_options] as $field_option_key => $field_option){
@@ -435,7 +455,12 @@ for($i= 0; $i<$columns;$i++){
             else{
                 $Web_To_Lead_Form_html .= "<td width='15%' style='text-align: left; font-size: 12px; font-weight: normal;'><span sugar='slot'>$field1_label</span sugar='slot'></td>";
              }
-            $Web_To_Lead_Form_html .= "<td width='35%' style='font-size: 12px; font-weight: normal;'><span sugar='slot'><input id=$field1_name name=$field1_name type='text'></span sugar='slot'></td>";
+             if ( $field1_name=='email1'||$field1_name=='email2' ){
+                 $Web_To_Lead_Form_html .= "<td width='35%' style='font-size: 12px; font-weight: normal;'><span sugar='slot'><input id=$field1_name name=$field1_name type='text' onchange='validateEmailAdd();'></span sugar='slot'></td>";
+             } else {
+                $Web_To_Lead_Form_html .= "<td width='35%' style='font-size: 12px; font-weight: normal;'><span sugar='slot'><input id=$field1_name name=$field1_name type='text'></span sugar='slot'></td>";
+             }
+
            }
            if ( $field1_type == 'text' ) {
                $Web_To_Lead_Form_html .= "<td width='15%' style='text-align: left; font-size: 12px; font-weight: normal;'><span sugar='slot'>$field1_label</span sugar='slot'></td>";
@@ -555,13 +580,13 @@ $Web_To_Lead_Form_html .="<script type='text/javascript'>
    }
 }
 function validateEmailAdd(){
-	if(document.getElementById('webtolead_email1').value.length >0) {
-		if(document.getElementById('webtolead_email1').value.match($regex) == null){
+	if(document.getElementById('email1') && document.getElementById('email1').value.length >0) {
+		if(document.getElementById('email1').value.match($regex) == null){
 		  alert('$web_not_valid_email_address');
 		}
 	}
-	if(document.getElementById('webtolead_email2').value.length >0) {
-		if(document.getElementById('webtolead_email2').value.match($regex) == null){
+	if(document.getElementById('email2') && document.getElementById('email2').value.length >0) {
+		if(document.getElementById('email2').value.match($regex) == null){
 		  alert('$web_not_valid_email_address');
 		}
 	}

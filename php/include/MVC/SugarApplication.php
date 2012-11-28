@@ -1,7 +1,7 @@
 <?php
 /*********************************************************************************
  * SugarCRM Community Edition is a customer relationship management program developed by
- * SugarCRM, Inc. Copyright (C) 2004-2011 SugarCRM Inc.
+ * SugarCRM, Inc. Copyright (C) 2004-2012 SugarCRM Inc.
  * 
  * This program is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Affero General Public License version 3 as published by the
@@ -43,6 +43,10 @@
 require_once('include/MVC/Controller/ControllerFactory.php');
 require_once('include/MVC/View/ViewFactory.php');
 
+/**
+ * SugarCRM application
+ * @api
+ */
 class SugarApplication
 {
  	var $controller = null;
@@ -65,7 +69,7 @@ class SugarApplication
 		insert_charset_header();
 		$this->setupPrint();
 		$this->controller = ControllerFactory::getController($module);
-        // if the entry point is defined to not need auth, then don't authenicate
+        // If the entry point is defined to not need auth, then don't authenticate.
 		if( empty($_REQUEST['entryPoint'])
                 || $this->controller->checkEntryPointRequiresAuth($_REQUEST['entryPoint']) ){
             $this->loadUser();
@@ -94,32 +98,29 @@ class SugarApplication
 		// Double check the server's unique key is in the session.  Make sure this is not an attempt to hijack a session
 		$user_unique_key = (isset($_SESSION['unique_key'])) ? $_SESSION['unique_key'] : '';
 		$server_unique_key = (isset($sugar_config['unique_key'])) ? $sugar_config['unique_key'] : '';
-		$allowed_actions = (!empty($this->controller->allowed_actions)) ? $this->controller->allowed_actions : $allowed_actions = array('Authenticate', 'Login',);
+		$allowed_actions = (!empty($this->controller->allowed_actions)) ? $this->controller->allowed_actions : $allowed_actions = array('Authenticate', 'Login', 'LoggedOut');
 
 		if(($user_unique_key != $server_unique_key) && (!in_array($this->controller->action, $allowed_actions)) &&
 		   (!isset($_SESSION['login_error'])))
 		   {
 			session_destroy();
-			$post_login_nav = '';
 
-			if(!empty($this->controller->module)){
-				$post_login_nav .= '&login_module='.$this->controller->module;
-			}
 			if(!empty($this->controller->action)){
-			    if(in_array(strtolower($this->controller->action), array('delete')))
-			        $post_login_nav .= '&login_action=DetailView';
-			    elseif(in_array(strtolower($this->controller->action), array('save')))
-			        $post_login_nav .= '&login_action=EditView';
+			    if(strtolower($this->controller->action) == 'delete')
+			        $this->controller->action = 'DetailView';
+			    elseif(strtolower($this->controller->action) == 'save')
+			        $this->controller->action = 'EditView';
+                elseif(strtolower($this->controller->action) == 'quickcreate') {
+                    $this->controller->action = 'index';
+                    $this->controller->module = 'home';
+                }
 			    elseif(isset($_REQUEST['massupdate'])|| isset($_GET['massupdate']) || isset($_POST['massupdate']))
-			        $post_login_nav .= '&login_action=index';
-			    else
-				    $post_login_nav .= '&login_action='.$this->controller->action;
-			}
-			if(!empty($this->controller->record)){
-				$post_login_nav .= '&login_record='.$this->controller->record;
+			        $this->controller->action = 'index';
+			    elseif($this->isModifyAction())
+			        $this->controller->action = 'index';
 			}
 
-			header('Location: index.php?action=Login&module=Users'.$post_login_nav);
+			header('Location: index.php?action=Login&module=Users'.$this->createLoginVars());
 			exit ();
 		}
 
@@ -358,31 +359,31 @@ class SugarApplication
  	function checkDatabaseVersion($dieOnFailure = true)
  	{
  	    $row_count = sugar_cache_retrieve('checkDatabaseVersion_row_count');
- 	    if ( empty($row_count) ) {
-            global $sugar_db_version;
-            $version_query = 'SELECT count(*) as the_count FROM config WHERE category=\'info\' AND name=\'sugar_version\'';
-
-            if($GLOBALS['db']->dbType == 'oci8'){
-            }
-            else if ($GLOBALS['db']->dbType == 'mssql'){
-                $version_query .= " AND CAST(value AS varchar(8000)) = '$sugar_db_version'";
-            }
-            else {
-                $version_query .= " AND value = '$sugar_db_version'";
-            }
+ 	    if ( empty($row_count) )
+ 	    {
+            $version_query = "SELECT count(*) as the_count FROM config WHERE category='info' AND name='sugar_version' AND ".
+            $GLOBALS['db']->convert('value', 'text2char')." = ".$GLOBALS['db']->quoted($GLOBALS['sugar_db_version']);
 
             $result = $GLOBALS['db']->query($version_query);
-            $row = $GLOBALS['db']->fetchByAssoc($result, -1, true);
+            $row = $GLOBALS['db']->fetchByAssoc($result);
             $row_count = $row['the_count'];
             sugar_cache_put('checkDatabaseVersion_row_count', $row_count);
         }
 
-		if($row_count == 0 && empty($GLOBALS['sugar_config']['disc_client'])){
-			$sugar_version = $GLOBALS['sugar_version'];
+		if ($row_count == 0 && empty($GLOBALS['sugar_config']['disc_client']))
+		{
 			if ( $dieOnFailure )
-				sugar_die("Sugar CRM $sugar_version Files May Only Be Used With A Sugar CRM $sugar_db_version Database.");
+			{
+				$replacementStrings = array(
+					0 => $GLOBALS['sugar_version'],
+					1 => $GLOBALS['sugar_db_version'],
+				);
+				sugar_die(string_format($GLOBALS['app_strings']['ERR_DB_VERSION'], $replacementStrings));
+			}
 			else
+			{
 			    return false;
+			}
 		}
 
 		return true;
@@ -477,6 +478,7 @@ class SugarApplication
 		'Trackers' => array('trackersettings'),
 	    'SugarFavorites' => array('tag'),
 	    'Import' => array('last', 'undo'),
+	    'Users' => array('changepassword', "generatepassword"),
 	);
 
 	protected function isModifyAction()
@@ -486,7 +488,7 @@ class SugarApplication
 	        return true;
 	    }
 	    if(isset($this->modifyModules[$this->controller->module])) {
-	        if($this->modifyModules[$this->controller->module] == true) {
+	        if($this->modifyModules[$this->controller->module] === true) {
 	            return true;
 	        }
 	        if(in_array($this->controller->action, $this->modifyModules[$this->controller->module])) {
@@ -503,6 +505,12 @@ class SugarApplication
         return false;
 	}
 
+    /**
+     * The list of the actions excepted from referer checks by default
+     * @var array
+     */
+	protected $whiteListActions = array('index', 'ListView', 'DetailView', 'EditView', 'oauth', 'authorize', 'Authenticate', 'Login', 'SupportPortal');
+
 	/**
 	 *
 	 * Checks a request to ensure the request is coming from a valid source or it is for one of the white listed actions
@@ -510,7 +518,9 @@ class SugarApplication
 	protected function checkHTTPReferer($dieIfInvalid = true)
 	{
 		global $sugar_config;
-		$whiteListActions = (!empty($sugar_config['http_referer']['actions']))?$sugar_config['http_referer']['actions']:array('index', 'ListView', 'DetailView', 'EditView','oauth', 'Authenticate', 'Login', 'SupportPortal');
+		if(!empty($sugar_config['http_referer']['actions'])) {
+		    $this->whiteListActions = array_merge($sugar_config['http_referer']['actions'], $this->whiteListActions);
+		}
 
 		$strong = empty($sugar_config['http_referer']['weak']);
 
@@ -521,9 +531,9 @@ class SugarApplication
 			$whiteListReferers = array_merge($whiteListReferers,$sugar_config['http_referer']['list']);
 		}
 
-		if($strong && empty($_SERVER['HTTP_REFERER']) && !in_array($this->controller->action, $whiteListActions) && $this->isModifyAction()) {
+		if($strong && empty($_SERVER['HTTP_REFERER']) && !in_array($this->controller->action, $this->whiteListActions ) && $this->isModifyAction()) {
 		    $http_host = explode(':', $_SERVER['HTTP_HOST']);
-
+            $whiteListActions = $this->whiteListActions;
 			$whiteListActions[] = $this->controller->action;
 			$whiteListString = "'" . implode("', '", $whiteListActions) . "'";
             if ( $dieIfInvalid ) {
@@ -539,11 +549,12 @@ class SugarApplication
 		} else
 		if(!empty($_SERVER['HTTP_REFERER']) && !empty($_SERVER['SERVER_NAME'])){
 			$http_ref = parse_url($_SERVER['HTTP_REFERER']);
-			if($http_ref['host'] !== $_SERVER['SERVER_NAME']  && !in_array($this->controller->action, $whiteListActions) &&
+			if($http_ref['host'] !== $_SERVER['SERVER_NAME']  && !in_array($this->controller->action, $this->whiteListActions) &&
 
 				(empty($whiteListReferers) || !in_array($http_ref['host'], $whiteListReferers))){
                 if ( $dieIfInvalid ) {
                     header("Cache-Control: no-cache, must-revalidate");
+                    $whiteListActions = $this->whiteListActions;
                     $whiteListActions[] = $this->controller->action;
                     $whiteListString = "'" . implode("', '", $whiteListActions) . "'";
 
@@ -565,9 +576,7 @@ class SugarApplication
 	    if(isset($_REQUEST['MSID'])) {
 			session_id($_REQUEST['MSID']);
 			session_start();
-			if(isset($_SESSION['user_id']) && isset($_SESSION['seamless_login'])){
-				unset ($_SESSION['seamless_login']);
-			}else{
+            if(!isset($_SESSION['user_id'])){
 				if(isset($_COOKIE['PHPSESSID'])){
 	       			self::setCookie('PHPSESSID', '', time()-42000, '/');
         		}
@@ -588,7 +597,12 @@ class SugarApplication
             }
         }
 
+
+        LogicHook::initialize()->call_custom_logic('', 'after_session_start');
 	}
+
+
+
 
 	function endSession(){
 		session_destroy();
@@ -681,5 +695,74 @@ class SugarApplication
 	        setcookie($name,$value,$expire,$path,$domain,$secure,$httponly);
 
 	    $_COOKIE[$name] = $value;
+	}
+
+	protected $redirectVars = array('module', 'action', 'record', 'token', 'oauth_token', 'mobile');
+
+	/**
+	 * Create string to attach to login URL with vars to preserve post-login
+	 * @return string URL part with login vars
+	 */
+	public function createLoginVars()
+	{
+	    $ret = array();
+        foreach($this->redirectVars as $var) {
+            if(!empty($this->controller->$var)) {
+                $ret["login_".$var] = $this->controller->$var;
+                continue;
+            }
+            if(!empty($_REQUEST[$var])) {
+                $ret["login_".$var] = $_REQUEST[$var];
+            }
+        }
+        if(isset($_REQUEST['mobile'])) {
+            $ret['mobile'] = $_REQUEST['mobile'];
+        }
+        if(isset($_REQUEST['no_saml'])) {
+            $ret['no_saml'] = $_REQUEST['no_saml'];
+        }
+        if(empty($ret)) return '';
+        return "&".http_build_query($ret);
+	}
+
+	/**
+	 * Get the list of vars passed with login form
+	 * @param bool $add_empty Add empty vars to the result?
+	 * @return array List of vars passed with login
+	 */
+	public function getLoginVars($add_empty = true)
+	{
+	    $ret = array();
+        foreach($this->redirectVars as $var) {
+            if(!empty($_REQUEST['login_'.$var]) || $add_empty) {
+                $ret["login_".$var] = isset($_REQUEST['login_'.$var])?$_REQUEST['login_'.$var]:'';
+            }
+        }
+	    return $ret;
+	}
+
+	/**
+	 * Get URL to redirect after the login
+	 * @return string the URL to redirect to
+	 */
+	public function getLoginRedirect()
+	{
+        $vars = array();
+        foreach($this->redirectVars as $var) {
+            if(!empty($_REQUEST['login_'.$var])) $vars[$var] = $_REQUEST['login_'.$var];
+        }
+        if(isset($_REQUEST['mobile'])) {
+            $vars['mobile'] = $_REQUEST['mobile'];
+        }
+
+        if(isset($_REQUEST['mobile']))
+        {
+         	      $vars['mobile'] = $_REQUEST['mobile'];
+        }
+        if(empty($vars)) {
+            return "index.php?module=Home&action=index";
+        } else {
+            return "index.php?".http_build_query($vars);
+        }
 	}
 }

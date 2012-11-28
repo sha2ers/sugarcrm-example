@@ -3,7 +3,7 @@ if(!defined('sugarEntry') || !sugarEntry) die('Not A Valid Entry Point');
 
 /*********************************************************************************
  * SugarCRM Community Edition is a customer relationship management program developed by
- * SugarCRM, Inc. Copyright (C) 2004-2011 SugarCRM Inc.
+ * SugarCRM, Inc. Copyright (C) 2004-2012 SugarCRM Inc.
  * 
  * This program is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Affero General Public License version 3 as published by the
@@ -59,7 +59,7 @@ function getControl(
     $value = ''
     )
 {
-    global $current_language, $app_strings, $dictionary, $app_list_strings;
+    global $current_language, $app_strings, $dictionary, $app_list_strings, $current_user;
     
     // use the mod_strings for this module
     $mod_strings = return_module_language($current_language,$module);
@@ -68,7 +68,7 @@ function getControl(
     $file = create_cache_directory('modules/Import/') . $module . $fieldname . '.tpl';
 
     if ( !is_file($file)
-            || !empty($GLOBALS['sugar_config']['developerMode'])
+            || inDeveloperMode()
             || !empty($_SESSION['developerMode']) ) {
         
         if ( !isset($vardef) ) {
@@ -143,7 +143,9 @@ function getControl(
         $pm = $match[2] == "pm" ? "%P" : "%p";
         $ss->assign('CALENDAR_FORMAT', $date_format . ' ' . $t23 . $time_separator . "%M" . $pm);
     }
-    
+
+    $ss->assign('CALENDAR_FDOW', $current_user->get_first_day_of_week());
+ 
     // populate the fieldlist from the vardefs
     $fieldlist = array();
     if ( !isset($focus) || !($focus instanceof SugarBean) )

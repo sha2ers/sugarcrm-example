@@ -1,7 +1,7 @@
 {*
 /*********************************************************************************
  * SugarCRM Community Edition is a customer relationship management program developed by
- * SugarCRM, Inc. Copyright (C) 2004-2011 SugarCRM Inc.
+ * SugarCRM, Inc. Copyright (C) 2004-2012 SugarCRM Inc.
  * 
  * This program is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Affero General Public License version 3 as published by the
@@ -36,7 +36,7 @@
 
 *}
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
-<html>
+<html {$langHeader}>
 <head>
 <link rel="SHORTCUT ICON" href="{$FAVICON_URL}">
 <meta http-equiv="Content-Type" content="text/html; charset={$APP.LBL_CHARSET}">
@@ -62,10 +62,9 @@ function disableReturnSubmission(e) {
 <input type='hidden' name='action' value='SaveUserWizard'/>
 <input type='hidden' name='module' value='Users'/>
 <span class='error'>{$error.main}</span>
-{overlib_includes}
-<script type="text/javascript" src="{sugar_getjspath file='include/javascript/sugar_grp_yui_widgets.js'}"></script>
+<script type="text/javascript" src="{sugar_getjspath file='cache/include/javascript/sugar_grp_yui_widgets.js'}"></script>
 <script type="text/javascript" src="{sugar_getjspath file='modules/Emails/javascript/vars.js'}"></script>
-<script type="text/javascript" src="{sugar_getjspath file='include/javascript/sugar_grp_emails.js'}"></script>
+<script type="text/javascript" src="{sugar_getjspath file='cache/include/javascript/sugar_grp_emails.js'}"></script>
 <script type="text/javascript" src="{sugar_getjspath file='modules/Users/User.js'}"></script>
 
 <div class="dashletPanelMenu wizard">
@@ -91,7 +90,7 @@ function disableReturnSubmission(e) {
                <p> {$MOD.LBL_WIZARD_WELCOME_NOSMTP}</p>
                 {/if}
 
-				<div class="userWizWelcome"><img src='include/images/sugar_wizard_welcome.jpg' border='0' width='765px' height='325px'></div>
+				<div class="userWizWelcome"><img src='include/images/sugar_wizard_welcome.jpg' border='0' alt='{$MOD.LBL_WIZARD_WELCOME_TAB}' width='765px' height='325px'></div>
                 </td>
             </tr>
             </table>
@@ -249,13 +248,9 @@ function disableReturnSubmission(e) {
                         <td colspan="4"><hr /></td>
                     </tr>
                     <tr>
-                        {capture name=SMARTY_LOCALE_NAME_FORMAT_DESC}&nbsp;{$MOD.LBL_LOCALE_NAME_FORMAT_DESC}<br />{$MOD.LBL_LOCALE_NAME_FORMAT_DESC_2}{/capture}
+                        {capture name=SMARTY_LOCALE_NAME_FORMAT_DESC}&nbsp;{$MOD.LBL_LOCALE_NAME_FORMAT_DESC}{/capture}
                         <td nowrap="nowrap" scope="row" valign="top">{$MOD.LBL_LOCALE_DEFAULT_NAME_FORMAT}:&nbsp;{sugar_help text=$smarty.capture.SMARTY_LOCALE_NAME_FORMAT_DESC }</td>
-                        <td valign="top">
-                            <input onkeyup="setPreview();" onkeydown="setPreview();" id="default_locale_name_format" type="text" tabindex='14' name="default_locale_name_format" value="{$default_locale_name_format}">
-                        </td>
-                        <td nowrap="nowrap" scope="row" valign="top"><i>{$MOD.LBL_LOCALE_EXAMPLE_NAME_FORMAT}:</i> </td>
-                        <td valign="top"><input tabindex='14' name="no_value" id="nameTarget" value="" style="border: none;" disabled size="30"></td>
+                        <td><slot><select id="default_locale_name_format" tabindex='14' name="default_locale_name_format" selected="{$default_locale_name_format}">{$NAMEOPTIONS}</select></slot></td>
                     </tr>
                 </table>
                 </div>
@@ -439,6 +434,7 @@ var SugarWizard = new function()
                 {if $REQUIRED_EMAIL_ADDRESS}
                 {literal}
                 if ( document.getElementById('email1').value == '' ) {
+                    document.getElementById('email1').focus();
                     add_error_style('UserWizard',form.email1.name,
                         '{/literal}{$APP.ERR_MISSING_REQUIRED_FIELDS} {$MOD.LBL_EMAIL}{literal}' );
                     isError = true;

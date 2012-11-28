@@ -2,7 +2,7 @@
 if(!defined('sugarEntry') || !sugarEntry) die('Not A Valid Entry Point');
 /*********************************************************************************
  * SugarCRM Community Edition is a customer relationship management program developed by
- * SugarCRM, Inc. Copyright (C) 2004-2011 SugarCRM Inc.
+ * SugarCRM, Inc. Copyright (C) 2004-2012 SugarCRM Inc.
  * 
  * This program is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Affero General Public License version 3 as published by the
@@ -197,10 +197,16 @@ class ListLayoutMetaDataParser extends AbstractMetaDataParser implements MetaDat
             if (is_array($def['studio']))
             {
                 $view = !empty($_REQUEST['view']) ? $_REQUEST['view'] : $this->view;
-
+                
+            	// fix for removing email1 field from studio popup searchview - bug 42902
+                if($view == 'popupsearch' && $key == 'email1')
+                {	
+            		return false;
+            	} //end bug 42902
+           
             	if (!empty($view) && isset($def['studio'][$view]) && ($def['studio'][$view] !== false && (string)$def['studio'][$view] != 'false' && (string)$def['studio'][$view] != 'hidden'))
-            	{
-            		return true;
+                {
+					return true;
                 }
 
                 if (isset($def['studio']['listview']) && ($def['studio']['listview'] !== false && (string)$def['studio']['listview'] != 'false' && (string)$def['studio']['listview'] != 'hidden'))
@@ -299,6 +305,14 @@ class ListLayoutMetaDataParser extends AbstractMetaDataParser implements MetaDat
 						continue ;
 
 	                $newViewdefs [ $fieldname ] = $this->_trimFieldDefs($this->_fielddefs [ $fieldname ]) ;
+                    
+                    // fixing bug #25640: Value of "Relate" custom field is not displayed as a link in list view
+                    // we should set additional params such as 'link' and 'id' to be stored in custom listviewdefs.php
+                    if (isset($this->_fielddefs[$fieldname]['type']) && $this->_fielddefs[$fieldname]['type'] == 'relate')
+                    {
+                        $newViewdefs[$fieldname]['id'] = strtoupper($this->_fielddefs[$fieldname]['id_name']);
+                        $newViewdefs[$fieldname]['link'] = true;
+                    }
                     // sorting fields of certain types will cause a database engine problems
 	                if ( isset($this->_fielddefs[$fieldname]['type']) &&
 	                		isset ( $rejectTypes [ $this->_fielddefs [ $fieldname ] [ 'type' ] ] ))

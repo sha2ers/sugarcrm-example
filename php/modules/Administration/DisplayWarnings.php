@@ -2,7 +2,7 @@
 if(!defined('sugarEntry') || !sugarEntry) die('Not A Valid Entry Point');
 /*********************************************************************************
  * SugarCRM Community Edition is a customer relationship management program developed by
- * SugarCRM, Inc. Copyright (C) 2004-2011 SugarCRM Inc.
+ * SugarCRM, Inc. Copyright (C) 2004-2012 SugarCRM Inc.
  * 
  * This program is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Affero General Public License version 3 as published by the
@@ -43,6 +43,13 @@ function displayAdminError($errorString){
 		echo $output;
 }
 
+if(!empty($_SESSION['display_lotuslive_alert'])){
+    displayAdminError(translate('MSG_RECONNECT_LOTUSLIVE', 'Administration'));
+}
+
+
+
+
 if(isset($_SESSION['rebuild_relationships'])){
 	displayAdminError(translate('MSG_REBUILD_RELATIONSHIPS', 'Administration'));
 }
@@ -63,14 +70,14 @@ if(!empty($_SESSION['HomeOnly'])){
 }
 
 if(isset($license) && !empty($license->settings['license_msg_all'])){
-	displayAdminError(base64_decode($license->settings['license_msg_all']));	
+	displayAdminError(base64_decode($license->settings['license_msg_all']));
 }
 if ( (strpos($_SERVER["SERVER_SOFTWARE"],'Microsoft-IIS') !== false) && (php_sapi_name() == 'cgi-fcgi') && (ini_get('fastcgi.logging') != '0') ) {
     displayAdminError(translate('LBL_FASTCGI_LOGGING', 'Administration'));
 }
 if(is_admin($current_user)){
 if(!empty($_SESSION['COULD_NOT_CONNECT'])){
-	displayAdminError(translate('LBL_COULD_NOT_CONNECT', 'Administration') . ' '. $timedate->to_display_date_time($_SESSION['COULD_NOT_CONNECT']));		
+	displayAdminError(translate('LBL_COULD_NOT_CONNECT', 'Administration') . ' '. $timedate->to_display_date_time($_SESSION['COULD_NOT_CONNECT']));
 }
 if(!empty($_SESSION['EXCEEDING_OC_LICENSES']) && $_SESSION['EXCEEDING_OC_LICENSES'] == true){
     displayAdminError(translate('LBL_EXCEEDING_OC_LICENSES', 'Administration'));
@@ -109,14 +116,6 @@ if($smtp_error) {
 		}
 
 
-
-		
-
-
-
-
-
-
         if(empty($GLOBALS['sugar_config']['admin_access_control'])){
 			if(isset($_SESSION['invalid_versions'])){
 				$invalid_versions = $_SESSION['invalid_versions'];
@@ -124,7 +123,7 @@ if($smtp_error) {
 					displayAdminError(translate('WARN_UPGRADE', 'Administration'). $invalid['name'] .translate('WARN_UPGRADE2', 'Administration'));
 				}
 			}
-		
+
 			if (isset($_SESSION['available_version'])){
 				if($_SESSION['available_version'] != $sugar_version)
 				{

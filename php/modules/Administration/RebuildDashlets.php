@@ -2,7 +2,7 @@
 if(!defined('sugarEntry') || !sugarEntry) die('Not A Valid Entry Point');
 /*********************************************************************************
  * SugarCRM Community Edition is a customer relationship management program developed by
- * SugarCRM, Inc. Copyright (C) 2004-2011 SugarCRM Inc.
+ * SugarCRM, Inc. Copyright (C) 2004-2012 SugarCRM Inc.
  * 
  * This program is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Affero General Public License version 3 as published by the
@@ -40,16 +40,16 @@ $silent = isset($_REQUEST['silent']) ? true : false;
 if(is_admin($current_user)){
     global $mod_strings;
 	if (!$silent) { echo $mod_strings['LBL_REBUILD_DASHLETS_DESC']; }
-    if(is_file($GLOBALS['sugar_config']['cache_dir'].'dashlets/dashlets.php')) {
-        unlink($GLOBALS['sugar_config']['cache_dir'].'dashlets/dashlets.php');
+    if(is_file($cachedfile = sugar_cached('dashlets/dashlets.php'))) {
+        unlink($cachedfile);
     }
     require_once('include/Dashlets/DashletCacheBuilder.php');
-    
+
     $dc = new DashletCacheBuilder();
     $dc->buildCache();
    if( !$silent ) echo '<br><br><br><br>' . $mod_strings['LBL_REBUILD_DASHLETS_DESC_SUCCESS'];
 }
 else{
-	sugar_die($GLOBALS['app_strings']['ERR_NOT_ADMIN']); 
+	sugar_die($GLOBALS['app_strings']['ERR_NOT_ADMIN']);
 }
 ?>

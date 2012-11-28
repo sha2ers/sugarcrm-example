@@ -1,7 +1,7 @@
 <?php
 /*********************************************************************************
  * SugarCRM Community Edition is a customer relationship management program developed by
- * SugarCRM, Inc. Copyright (C) 2004-2011 SugarCRM Inc.
+ * SugarCRM, Inc. Copyright (C) 2004-2012 SugarCRM Inc.
  * 
  * This program is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Affero General Public License version 3 as published by the
@@ -39,6 +39,10 @@ require_once ('include/externalAPI/Base/ExternalAPIPlugin.php');
 require_once ('include/externalAPI/Base/ExternalOAuthAPIPlugin.php');
 require_once('include/connectors/sources/SourceFactory.php');
 
+/**
+ * Base implementation for external API
+ * @api
+ */
 abstract class ExternalAPIBase implements ExternalAPIPlugin
 {
     public $account_name;
@@ -46,10 +50,10 @@ abstract class ExternalAPIBase implements ExternalAPIPlugin
     public $authMethod = 'password';
     public $useAuth = true;
     public $requireAuth = true;
-    
+
     const APP_STRING_ERROR_PREFIX = 'ERR_EXTERNAL_API_';
     protected $_appStringErrorPrefix = self::APP_STRING_ERROR_PREFIX;
-    
+
     /**
      * Authorization data
      * @var EAPM
@@ -131,6 +135,21 @@ abstract class ExternalAPIBase implements ExternalAPIPlugin
         $ch = curl_init($url);
         curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        
+        $proxy_config = SugarModule::get('Administration')->loadBean();
+        $proxy_config->retrieveSettings('proxy');
+        
+        if( !empty($proxy_config) && 
+            !empty($proxy_config->settings['proxy_on']) &&
+            $proxy_config->settings['proxy_on'] == 1) {
+
+            curl_setopt($ch, CURLOPT_PROXY, $proxy_config->settings['proxy_host']);
+            curl_setopt($ch, CURLOPT_PROXYPORT, $proxy_config->settings['proxy_port']);
+            if (!empty($proxy_settings['proxy_auth'])) {
+                curl_setopt($ch, CURLOPT_PROXYUSERPWD, $proxy_settings['proxy_username'] . ':' . $proxy_settings['proxy_password']);
+            }
+        }   
+        
         if ( ( is_array($postfields) && count($postfields) == 0 ) ||
              empty($postfields) ) {
             curl_setopt($ch, CURLOPT_POST, false);
@@ -177,16 +196,16 @@ abstract class ExternalAPIBase implements ExternalAPIPlugin
         if(empty($connector)) return null;
         return $connector->getProperty($name);
 	}
-	
-	
+
+
 	/**
 	 * formatCallbackURL
-	 * 
+	 *
 	 * This function takes a callback_url and checks the $_REQUEST variable to see if
 	 * additional parameters should be appended to the callback_url value.  The $_REQUEST variables
 	 * that are being checked deal with handling the behavior of closing/hiding windows/tabs that
 	 * are displayed when prompting for OAUTH validation
-	 * 
+	 *
 	 * @param $callback_url String value of callback URL
 	 * @return String value of URL with applicable formatting
 	 */
@@ -202,22 +221,22 @@ abstract class ExternalAPIBase implements ExternalAPIPlugin
          {
              $callback_url .= '&callbackFunction=' . $_REQUEST['callbackFunction'];
          }
-            
+
          //Pass back the id of the application that triggered this oauth login
          if (!empty($_REQUEST['application']))
          {
              $callback_url .= '&application=' . $_REQUEST['application'];
-         }		
-            
+         }
+
 	     //Pass back the id of the application that triggered this oauth login
          if (!empty($_REQUEST['refreshParentWindow']))
          {
              $callback_url .= '&refreshParentWindow=' . $_REQUEST['refreshParentWindow'];
-         }         
-         
+         }
+
          return $callback_url;
-	}	
-	
+	}
+
 	/**
 	 * Allow API clients to provide translated language strings for a given error code
 	 *
@@ -228,8 +247,8 @@ abstract class ExternalAPIBase implements ExternalAPIPlugin
 	    $language_key = $this->_appStringErrorPrefix . $error_numb;
 	    if( isset($GLOBALS['app_strings'][$language_key]) )
 	       return $GLOBALS['app_strings'][$language_key];
-	    else 
-	       return $GLOBALS['app_strings']['ERR_EXTERNAL_API_SAVE_FAIL'];	    
+	    else
+	       return $GLOBALS['app_strings']['ERR_EXTERNAL_API_SAVE_FAIL'];
 	}
 
     /**

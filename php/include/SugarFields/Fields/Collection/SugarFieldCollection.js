@@ -1,6 +1,6 @@
 /*********************************************************************************
  * SugarCRM Community Edition is a customer relationship management program developed by
- * SugarCRM, Inc. Copyright (C) 2004-2011 SugarCRM Inc.
+ * SugarCRM, Inc. Copyright (C) 2004-2012 SugarCRM Inc.
  *
  * This program is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Affero General Public License version 3 as published by the
@@ -52,7 +52,7 @@ currentNode.name=new_name;currentNode.id=new_id;currentNode.value=values['name']
 if(hidden_count==radios.length){radios[0].parentNode.parentNode.parentNode.style.display='';}
 arrow.value='hide';}else{more_.src="index.php?entryPoint=getImage&themeName="+SUGAR.themes.theme_name+"&imageName=basic_search.gif";this.more_status=false;for(var k=0;k<radios.length;k++){if(isInteger(k)){radios[k].parentNode.parentNode.parentNode.style.display='';}}
 arrow.value='show';}
-var more_div=document.getElementById('more_div_'+this.field_element_name);if(more_div){more_div.innerHTML=arrow.value=='show'?SUGAR.language.get('app_strings','LBL_HIDE'):SUGAR.language.get('app_strings','LBL_SHOW');}}},create_clone:function(){var oneField=document.getElementById('lineFields_'+this.field_element_name+'_0');this.cloneField[0]=SUGAR.isIE?SUGAR.collection.safe_clone(oneField,true):oneField.cloneNode(true);this.cloneField[1]=oneField.parentNode;this.more_status=true;var clone_id=this.form+'_'+this.field+'_collection_0';if(typeof sqs_objects!='undefined'&&typeof sqs_objects[clone_id]!='undefined'){var clone=YAHOO.lang.JSON.stringify(sqs_objects[clone_id]);eval('this.sqs_clone='+clone);}},validateTemSet:function(formname,fieldname){var table_element_id=formname+'_'+fieldname+'_table';if(document.getElementById(table_element_id)){var input_elements=YAHOO.util.Selector.query('input[type=radio]',document.getElementById(table_element_id));var has_primary=false;var primary_field_id=fieldname+'_collection_0';for(t in input_elements){primary_field_id=fieldname+'_collection_'+input_elements[t].value;if(input_elements[t].type&&input_elements[t].type=='radio'&&input_elements[t].checked==true){if(document.forms[formname].elements[primary_field_id].value!=''){has_primary=true;}
+var more_div=document.getElementById('more_div_'+this.field_element_name);if(more_div){more_div.innerHTML=arrow.value=='show'?SUGAR.language.get('app_strings','LBL_HIDE'):SUGAR.language.get('app_strings','LBL_SHOW');}}},create_clone:function(){var oneField=document.getElementById('lineFields_'+this.field_element_name+'_0');this.cloneField[0]=SUGAR.isIE?SUGAR.collection.safe_clone(oneField,true):oneField.cloneNode(true);this.cloneField[1]=oneField.parentNode;var clone_id=this.form+'_'+this.field+'_collection_0';if(typeof sqs_objects!='undefined'&&typeof sqs_objects[clone_id]!='undefined'){var clone=YAHOO.lang.JSON.stringify(sqs_objects[clone_id]);eval('this.sqs_clone='+clone);}},validateTemSet:function(formname,fieldname){var table_element_id=formname+'_'+fieldname+'_table';if(document.getElementById(table_element_id)){var input_elements=YAHOO.util.Selector.query('input[type=radio]',document.getElementById(table_element_id));var has_primary=false;var primary_field_id=fieldname+'_collection_0';for(t in input_elements){primary_field_id=fieldname+'_collection_'+input_elements[t].value;if(input_elements[t].type&&input_elements[t].type=='radio'&&input_elements[t].checked==true){if(document.forms[formname].elements[primary_field_id].value!=''){has_primary=true;}
 break;}}
 if(!has_primary){return false;}
 return true;}
@@ -68,12 +68,11 @@ return isFirstFieldEmpty;},show_arrow_label:function(show){var more_div=document
 return false;}};SUGAR.collection.safe_clone=function(e,recursive)
 {if(e.nodeName=="#text")
 {return document.createTextNode(e.data);}
-if(!e.tagName)return false;var newNode=document.createElement(e.tagName);if(!newNode)return false;var properties=['class','style','name','type','valign','border','width','height','top','bottom','left','right','scope','row','columns','src','href','className','align','nowrap'];if(SUGAR.isIE7&&e.tagName.toLowerCase()=='input')
-{var properties=['class','style','name','type','valign','border','width','top','bottom','left','right','scope','row','columns','src','href','className','align','nowrap'];}else{var properties=['class','style','name','type','valign','border','width','height','top','bottom','left','right','scope','row','columns','src','href','className','align','nowrap'];}
+if(!e.tagName)return false;var newNode=document.createElement(e.tagName);if(!newNode)return false;var properties=['id','class','style','name','type','valign','border','width','height','top','bottom','left','right','scope','row','columns','src','href','className','align','nowrap'];if(SUGAR.isIE7&&e.tagName.toLowerCase()=='input')
+{var properties=['id','class','style','name','type','valign','border','width','top','bottom','left','right','scope','row','columns','src','href','className','align','nowrap'];}
 for(var i in properties)
 {if(e[properties[i]])
-{if((properties[i]!='style'||!SUGAR.isIE)&&(properties[i]!='href'||e.tagName=='a'||e.tagName=='iframe'))
-newNode[properties[i]]=e[properties[i]];}}
+{if((properties[i]!='style'||!SUGAR.isIE)&&(properties[i]!='href'||e.tagName=='a'||e.tagName=='iframe')){if(properties[i]=="type"){newNode.setAttribute(properties[i],e[properties[i]]);}else{newNode[properties[i]]=e[properties[i]];}}}}
 if(recursive)
 {for(var i in e.childNodes)
 {if(e.childNodes[i].nodeName&&(!e.className||e.className!="yui-ac-container"))

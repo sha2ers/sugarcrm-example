@@ -2,7 +2,7 @@
 if(!defined('sugarEntry') || !sugarEntry) die('Not A Valid Entry Point');
 /*********************************************************************************
  * SugarCRM Community Edition is a customer relationship management program developed by
- * SugarCRM, Inc. Copyright (C) 2004-2011 SugarCRM Inc.
+ * SugarCRM, Inc. Copyright (C) 2004-2012 SugarCRM Inc.
  * 
  * This program is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Affero General Public License version 3 as published by the
@@ -70,6 +70,7 @@ $mod_strings = array (
     'LBL_ROW_NUMBER' => 'Row Number',
     'LBL_NONE' => 'None',
     'LBL_REQUIRED_VALUE' => 'Required value missing',
+    'LBL_ERROR_SYNC_USERS' => 'Invalid value to sync to Outlook: ',
     'LBL_ID_EXISTS_ALREADY' => 'ID already exists in this table',
     'LBL_ASSIGNED_USER' => 'If the user does not exist use the current user',
     'LBL_SHOW_HIDDEN' => 'Show fields that are not normally importable',
@@ -344,6 +345,7 @@ $mod_strings = array (
     'LBL_FILE_UPLOAD_WIDGET_HELP' => 'Select a file containing data that is separated by a delimiter, such as a comma- or tab- delimited file.  Files of the type .csv are recommended.',
     'LBL_EXTERNAL_ERROR_NO_SOURCE' => 'Unable to retrieve source adapter, please try again later.',
     'LBL_EXTERNAL_ERROR_FEED_CORRUPTED' => 'Unable to retrieve external feed, please try again later.',
+    'LBL_ERROR_IMPORT_CACHE_NOT_WRITABLE' => 'Import cache directory is not writable.',
     'LBL_ADD_FIELD_HELP' => 'Use this option to add a value to a field in all records created and/or updated. Select the field and then enter or select a value for that field in the Default Value column.',
     'LBL_MISSING_HEADER_ROW' => 'No Header Row Found',
     'LBL_CANCEL' => 'Cancel',

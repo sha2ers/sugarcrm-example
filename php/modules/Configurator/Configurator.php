@@ -2,7 +2,7 @@
 if(!defined('sugarEntry') || !sugarEntry) die('Not A Valid Entry Point');
 /*********************************************************************************
  * SugarCRM Community Edition is a customer relationship management program developed by
- * SugarCRM, Inc. Copyright (C) 2004-2011 SugarCRM Inc.
+ * SugarCRM, Inc. Copyright (C) 2004-2012 SugarCRM Inc.
  * 
  * This program is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Affero General Public License version 3 as published by the
@@ -42,7 +42,7 @@ if(!defined('sugarEntry') || !sugarEntry) die('Not A Valid Entry Point');
 class Configurator {
 	var $config = '';
 	var $override = '';
-	var $allow_undefined = array ('stack_trace_errors', 'export_delimiter', 'use_real_names', 'developerMode', 'default_module_favicon', 'authenticationClass', 'SAML_loginurl', 'SAML_X509Cert', 'dashlet_auto_refresh_min', 'show_download_tab');
+	var $allow_undefined = array ('stack_trace_errors', 'export_delimiter', 'use_real_names', 'developerMode', 'default_module_favicon', 'authenticationClass', 'SAML_loginurl', 'SAML_X509Cert', 'dashlet_auto_refresh_min', 'show_download_tab', 'enable_action_menu');
 	var $errors = array ('main' => '');
 	var $logger = NULL;
 	var $previous_sugar_override_config_array = array();
@@ -61,6 +61,13 @@ class Configurator {
 	function populateFromPost() {
 		$sugarConfig = SugarConfig::getInstance();
 		foreach ($_POST as $key => $value) {
+			if ($key == "logger_file_ext") {
+			    $trim_value = preg_replace('/.*\.([^\.]+)$/', '\1', $value);
+			    if(in_array($trim_value, $this->config['upload_badext'])) {
+			        $GLOBALS['log']->security("Invalid log file extension: trying to use invalid file extension '$value'.");
+			        continue;
+			    }
+			}
 			if (isset ($this->config[$key]) || in_array($key, $this->allow_undefined)) {
 				if (strcmp("$value", 'true') == 0) {
 					$value = true;
@@ -101,14 +108,24 @@ class Configurator {
 		$GLOBALS['sugar_config'] = $this->config;
 
 		//print_r($overrideArray);
+        //Bug#53013: Clean the tpl cache if action menu style has been changed.
+        if( isset($overrideArray['enable_action_menu']) &&
+                ( !isset($this->previous_sugar_override_config_array['enable_action_menu']) ||
+                    $overrideArray['enable_action_menu'] != $this->previous_sugar_override_config_array['enable_action_menu'] )
+        ) {
+            require_once('modules/Administration/QuickRepairAndRebuild.php');
+            $repair = new RepairAndClear;
+            $repair->module_list = array();
+            $repair->clearTpls();
+        }
 
 		foreach($overrideArray as $key => $val) {
 			if (in_array($key, $this->allow_undefined) || isset ($sugar_config[$key])) {
-				if (strcmp("$val", 'true') == 0) {
+				if (is_string($val) && strcmp($val, 'true') == 0) {
 					$val = true;
 					$this->config[$key] = $val;
 				}
-				if (strcmp("$val", 'false') == 0) {
+				if (is_string($val) && strcmp($val, 'false') == 0) {
 					$val = false;
 					$this->config[$key] = false;
 				}
@@ -148,11 +165,24 @@ class Configurator {
 	function readOverride() {
 		$sugar_config = array();
 		if (file_exists('config_override.php')) {
-			include('config_override.php');
+		    if ( !is_readable('config_override.php') ) {
+		        $GLOBALS['log']->fatal("Unable to read the config_override.php file. Check the file permissions");
+		    }
+	        else {
+	            include('config_override.php');
+	        }
 		}
 		return $sugar_config;
 	}
 	function saveOverride($override) {
+        require_once('install/install_utils.php');
+	    if ( !file_exists('config_override.php') ) {
+	    	touch('config_override.php');
+	    }
+	    if ( !(make_writable('config_override.php')) ||  !(is_writable('config_override.php')) ) {
+	        $GLOBALS['log']->fatal("Unable to write to the config_override.php file. Check the file permissions");
+	        return;
+	    }
 		$fp = sugar_fopen('config_override.php', 'w');
 		fwrite($fp, $override);
 		fclose($fp);
@@ -185,7 +215,7 @@ class Configurator {
 
 	function saveImages() {
 		if (!empty ($_POST['company_logo'])) {
-			$this->saveCompanyLogo($_POST['company_logo']);
+			$this->saveCompanyLogo("upload://".$_POST['company_logo']);
 		}
 	}
 
@@ -269,7 +299,7 @@ class Configurator {
 				'dateFormat' => '%c',
 				'maxSize' => '10MB',
 				'maxLogs' => 10,
-				'suffix' => '%m_%Y'),
+				'suffix' => ''), // bug51583, change default suffix to blank for backwards comptability
 			'level' => 'fatal');
 		}
 		$this->handleOverride(true);

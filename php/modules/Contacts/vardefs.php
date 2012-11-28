@@ -2,7 +2,7 @@
 if(!defined('sugarEntry') || !sugarEntry) die('Not A Valid Entry Point');
 /*********************************************************************************
  * SugarCRM Community Edition is a customer relationship management program developed by
- * SugarCRM, Inc. Copyright (C) 2004-2011 SugarCRM Inc.
+ * SugarCRM, Inc. Copyright (C) 2004-2012 SugarCRM Inc.
  * 
  * This program is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Affero General Public License version 3 as published by the
@@ -37,7 +37,7 @@ if(!defined('sugarEntry') || !sugarEntry) die('Not A Valid Entry Point');
 
 $dictionary['Contact'] = array('table' => 'contacts', 'audited'=>true,
 
-'unified_search' => true, 'unified_search_default_enabled' => true, 'duplicate_merge'=>true, 'fields' =>
+'unified_search' => true, 'full_text_search' => true, 'unified_search_default_enabled' => true, 'duplicate_merge'=>true, 'fields' =>
 array (
 
 	'email_and_name1' =>
@@ -108,7 +108,7 @@ array (
 			'source' => 'non-db',
 			'importable' => 'false',
             'duplicate_merge'=> 'disabled',
-			'studio' => array('listview' => false),
+			'studio' => false,
 		),
 	'opportunity_role_id' =>
 		array(
@@ -117,6 +117,20 @@ array (
 			'source' => 'non-db',
 			'vname' => 'LBL_OPPORTUNITY_ROLE_ID',
 			'studio' => array('listview' => false),
+		),
+		//bug 42902
+		'email'=> array(
+			'name' => 'email',
+			'type' => 'email',
+			'query_type' => 'default',
+			'source' => 'non-db',
+			'operator' => 'subquery',
+			'subquery' => 'SELECT eabr.bean_id FROM email_addr_bean_rel eabr JOIN email_addresses ea ON (ea.id = eabr.email_address_id) WHERE eabr.deleted=0 AND ea.email_address LIKE',
+			'db_field' => array(
+				'id',
+			),
+			'vname' =>'LBL_ANY_EMAIL',
+			'studio' => array('visible'=>false, 'searchview'=>true),
 		),
 	'opportunity_role' =>
 		array(
@@ -291,14 +305,13 @@ array (
 			'source' => 'non-db',
 			'vname' => 'LBL_PROJECTS',
 		),
-     'project_resource'=>
-		array (
-			'name' => 'project_resource',
-			'type' => 'link',
-			'relationship' => 'projects_contacts_resources',
-			'source' => 'non-db',
-			'vname' => 'LBL_PROJECTS',
-		),
+    'project_resource' => array(
+        'name' => 'project_resource',
+        'type' => 'link',
+        'relationship' => 'projects_contacts_resources',
+        'source' => 'non-db',
+        'vname' => 'LBL_PROJECTS_RESOURCES',
+    ),
 
 
 
@@ -310,14 +323,14 @@ array (
 			'source' => 'non-db',
 			'vname' => 'LBL_TASKS',
 		),
-	'tasks_parent'=>
-		array (
-			'name' => 'tasks_parent',
-			'type' => 'link',
-			'relationship' => 'contact_tasks_parent',
-			'source' => 'non-db',
-			'vname' => 'LBL_TASKS',
-	),
+	'tasks_parent' => array(
+        'name' => 'tasks_parent',
+        'type' => 'link',
+        'relationship' => 'contact_tasks_parent',
+        'source' => 'non-db',
+        'vname' => 'LBL_TASKS',
+        'reportable' => false
+    ),
 		'user_sync'=>
 		array (
 			'name' => 'user_sync',
@@ -428,7 +441,7 @@ array (
 			'source' => 'non-db',
 			'importable' => 'false',
             'duplicate_merge'=> 'disabled',
-			'studio' => array('listview' => false),
+			'studio' => false,
 		),
 	'm_accept_status_fields' =>
 		array (
@@ -443,7 +456,7 @@ array (
 			'importable' => 'false',
 			'hideacl'=>true,
             'duplicate_merge'=> 'disabled',
-			'studio' => array('listview' => false),
+			'studio' => false,
 		),
 	'accept_status_id' =>
 		array(

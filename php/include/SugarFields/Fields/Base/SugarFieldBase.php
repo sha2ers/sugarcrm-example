@@ -1,7 +1,7 @@
 <?php
 /*********************************************************************************
  * SugarCRM Community Edition is a customer relationship management program developed by
- * SugarCRM, Inc. Copyright (C) 2004-2011 SugarCRM Inc.
+ * SugarCRM, Inc. Copyright (C) 2004-2012 SugarCRM Inc.
  * 
  * This program is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Affero General Public License version 3 as published by the
@@ -125,7 +125,17 @@ class SugarFieldBase {
 
     function getListViewSmarty($parentFieldArray, $vardef, $displayParams, $col) {
         $tabindex = 1;
-		$parentFieldArray = $this->setupFieldArray($parentFieldArray, $vardef);
+        //fixing bug #46666: don't need to format enum and radioenum fields 
+        //because they are already formated in SugarBean.php in the function get_list_view_array() as fix of bug #21672
+        if ($this->type != 'Enum' && $this->type != 'Radioenum')
+        {
+            $parentFieldArray = $this->setupFieldArray($parentFieldArray, $vardef);
+        }
+		else
+        {
+        	$vardef['name'] = strtoupper($vardef['name']);
+        }
+        
     	$this->setup($parentFieldArray, $vardef, $displayParams, $tabindex, false);
 
         $this->ss->left_delimiter = '{';
@@ -163,6 +173,12 @@ class SugarFieldBase {
     		$this->type = $type;
     		return $result;
     	}
+    	// jpereira@dri - #Bug49513 - Readonly type not working as expected
+	// If readonly is set in displayParams, the vardef will be displayed as in DetailView.
+	if (isset($displayParams['readonly']) && $displayParams['readonly']) {
+		return $this->getSmartyView($parentFieldArray, $vardef, $displayParams, $tabindex, 'DetailView');
+	}	
+	// ~ jpereira@dri - #Bug49513 - Readonly type not working as expected
        return $this->getSmartyView($parentFieldArray, $vardef, $displayParams, $tabindex, 'EditView');
     }
 
@@ -219,9 +235,6 @@ class SugarFieldBase {
         if ( $displayType == 'ListView'
                 || $displayType == 'popupView'
                 || $displayType == 'searchView'
-                || $displayType == 'wirelessEditView'
-                || $displayType == 'wirelessDetailView'
-                || $displayType == 'wirelessListView'
                 ) {
             // Traditionally, before 6.0, additional functions were never called, so this code doesn't get called unless the vardef forces it
             if ( $onListView ) {
@@ -229,7 +242,7 @@ class SugarFieldBase {
                     require_once($includeFile);
                 }
 
-                return $funcName($parentFieldArray, $vardef['name'], $parentFieldArray[$vardef['name']], $displayType);
+                return $funcName($parentFieldArray, $vardef['name'], $parentFieldArray[strtoupper($vardef['name'])], $displayType);
             } else {
                 $displayTypeFunc = 'get'.$displayType.'Smarty';
                 return $this->$displayTypeFunc($parentFieldArray, $vardef, $displayParams, $tabindex);
@@ -247,7 +260,7 @@ class SugarFieldBase {
                     // Can't find a function template, just use the base
                     $tpl = $this->findTemplate('DetailViewFunction');
                 }
-                return "<span id='{$vardef['name']}'>" . $this->fetch($tpl) . '</span>';
+                return "<span id='{$vardef['name']}_span'>" . $this->fetch($tpl) . '</span>';
             } else {
                 return '{sugar_run_helper include="'.$includeFile.'" func="'.$funcName.'" bean=$bean field="'.$fieldName.'" value=$fields.'.$fieldName.'.value displayType="'.$displayType.'"}';
             }
@@ -255,6 +268,19 @@ class SugarFieldBase {
     }
 
     function getEditView() {
+    }
+
+    /**
+     * getSearchWhereValue
+     *
+     * Checks and returns a sane value based on the field type that can be used when building the where clause in a
+     * search form.
+     *
+     * @param $value Mixed value being searched on
+     * @return Mixed the value for the where clause used in search
+     */
+    function getSearchWhereValue($value) {
+        return $value;
     }
 
     /**
@@ -292,10 +318,16 @@ class SugarFieldBase {
     	$this->button = '';
     	$this->buttons = '';
     	$this->image = '';
-    	if ($twopass){
-	        $this->ss->left_delimiter = '{{';
-	        $this->ss->right_delimiter = '}}';
-    	}
+        if ($twopass)
+        {
+            $this->ss->left_delimiter = '{{';
+            $this->ss->right_delimiter = '}}';
+        }
+        else
+        {
+            $this->ss->left_delimiter = '{';
+            $this->ss->right_delimiter = '}';
+        }
         $this->ss->assign('parentFieldArray', $parentFieldArray);
         $this->ss->assign('vardef', $vardef);
         $this->ss->assign('tabindex', $tabindex);

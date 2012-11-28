@@ -1,7 +1,7 @@
 {*
 /*********************************************************************************
  * SugarCRM Community Edition is a customer relationship management program developed by
- * SugarCRM, Inc. Copyright (C) 2004-2011 SugarCRM Inc.
+ * SugarCRM, Inc. Copyright (C) 2004-2012 SugarCRM Inc.
  * 
  * This program is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Affero General Public License version 3 as published by the
@@ -35,7 +35,7 @@
  ********************************************************************************/
 
 *}
-<iframe id="yui-history-iframe" src="index.php?entryPoint=getImage&imageName=sugar-yui-sprites-grey.png"></iframe>
+<iframe id="yui-history-iframe" src="index.php?entryPoint=getImage&imageName=sugar-yui-sprites-grey.png" title="index.php?entryPoint=getImage&imageName=sugar-yui-sprites-grey.png"></iframe>
 <input id="yui-history-field" type="hidden"> 
 <div class='ytheme-gray' id='mblayout' style="position:relative; height:0px; overflow:visible;">
 </div>
@@ -91,7 +91,7 @@ MBLoader.insert();
     {/if}
     <input type="button" class="button" value="{$mod.LBL_DROPDOWNEDITOR}" onclick="ModuleBuilder.main('dropdowns');">
     </td><td align="left">
-        <img height="18" width="83" class="img" src="include/images/poweredby_sugarcrm.png" border="0" align="absmiddle"/>
+        <img height="25" width="83" class="img" src="include/images/poweredby_sugarcrm_65.png" border="0" align="absmiddle"/>
      </td></tr></table>
 </div>
 {include file='modules/ModuleBuilder/tpls/assistantJavascript.tpl'}

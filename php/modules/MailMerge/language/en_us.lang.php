@@ -2,7 +2,7 @@
 if(!defined('sugarEntry') || !sugarEntry) die('Not A Valid Entry Point');
 /*********************************************************************************
  * SugarCRM Community Edition is a customer relationship management program developed by
- * SugarCRM, Inc. Copyright (C) 2004-2011 SugarCRM Inc.
+ * SugarCRM, Inc. Copyright (C) 2004-2012 SugarCRM Inc.
  * 
  * This program is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Affero General Public License version 3 as published by the
@@ -73,6 +73,8 @@ $mod_strings = array (
   'LBL_CONTAINS_CONTACT_INFO' => 'Selected template contains related ',
   'LBL_ADDIN_NOTICE' => 'This requires the installation of Sugar Mail Merge add-in to Microsoft Word.',
   'LBL_BROWSER_NOTICE' => 'You must be running IE 6.0 or greater to perform the actual merge.',
+	'LBL_REMOVE' => 'Remove Item(s)' /*for 508 compliance fix*/,
+	'LBL_ADD' => 'Add Item(s)' /*for 508 compliance fix*/,
 );
 
 

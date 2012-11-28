@@ -2,7 +2,7 @@
 if(!defined('sugarEntry') || !sugarEntry) die('Not A Valid Entry Point');
 /*********************************************************************************
  * SugarCRM Community Edition is a customer relationship management program developed by
- * SugarCRM, Inc. Copyright (C) 2004-2011 SugarCRM Inc.
+ * SugarCRM, Inc. Copyright (C) 2004-2012 SugarCRM Inc.
  * 
  * This program is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Affero General Public License version 3 as published by the
@@ -96,13 +96,15 @@ if(!empty($_POST['saveConfig'])){
 		else 
 			$_POST['system_ldap_enabled'] = 0;
 
-			
-	   
-		if (isset($_REQUEST['authenticationClass'])) {
-			
-			$configurator->useAuthenticationClass = true;
-		}
-	  
+
+        if(isset($_REQUEST['authenticationClass']))
+        {
+	        $configurator->useAuthenticationClass = true;
+        } else {
+	        $configurator->useAuthenticationClass = false;
+            $_POST['authenticationClass'] = '';
+        }
+
 
 		if (isset($_REQUEST['ldap_group_checkbox']) && $_REQUEST['ldap_group_checkbox'] == 'on') 
 			$_POST['ldap_group'] = 1;

@@ -2,7 +2,7 @@
 if(!defined('sugarEntry') || !sugarEntry) die('Not A Valid Entry Point');
 /*********************************************************************************
  * SugarCRM Community Edition is a customer relationship management program developed by
- * SugarCRM, Inc. Copyright (C) 2004-2011 SugarCRM Inc.
+ * SugarCRM, Inc. Copyright (C) 2004-2012 SugarCRM Inc.
  * 
  * This program is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Affero General Public License version 3 as published by the
@@ -34,17 +34,6 @@ if(!defined('sugarEntry') || !sugarEntry) die('Not A Valid Entry Point');
  * technical reasons, the Appropriate Legal Notices must display the words
  * "Powered by SugarCRM".
  ********************************************************************************/
-
-/*********************************************************************************
-
- * Description:
- ********************************************************************************/
-
-
-
-
-
-
 
 
 class CampaignLog extends SugarBean {
@@ -80,22 +69,19 @@ class CampaignLog extends SugarBean {
         //make sure that both items in array are set to some value, else return null
         if(!(isset($temp_array['TARGET_TYPE']) && $temp_array['TARGET_TYPE']!= '') || !(isset($temp_array['TARGET_ID']) && $temp_array['TARGET_ID']!= ''))
         {   //needed values to construct query are empty/null, so return null
-            $GLOBALS['log']->debug("CampaignLog.php:get_list_view_data duntion: temp_array['TARGET_TYPE'] and/or temp_array['TARGET_ID'] are empty, return null");
+            $GLOBALS['log']->debug("CampaignLog.php:get_list_view_data: temp_array['TARGET_TYPE'] and/or temp_array['TARGET_ID'] are empty, return null");
             $emptyArr = array();
             return $emptyArr;
         }
-        if ( ( $this->db->dbType == 'mysql' ) or ( $this->db->dbType == 'oci8' ) )
-        {
-            $query="select first_name, last_name, CONCAT(CONCAT(first_name, ' '), last_name) name, date_modified from ".strtolower($temp_array['TARGET_TYPE']) .  " where id ='{$temp_array['TARGET_ID']}'";
-        }
-        if($this->db->dbType == 'mssql')
-        {
-            $query="select first_name, last_name, (first_name + ' ' + last_name) name, date_modified from ".strtolower($temp_array['TARGET_TYPE']) .  " where id ='{$temp_array['TARGET_ID']}'";
-        }
-        if($temp_array['TARGET_TYPE']=='Accounts'){
-               $query="select name from ".strtolower($temp_array['TARGET_TYPE']) .  " where id ='{$temp_array['TARGET_ID']}'";
-        }
 
+        $table = strtolower($temp_array['TARGET_TYPE']);
+
+        if($temp_array['TARGET_TYPE']=='Accounts'){
+            $query = "select name from $table where id = ".$this->db->quoted($temp_array['TARGET_ID']);
+        }else{
+            $query = "select first_name, last_name, ".$this->db->concat($table, array('first_name', 'last_name'))." name from $table" .
+                " where id = ".$this->db->quoted($temp_array['TARGET_ID']);
+        }
         $result=$this->db->query($query);
         $row=$this->db->fetchByAssoc($result);
 
@@ -105,11 +91,10 @@ class CampaignLog extends SugarBean {
             }else{
                 $full_name = $locale->getLocaleFormattedName($row['first_name'], $row['last_name'], '');
                 $temp_array['RECIPIENT_NAME']=$full_name;
-                $temp_array['ACTIVITY_DATE'] = $row['date_modified'];
             }
         }
         $temp_array['RECIPIENT_EMAIL']=$this->retrieve_email_address($temp_array['TARGET_ID']);
-        
+
         $query = 'select name from email_marketing where id = \'' . $temp_array['MARKETING_ID'] . '\'';
         $result=$this->db->query($query);
         $row=$this->db->fetchByAssoc($result);
@@ -118,7 +103,7 @@ class CampaignLog extends SugarBean {
         {
         	$temp_array['MARKETING_NAME'] = $row['name'];
         }
-        
+
         return $temp_array;
     }
 
@@ -146,7 +131,7 @@ class CampaignLog extends SugarBean {
 
 
 
-    //this function is called statically by the campaing_log subpanel.
+    //this function is called statically by the campaign_log subpanel.
     function get_related_name($related_id, $related_type) {
         global $locale;
         $db= DBManagerFactory::getInstance();

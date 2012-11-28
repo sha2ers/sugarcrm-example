@@ -2,7 +2,7 @@
  if(!defined('sugarEntry'))define('sugarEntry', true);
 /*********************************************************************************
  * SugarCRM Community Edition is a customer relationship management program developed by
- * SugarCRM, Inc. Copyright (C) 2004-2011 SugarCRM Inc.
+ * SugarCRM, Inc. Copyright (C) 2004-2012 SugarCRM Inc.
  * 
  * This program is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Affero General Public License version 3 as published by the
@@ -317,7 +317,7 @@ function add_contacts_matching_email_address(&$output_list, $email_address, &$se
  */
 function add_leads_matching_email_address(&$output_list, $email_address, &$seed_lead, &$msi_id)
 {
-	$safe_email_address = addslashes($email_address);
+	$safe_email_address = $GLOBALS['db']->quote($email_address);
 	if(!$seed_lead->ACLAccess('ListView')){
 		return;
 	}
@@ -828,8 +828,9 @@ function track_email($user_name, $password,$parent_id, $contact_ids, $date_sent,
 
 	foreach( $id_list as $id)
 	{
-		if(!empty($id))
-		$email->set_emails_contact_invitee_relationship($email->id, $id);
+		if(!empty($id)) {
+            $email->set_emails_contact_invitee_relationship($email->id, $GLOBALS['db']->quote($id));
+        }
 	}
 
 	return "Succeeded";

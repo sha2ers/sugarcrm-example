@@ -2,7 +2,7 @@
 if(!defined('sugarEntry') || !sugarEntry) die('Not A Valid Entry Point');
 /*********************************************************************************
  * SugarCRM Community Edition is a customer relationship management program developed by
- * SugarCRM, Inc. Copyright (C) 2004-2011 SugarCRM Inc.
+ * SugarCRM, Inc. Copyright (C) 2004-2012 SugarCRM Inc.
  * 
  * This program is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Affero General Public License version 3 as published by the
@@ -71,15 +71,15 @@ class ChartsDashlet extends Dashlet {
      */
     function display() {
     	require_once("modules/Reports/Report.php");
-			
-	
+		
 //		ini_set('display_errors', 'false');
 		
 		$chartReport = new SavedReport();
 		$chartExists = $chartReport->retrieve($this->report_id, false);
-		
+
 		if (!is_null($chartExists)){
-	        $this->title = $chartReport->name;
+			$title = getReportNameTranslation($chartReport->name);
+	        $this->title = $title; 
 				
 			$reporter = new Report($chartReport->content);
 			$reporter->is_saved_report = true;
@@ -161,7 +161,8 @@ class ChartsDashlet extends Dashlet {
     	
         if($this->isConfigurable) 
             $additionalTitle = '<td nowrap width="1%" style="padding-right: 0px;"><div class="dashletToolSet"><a href="index.php?module=Reports&record=' . $this->report_id . '&action=ReportCriteriaResults&page=report">'
-                               . SugarThemeRegistry::current()->getImage('dashlet-header-edit','title="' . translate('LBL_DASHLET_EDIT', 'Home') . '" alt="' . translate('LBL_DASHLET_EDIT', 'Home') . '"  border="0"  align="absmiddle"').'</a>' 
+                               . SugarThemeRegistry::current()->getImage('dashlet-header-edit','title="' . translate('LBL_DASHLET_EDIT', 'Home') . '" border="0"  align="absmiddle"', null,null,'.gif',translate('LBL_DASHLET_EDIT', 'Home')).'</a>'
+
                                . '';
         else 
             $additionalTitle = '<td nowrap width="1%" style="padding-right: 0px;"><div class="dashletToolSet">';    	
@@ -175,7 +176,8 @@ class ChartsDashlet extends Dashlet {
     	$additionalTitle = '';
         if($this->isRefreshable)
             $additionalTitle .= '<a href="#" onclick="SUGAR.mySugar.retrieveDashlet(\'' 
-                                . $this->id . '\', \'chart\'); return false;"><img border="0" align="absmiddle" title="' . translate('LBL_DASHLET_REFRESH', 'Home') . '" alt="' . translate('LBL_DASHLET_REFRESH', 'Home') . '" src="' 
+                                . $this->id . '\', \'chart\'); return false;"><!--not_in_theme!--><img border="0"  title="' . translate('LBL_DASHLET_REFRESH', 'Home') . '" alt="' . translate('LBL_DASHLET_REFRESH', 'Home') . '" src="'
+
                                 . SugarThemeRegistry::current()->getImageURL('dashlet-header-refresh.png') .'" /></a>';	
         return $additionalTitle;
     }

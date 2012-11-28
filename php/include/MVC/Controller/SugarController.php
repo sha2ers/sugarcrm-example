@@ -1,7 +1,7 @@
 <?php
 /*********************************************************************************
  * SugarCRM Community Edition is a customer relationship management program developed by
- * SugarCRM, Inc. Copyright (C) 2004-2011 SugarCRM Inc.
+ * SugarCRM, Inc. Copyright (C) 2004-2012 SugarCRM Inc.
  * 
  * This program is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Affero General Public License version 3 as published by the
@@ -36,7 +36,10 @@
 
 require_once('include/MVC/View/SugarView.php');
 
-
+/**
+ * Main SugarCRM controller
+ * @api
+ */
 class SugarController{
 	/**
 	 * remap actions in here
@@ -278,19 +281,58 @@ class SugarController{
 	/**
 	 * This method is called from SugarApplication->execute and it will bootstrap the entire controller process
 	 */
-	final public function execute(){
-		$this->process();
-		if(!empty($this->view)){
-			$this->processView();
-		}elseif(!empty($this->redirect_url)){
-			$this->redirect();
-		}
+	final public function execute()
+    {
+
+        try
+        {
+            $this->process();
+            if(!empty($this->view))
+            {
+                $this->processView();
+            }
+            elseif(!empty($this->redirect_url))
+            {
+            			$this->redirect();
+            }
+        }
+        catch (Exception $e)
+        {
+            $this->handleException($e);
+        }
+
+
+
 	}
+
+    /**
+      * Handle exception
+      * @param Exception $e
+      */
+    protected function handleException(Exception $e)
+    {
+        $GLOBALS['log']->fatal('Exception in Controller: ' . $e->getMessage());
+        $logicHook = new LogicHook();
+
+        if (isset($this->bean))
+        {
+            $logicHook->setBean($this->bean);
+            $logicHook->call_custom_logic($this->bean->module_dir, "handle_exception", $e);
+        }
+        else
+        {
+            $logicHook->call_custom_logic('', "handle_exception", $e);
+        }
+    }
 
 	/**
 	 * Display the appropriate view.
 	 */
 	private function processView(){
+		if(!isset($this->view_object_map['remap_action']) && isset($this->action_view_map[strtolower($this->action)]))
+		{
+		  $this->view_object_map['remap_action'] = $this->action_view_map[strtolower($this->action)];
+		}
 		$view = ViewFactory::loadView($this->view, $this->module, $this->bean, $this->view_object_map, $this->target_module);
 		$GLOBALS['current_view'] = $view;
 		if(!empty($this->bean) && !$this->bean->ACLAccess($view->type) && $view->type != 'list'){
@@ -503,6 +545,13 @@ class SugarController{
 		$this->bean->save(!empty($this->bean->notify_on_save));
 	}
 
+
+    public function action_spot()
+    {
+            $this->view = 'spot';
+    }
+
+
 	/**
 	 * Specify what happens after the save has occurred.
 	 */
@@ -550,12 +599,12 @@ class SugarController{
 			$_REQUEST['return_id'] :
 			'';
 		$url = "index.php?module=".$return_module."&action=".$return_action."&record=".$return_id;
-		
+
 		//eggsurplus Bug 23816: maintain VCR after an edit/save. If it is a duplicate then don't worry about it. The offset is now worthless.
 		if(isset($_REQUEST['offset']) && empty($_REQUEST['duplicateSave'])) {
 		    $url .= "&offset=".$_REQUEST['offset'];
 		}
-		
+
 		$this->set_redirect($url);
 	}
 	/**
@@ -585,7 +634,7 @@ class SugarController{
             $temp_req = array('current_query_by_page' => $_REQUEST['current_query_by_page'], 'return_module' => $_REQUEST['return_module'], 'return_action' => $_REQUEST['return_action']);
             if($_REQUEST['return_module'] == 'Emails') {
                 if(!empty($_REQUEST['type']) && !empty($_REQUEST['ie_assigned_user_id'])) {
-                    $this->req_for_email = array('type' => $_REQUEST['type'], 'ie_assigned_user_id' => $_REQUEST['ie_assigned_user_id']); //specificly for My Achieves
+                    $this->req_for_email = array('type' => $_REQUEST['type'], 'ie_assigned_user_id' => $_REQUEST['ie_assigned_user_id']); // Specifically for My Achieves
                 }
             }
             $_REQUEST = array();
@@ -687,6 +736,27 @@ class SugarController{
 		    return '0';
 		}
 	}
+
+    /**
+     * Global method to delete an attachment
+     *
+     * If the bean does not have a deleteAttachment method it will return 'false' as a string
+     *
+     * @return void
+     */
+    protected function action_deleteattachment()
+    {
+        $this->view = 'edit';
+        $GLOBALS['view'] = $this->view;
+        ob_clean();
+        if(method_exists($this->bean, 'deleteAttachment')) {
+            echo $this->bean->deleteAttachment($_REQUEST['isDuplicate']) ? 'true' : 'false';
+        } else {
+            echo 'false';
+        }
+
+        sugar_cleanup(true);
+    }
 
 	/**
 	 * getActionFilename

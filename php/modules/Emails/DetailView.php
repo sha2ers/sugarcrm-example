@@ -2,7 +2,7 @@
 if(!defined('sugarEntry') || !sugarEntry) die('Not A Valid Entry Point');
 /*********************************************************************************
  * SugarCRM Community Edition is a customer relationship management program developed by
- * SugarCRM, Inc. Copyright (C) 2004-2011 SugarCRM Inc.
+ * SugarCRM, Inc. Copyright (C) 2004-2012 SugarCRM Inc.
  * 
  * This program is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Affero General Public License version 3 as published by the
@@ -55,6 +55,7 @@ if(!isset($_REQUEST['record']) || empty($_REQUEST['record'])) {
 require_once('include/DetailView/DetailView.php');
 global $gridline;
 global $app_strings;
+global $focus;
 
 // SETTING DEFAULTS
 $focus		= new Email();
@@ -138,6 +139,7 @@ if (!empty($focus->status)) {
 ///////////////////////////////////////////////////////////////////////////////
 echo "\n<p>\n";
 $GLOBALS['log']->info("Email detail view");
+$show_forward = true;
 if ($email_type == 'archived') {
 	echo getClassicModuleTitle('Emails', array($mod_strings['LBL_ARCHIVED_EMAIL'],$focus->name), true);
 	$xtpl=new XTemplate ('modules/Emails/DetailView.html');
@@ -148,6 +150,7 @@ if ($email_type == 'archived') {
 		//$xtpl->assign('DISABLE_REPLY_BUTTON', 'NONE');
 	} elseif ($focus->type == 'draft') {
 		$xtpl->assign('DISABLE_FORWARD_BUTTON', 'NONE');
+        $show_forward = false;
 		echo getClassicModuleTitle('Emails', array($mod_strings['LBL_LIST_FORM_DRAFTS_TITLE'],$focus->name), true);
 	} elseif($focus->type == 'inbound') {
 		echo getClassicModuleTitle('Emails', array($mod_strings['LBL_INBOUND_TITLE'],$focus->name), true);
@@ -161,29 +164,53 @@ echo "\n</p>\n";
 ////	RETURN NAVIGATION
 $uri = isset($_SERVER['HTTP_REFERER']) ? $_SERVER['HTTP_REFERER'] : 'index.php';
 $start = $focus->getStartPage($uri);
+$ret_mod = '';
+$ret_action = '';
 if (isset($_REQUEST['return_id'])) { // coming from a subpanel, return_module|action is not set
 	$xtpl->assign('RETURN_ID', $_REQUEST['return_id']);
-	if (isset($_REQUEST['return_module']))	$xtpl->assign('RETURN_MODULE', $_REQUEST['return_module']);
-	else $xtpl->assign('RETURN_MODULE', 'Emails');
-	if (isset($_REQUEST['return_action']))	$xtpl->assign('RETURN_ACTION', $_REQUEST['return_action']);
-	else $xtpl->assign('RETURN_ACTION', 'DetailView');
+	if (isset($_REQUEST['return_module'])){
+        $xtpl->assign('RETURN_MODULE', $_REQUEST['return_module']);
+        $ret_mod = $_REQUEST['return_module'];
+    }
+	else {
+        $xtpl->assign('RETURN_MODULE', 'Emails');
+        $ret_mod = 'Emails';
+    }
+	if (isset($_REQUEST['return_action'])){
+        $xtpl->assign('RETURN_ACTION', $_REQUEST['return_action']);
+        $ret_action = $_REQUEST['return_action'];
+    }
+	else {
+        $xtpl->assign('RETURN_ACTION', 'DetailView');
+        $ret_action = 'DetailView';
+    }
 }
 
 if(isset($start['action']) && !empty($start['action'])) {
-	$xtpl->assign('DELETE_RETURN_ACTION', $start['action']);
+    $xtpl->assign('DELETE_RETURN_ACTION', $start['action']);
+} else {
+    $start['action'] = '';
 }
 if(isset($start['module']) && !empty($start['module'])) {
-	$xtpl->assign('DELETE_RETURN_MODULE', $start['module']);
+    $xtpl->assign('DELETE_RETURN_MODULE', $start['module']);
+} else {
+    $start['module'] = '';
 }
 if(isset($start['record']) && !empty($start['record'])) {
-	$xtpl->assign('DELETE_RETURN_ID', $start['record']);
+    $xtpl->assign('DELETE_RETURN_ID', $start['record']);
+} else {
+    $start['record'] = '';
 }
 // this is to support returning to My Inbox
 if(isset($start['type']) && !empty($start['type'])) {
-	$xtpl->assign('DELETE_RETURN_TYPE', $start['type']);
+    $xtpl->assign('DELETE_RETURN_TYPE', $start['type']);
+} else {
+    $start['type'] = '';
 }
 if(isset($start['assigned_user_id']) && !empty($start['assigned_user_id'])) {
-	$xtpl->assign('DELETE_RETURN_ASSIGNED_USER_ID', $start['assigned_user_id']);
+    $xtpl->assign('DELETE_RETURN_ASSIGNED_USER_ID', $start['assigned_user_id']);
+} else {
+    $start['assigned_user_id'] = '';
 }
 
 
@@ -196,10 +223,8 @@ if(isset($start['assigned_user_id']) && !empty($start['assigned_user_id'])) {
 $html = trim(from_html($focus->description_html));
 if(empty($html)) {
 	$xtpl->assign('SHOW_PLAINTEXT', 'true');
-	$description = nl2br($focus->description);
 } else {
 	$xtpl->assign('SHOW_PLAINTEXT', 'false');
-	$description = from_html($focus->description_html);
 }
 $show_subpanels=true;
 //if the email is of type campaign, process the macros...using the values stored in the relationship table.
@@ -265,15 +290,14 @@ $xtpl->assign('CC', $cc_addr);
 $xtpl->assign('BCC', $bcc_addr);
 $xtpl->assign('CREATED_BY', $focus->created_by_name);
 $xtpl->assign('MODIFIED_BY', $focus->modified_by_name);
-$xtpl->assign('DESCRIPTION', nl2br($focus->description));
-$xtpl->assign('DESCRIPTION_HTML', from_html($focus->description_html));
 $xtpl->assign('DATE_SENT', $focus->date_entered);
 $xtpl->assign('EMAIL_NAME', 'RE: '.$focus->name);
 $xtpl->assign("TAG", $focus->listviewACLHelper());
+
+$show_raw = FALSE;
 if(!empty($focus->raw_source)) {
-	$xtpl->assign("RAW_METADATA", $focus->id);
-} else {
-	$xtpl->assign("DISABLE_RAW_BUTTON", 'none');
+    $xtpl->assign("RAW_METADATA", $focus->id);
+    $show_raw = TRUE;
 }
 
 if(!empty($focus->reply_to_email)) {
@@ -285,6 +309,121 @@ if(!empty($focus->reply_to_email)) {
  	$xtpl->assign("REPLY_TO", $replyTo);
 }
 
+
+
+// Using action menu (new UI) instead of buttons for Archived Email DetailView.
+$buttons = array(
+    <<<EOD
+            <input	title="{$app_strings['LBL_EDIT_BUTTON_TITLE']}" accessKey="{$app_strings['LBL_EDIT_BUTTON_KEY']}" class="button"
+                    id="edit_button"
+					onclick="	this.form.return_module.value='Emails';
+								this.form.return_action.value='DetailView';
+								this.form.return_id.value='{$focus->id}';
+								this.form.action.value='EditView'"
+					type="submit" name="Edit" value=" {$app_strings['LBL_EDIT_BUTTON_LABEL']}">
+EOD
+,
+    <<<EOD
+            <input title="{$app_strings['LBL_DELETE_BUTTON_TITLE']}"
+					accessKey="{$app_strings['LBL_DELETE_BUTTON_KEY']}"
+					class="button"
+					id="delete_button"
+					onclick="this.form.return_module.value='{$start['module']}';
+											this.form.return_action.value='{$start['action']}';
+											this.form.return_id.value='{$start['record']}';
+											this.form.type.value='{$start['type']}';
+											this.form.assigned_user_id.value='{$start['assigned_user_id']}';
+											this.form.action.value='Delete';
+											return confirm('{$app_strings['NTC_DELETE_CONFIRMATION']}')"
+					type="submit" name="button"
+					value="{$app_strings['LBL_DELETE_BUTTON_LABEL']}"
+			>
+EOD
+);
+
+// Bug #52046: Disable the 'Show Raw' link where it does not need to be shown.
+if($show_raw) {
+    $buttons[] = <<<EOD
+        <input type="button" name="button" class="button"
+            id="rawButton"
+            title="{$mod_strings['LBL_BUTTON_RAW_TITLE']}"
+            value="{$mod_strings['LBL_BUTTON_RAW_LABEL']}"
+            onclick="open_popup('Emails', 800, 600, '', true, true, '', 'show_raw', '', '{$focus->id}');"
+        />
+EOD;
+}
+
+require_once('include/Smarty/plugins/function.sugar_action_menu.php');
+$action_button = smarty_function_sugar_action_menu(array(
+    'id' => 'detail_header_action_menu',
+    'buttons' => $buttons,
+    'class' => 'clickMenu fancymenu',
+), $xtpl);
+
+$xtpl->assign("ACTION_BUTTON", $action_button);
+
+/////////
+///Using action menu (new UI) instead of buttons for Sent Email DetailView.
+$buttons_sent_email = array();
+if($show_forward){
+$buttons_sent_email[] = <<<EOD
+            <input title="{$mod_strings['LBL_BUTTON_FORWARD']}"
+					class="button" onclick="this.form.return_module.value='{$ret_mod}';
+											this.form.return_action.value='{$ret_action}';
+											this.form.return_id.value='{$focus->id}';
+											this.form.action.value='EditView';
+											this.form.type.value='forward'"
+					type="submit" name="button"
+					value="  {$mod_strings['LBL_BUTTON_FORWARD']}  "
+					style="display:{DISABLE_FORWARD_BUTTON};"
+			>
+EOD;
+}
+$buttons_sent_email[] = <<<EOD
+            <input title="{$mod_strings['LBL_BUTTON_REPLY_TITLE']}"
+					class="button" onclick="this.form.return_module.value='{$ret_mod}';
+											this.form.return_action.value='{$ret_action}';
+											this.form.return_id.value='{$focus->id}';
+											this.form.action.value='EditView'"
+					type="submit" name="button"
+					value="  {$mod_strings['LBL_BUTTON_REPLY']}  "
+			>
+EOD;
+$buttons_sent_email[] = <<<EOD
+            <input title="{$app_strings['LBL_DELETE_BUTTON_TITLE']}"
+					accessKey="{$app_strings['LBL_DELETE_BUTTON_KEY']}"
+					class="button" onclick="this.form.return_module.value='{$start['module']}';
+											this.form.return_action.value='{$start['action']}';
+											this.form.return_id.value='{$start['record']}';
+											this.form.type.value='{$start['type']}';
+											this.form.assigned_user_id.value='{$start['assigned_user_id']}';
+											this.form.action.value='Delete';
+											return confirm('{$app_strings['NTC_DELETE_CONFIRMATION']}')"
+					type="submit" name="button"
+					value="    {$app_strings['LBL_DELETE_BUTTON']}    "
+			>
+EOD;
+
+if($show_raw) {
+    $buttons_sent_email[] = <<<EOD
+            <input type="button" name="button" class="button"
+				id="rawButton"
+				title="{$mod_strings['LBL_BUTTON_RAW_TITLE']}"
+				value=" {$mod_strings['LBL_BUTTON_RAW_LABEL']} "
+				onclick="open_popup('Emails', 800, 600, '', true, true, '', 'show_raw', '', '{$focus->id}');"
+			/>
+EOD;
+}
+
+require_once('include/Smarty/plugins/function.sugar_action_menu.php');
+$action_button_sent_email = smarty_function_sugar_action_menu(array(
+    'id' => 'detail_header_action_menu',
+    'buttons' => $buttons_sent_email,
+    'class' => 'clickMenu fancymenu',
+), $xtpl);
+
+$xtpl->assign("ACTION_BUTTON_SENT_EMAIL", $action_button_sent_email);
+
 ///////////////////////////////////////////////////////////////////////////////
 ////	JAVASCRIPT VARS
 $jsVars  = '';
@@ -295,7 +434,7 @@ $xtpl->assign("JS_VARS", $jsVars);
 
 // ADMIN EDIT
 if(is_admin($GLOBALS['current_user']) && $_REQUEST['module'] != 'DynamicLayout' && !empty($_SESSION['editinplace'])){
-	$xtpl->assign("ADMIN_EDIT","<a href='index.php?action=index&module=DynamicLayout&from_action=".$_REQUEST['action'] ."&from_module=".$_REQUEST['module'] ."&record=".$_REQUEST['record']. "'>".SugarThemeRegistry::current()->getImage("EditLayout","border='0' alt='Edit Layout' align='bottom'")."</a>");
+	$xtpl->assign("ADMIN_EDIT","<a href='index.php?action=index&module=DynamicLayout&from_action=".$_REQUEST['action'] ."&from_module=".$_REQUEST['module'] ."&record=".$_REQUEST['record']. "'>".SugarThemeRegistry::current()->getImage("EditLayout","border='0' align='bottom'",null,null,'.gif',$mod_strings['LBL_EDIT_LAYOUT'])."</a>");
 }
 
 if(isset($_REQUEST['offset']) && !empty($_REQUEST['offset'])) { $offset = $_REQUEST['offset']; }
@@ -333,8 +472,11 @@ for($i=0; $i<count($notes_list); $i++) {
 	$the_note = $notes_list[$i];
 	if(!empty($the_note->filename))
     	$attachments .= "<a href=\"index.php?entryPoint=download&id=".$the_note->id."&type=Notes\">".$the_note->name."</a><br />";
+    $focus->cid2Link($the_note->id, $the_note->file_mime_type);
 }
 
+$xtpl->assign('DESCRIPTION', nl2br($focus->description));
+$xtpl->assign('DESCRIPTION_HTML', from_html($focus->description_html));
 $xtpl->assign("ATTACHMENTS", $attachments);
 $xtpl->parse("main");
 $xtpl->out("main");

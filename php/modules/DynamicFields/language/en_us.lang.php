@@ -2,7 +2,7 @@
 if(!defined('sugarEntry') || !sugarEntry) die('Not A Valid Entry Point');
 /*********************************************************************************
  * SugarCRM Community Edition is a customer relationship management program developed by
- * SugarCRM, Inc. Copyright (C) 2004-2011 SugarCRM Inc.
+ * SugarCRM, Inc. Copyright (C) 2004-2012 SugarCRM Inc.
  * 
  * This program is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Affero General Public License version 3 as published by the
@@ -76,6 +76,7 @@ $mod_strings = array (
 	'COLUMN_TITLE_HTML_CONTENT' =>'HTML',
 	'COLUMN_TITLE_URL'=>'Default URL',
 	'COLUMN_TITLE_AUDIT' =>'Audit',
+        'COLUMN_TITLE_FTS' =>'Full Text Searchable',
 	'COLUMN_TITLE_REPORTABLE' => 'Reportable',
 	'COLUMN_TITLE_MIN_VALUE' => 'Min Value',
 	'COLUMN_TITLE_MAX_VALUE' => 'Max Value',
@@ -85,6 +86,7 @@ $mod_strings = array (
 	'COLUMN_TITLE_AUTOINC_NEXT' => 'Auto Increment Next Value',
     'COLUMN_DISABLE_NUMBER_FORMAT' => 'Disable Format',
     'COLUMN_TITLE_ENABLE_RANGE_SEARCH' => 'Enable Range Search',
+    'COLUMN_TITLE_GLOBAL_SEARCH'=>'Global Search',	
 	'LBL_DROP_DOWN_LIST' => 'Drop Down List',
 	'LBL_RADIO_FIELDS'=> 'Radio Fields',
 	'LBL_MULTI_SELECT_LIST'=> 'Multi Select List',
@@ -123,7 +125,8 @@ $mod_strings = array (
 	'LBL_DEPENDENT'=>'Dependent',
 	'LBL_VISIBLE_IF'=>'Visible If',
 	'LBL_ENFORCED'=>'Enforced',
-
+	'LBL_HELP' => 'Help' /*for 508 compliance fix*/,
+	'COLUMN_TITLE_GLOBAL_SEARCH'=>'Global Search',
 );
 
 

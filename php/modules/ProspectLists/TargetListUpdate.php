@@ -2,7 +2,7 @@
 if(!defined('sugarEntry') || !sugarEntry) die('Not A Valid Entry Point');
 /*********************************************************************************
  * SugarCRM Community Edition is a customer relationship management program developed by
- * SugarCRM, Inc. Copyright (C) 2004-2011 SugarCRM Inc.
+ * SugarCRM, Inc. Copyright (C) 2004-2012 SugarCRM Inc.
  * 
  * This program is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Affero General Public License version 3 as published by the
@@ -55,7 +55,7 @@ $focus = new $bean_name();
 $uids = array();
 if($_REQUEST['select_entire_list'] == '1'){
 	$order_by = '';
-	
+
 	require_once('include/MassUpdate.php');
 	$mass = new MassUpdate();
 	$mass->generateSearchWhere($_REQUEST['module'], $_REQUEST['current_query_by_page']);
@@ -63,7 +63,7 @@ if($_REQUEST['select_entire_list'] == '1'){
 	$query = $focus->create_export_query($order_by, $ret_array['where'], $ret_array['join']);
 	$result = $GLOBALS['db']->query($query,true);
 	$uids = array();
-	while($val = $GLOBALS['db']->fetchByAssoc($result,-1,false))
+	while($val = $GLOBALS['db']->fetchByAssoc($result,false))
 	{
 		array_push($uids, $val['id']);
 	}

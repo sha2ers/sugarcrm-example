@@ -2,7 +2,7 @@
 if(!defined('sugarEntry') || !sugarEntry) die('Not A Valid Entry Point');
 /*********************************************************************************
  * SugarCRM Community Edition is a customer relationship management program developed by
- * SugarCRM, Inc. Copyright (C) 2004-2011 SugarCRM Inc.
+ * SugarCRM, Inc. Copyright (C) 2004-2012 SugarCRM Inc.
  * 
  * This program is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Affero General Public License version 3 as published by the
@@ -37,6 +37,10 @@ if(!defined('sugarEntry') || !sugarEntry) die('Not A Valid Entry Point');
 
 
 $mod_strings = array(
+	'LBL_LOADING' => 'Loading' /*for 508 compliance fix*/,
+	'LBL_HIDEOPTIONS' => 'Hide Options' /*for 508 compliance fix*/,
+	'LBL_DELETE' => 'Delete' /*for 508 compliance fix*/,
+	'LBL_POWERED_BY_SUGAR' => 'Powered By SugarCRM' /*for 508 compliance fix*/,
 'help'=>array(
 	'package'=>array(
 			'create'=>'Provide a <b>Name</b> for the package.  The name you enter must be alphanumeric and contain no spaces. (Example: HR_Management)<br/><br/> You can provide <b>Author</b> and <b>Description</b> information for package. <br/><br/>Click <b>Save</b> to create the package.',
@@ -54,7 +58,8 @@ $mod_strings = array(
 			'new_module'=>'Click <b>New Module</b> to create a new module for this package.',
 			'key'=>'This 5-letter, alphanumeric <b>Key</b> will be used to prefix all directories, class names and database tables for all of the modules in the current package.<br><br>The key is used in an effort to achieve table name uniqueness.',
 			'readme'=>'Click to add <b>Readme</b> text for this package.<br><br>The Readme will be available at the time of installation.',
-	),
+
+),
 	'main'=>array(
 
 	),
@@ -104,8 +109,8 @@ $mod_strings = array(
 		'modify'	=> 'All of the fields that can be displayed in the <b>ListView</b> appear here.<br><br>The <b>Default</b> column contains the fields that are displayed in the ListView by default.<br/><br/>The <b>Available</b> column contains fields that a user can select in the Search to create a custom ListView. <br/><br/>The <b>Hidden</b> column contains fields that can be added to the Default or Available column.'
     ,
 		'savebtn'	=> 'Click <b>Save & Deploy</b> to save changes you made and to make them active within the module.',
-		'historyBtn'=> 'Click <b>View History</b> to view and restore a previously saved layout from the history.',
-		'historyDefault'=> 'Click <b>Restore Default</b> to restore a view to its original layout.',
+		'historyBtn'=> 'Click <b>View History</b> to view and restore a previously saved layout from the history.<br><br><b>Restore</b> within <b>View History</b> restores the field placement within previously saved layouts. To change field labels, click the Edit icon next to each field.',
+		'historyDefault'=> 'Click <b>Restore Default</b> to restore a view to its original layout.<br><br><b>Restore Default</b> only restores the field placement within the original layout. To change field labels, click the Edit icon next to each field.',
 		'Hidden' 	=> '<b>Hidden</b> fields not currently available for users to see in ListViews.',
 		'Available' => '<b>Available</b> fields are not shown by default, but can be added to ListViews by users.',
 		'Default'	=> '<b>Default</b> fields appear in ListViews that are not customized by users.'
@@ -114,8 +119,8 @@ $mod_strings = array(
 		'modify'	=> 'All of the fields that can be displayed in the <b>ListView</b> appear here.<br><br>The <b>Default</b> column contains the fields that are displayed in the ListView by default.<br/><br/>The <b>Hidden</b> column contains fields that can be added to the Default or Available column.'
     ,
 		'savebtn'	=> 'Click <b>Save & Deploy</b> to save changes you made and to make them active within the module.',
-		'historyBtn'=> 'Click <b>View History</b> to view and restore a previously saved layout from the history.',
-		'historyDefault'=> 'Click <b>Restore Default</b> to restore a view to its original layout.',
+		'historyBtn'=> 'Click <b>View History</b> to view and restore a previously saved layout from the history.<br><br><b>Restore</b> within <b>View History</b> restores the field placement within previously saved layouts. To change field labels, click the Edit icon next to each field.',
+		'historyDefault'=> 'Click <b>Restore Default</b> to restore a view to its original layout.<br><br><b>Restore Default</b> only restores the field placement within the original layout. To change field labels, click the Edit icon next to each field.',
 		'Hidden' 	=> '<b>Hidden</b> fields not currently available for users to see in ListViews.',
 		'Default'	=> '<b>Default</b> fields appear in ListViews that are not customized by users.'
 	),
@@ -124,8 +129,8 @@ $mod_strings = array(
     ,
 		'savebtn'	=> 'Clicking <b>Save & Deploy</b> will save all changes and make them active',
 		'Hidden' 	=> '<b>Hidden</b> fields do not appear in the Search.',
-		'historyBtn'=> 'Click <b>View History</b> to view and restore a previously saved layout from the history.',
-		'historyDefault'=> 'Click <b>Restore Default</b> to restore a view to its original layout.',
+		'historyBtn'=> 'Click <b>View History</b> to view and restore a previously saved layout from the history.<br><br><b>Restore</b> within <b>View History</b> restores the field placement within previously saved layouts. To change field labels, click the Edit icon next to each field.',
+		'historyDefault'=> 'Click <b>Restore Default</b> to restore a view to its original layout.<br><br><b>Restore Default</b> only restores the field placement within the original layout. To change field labels, click the Edit icon next to each field.',
 		'Default'	=> '<b>Default</b> fields appear in the Search.'
 	),
 	'layoutEditor'=>array(
@@ -137,8 +142,8 @@ $mod_strings = array(
 		'default'	=> 'The <b>Layout</b> area contains the fields that are currently displayed within the <b>EditView</b>.<br/><br/>The <b>Toolbox</b> contains the <b>Recycle Bin</b> and the fields and layout elements that can be added to the layout.<br><br>Make changes to the layout by dragging and dropping elements and fields between the <b>Toolbox</b> and the <b>Layout</b> and within the layout itself.<br><br>To remove a field from the layout, drag the field to the <b>Recycle Bin</b>. The field will then be available in the Toolbox to add to the layout.'
     ,
 		'saveBtn'	=> 'Click <b>Save</b> to preserve the changes you made to the layout since the last time you saved it.<br><br>The changes will not be displayed in the module until you Deploy the saved changes.',
-		'historyBtn'=> 'Click <b>View History</b> to view and restore a previously saved layout from the history.',
-		'historyDefault'=> 'Click <b>Restore Default</b> to restore a view to its original layout.',
+		'historyBtn'=> 'Click <b>View History</b> to view and restore a previously saved layout from the history.<br><br><b>Restore</b> within <b>View History</b> restores the field placement within previously saved layouts. To change field labels, click the Edit icon next to each field.',
+		'historyDefault'=> 'Click <b>Restore Default</b> to restore a view to its original layout.<br><br><b>Restore Default</b> only restores the field placement within the original layout. To change field labels, click the Edit icon next to each field.',
 		'publishBtn'=> 'Click <b>Save & Deploy</b> to save all changes you made to the layout since the last time you saved it, and to make the changes active in the module.<br><br>The layout will immediately be displayed in the module.',
 		'toolbox'	=> 'The <b>Toolbox</b> contains the <b>Recycle Bin</b>, additional layout elements and the set of available fields to add to the layout.<br/><br/>The layout elements and fields in the Toolbox can be dragged and dropped into the layout, and the layout elements and fields can be dragged and dropped from the layout into the Toolbox.<br><br>The layout elements are <b>Panels</b> and <b>Rows</b>. Adding a new row or a new panel to the layout provides additional locations in the layout for fields.<br/><br/>Drag and drop any of the fields in the Toolbox or layout onto a occupied field position to swap the locations of the two fields.<br/><br/>The <b>Filler</b> field creates blank space in the layout where it is placed.',
 		'panels'	=> 'The <b>Layout</b> area provides a view of how the layout will appear within the module when the changes made to the layout are deployed.<br/><br/>You can reposition fields, rows and panels by dragging and dropping them in the desired location.<br/><br/>Remove elements by dragging and dropping them in the <b>Recycle Bin</b> in the Toolbox, or add new elements and fields by dragging them from the <b>Toolbox</b>s and dropping them in the desired location in the layout.',
@@ -342,7 +347,7 @@ $mod_strings = array(
 'LBL_HOME' => 'Home',
 'LBL_NONE'=>'-None-',
 'LBL_DEPLOYE_COMPLETE'=>'Deploy complete',
-'LBL_DEPLOY_FAILED'   =>'An error has occured during deploy process, your package may not have installed correctly',
+'LBL_DEPLOY_FAILED'   =>'An error has occurred during deploy process, your package may not have installed correctly',
 'LBL_ADD_FIELDS'=>'Add Custom Fields',
 'LBL_AVAILABLE_SUBPANELS'=>'Available Subpanels',
 'LBL_ADVANCED'=>'Advanced',
@@ -351,6 +356,7 @@ $mod_strings = array(
 'LBL_BASIC_SEARCH'=>'Basic Search',
 'LBL_CURRENT_LAYOUT'=>'Layout',
 'LBL_CURRENCY' => 'Currency',
+'LBL_CUSTOM' => 'Custom',
 'LBL_DASHLET'=>'Sugar Dashlet',
 'LBL_DASHLETLISTVIEW'=>'Sugar Dashlet ListView',
 'LBL_DASHLETSEARCH'=>'Sugar Dashlet Search',
@@ -407,8 +413,15 @@ $mod_strings = array(
 'LBL_ADD_DROPDOWN' => 'Add a new Global Dropdown',
 'LBL_BLANK' => '-blank-',
 'LBL_TAB_ORDER' => 'Tab Order',
-'LBL_TAB_PANELS' => 'Display panels as tabs',
-'LBL_TAB_PANELS_HELP' => 'Display each panel as its own tab instead of having them all appear on one screen',
+'LBL_TAB_PANELS' => 'Enable tabs',
+'LBL_TAB_PANELS_HELP' => 'When tabs are enabled, use the "type" dropdown box<br />for each section to define how it will be displayed (tab or panel)',
+'LBL_TABDEF_TYPE' => 'Display Type',
+'LBL_TABDEF_TYPE_HELP' => 'Select how this section should be displayed. This option only has effect if you have enabled tabs on this view.',
+'LBL_TABDEF_TYPE_OPTION_TAB' => 'Tab',
+'LBL_TABDEF_TYPE_OPTION_PANEL' => 'Panel',
+'LBL_TABDEF_TYPE_OPTION_HELP' => 'Select Panel to have this panel display within the view of the layout. Select Tab to have this panel displayed within a separate tab within the layout. When Tab is specified for a panel, subsequent panels set to display as Panel will be displayed within the tab. <br/>A new Tab will be started for the next panel for which Tab is selected. If Tab is selected for a panel below the first panel, the first panel will necessarily be a Tab.',
+'LBL_TABDEF_COLLAPSE' => 'Collapse',
+'LBL_TABDEF_COLLAPSE_HELP' => 'Select to make the default state of this panel collapsed.',
 'LBL_DROPDOWN_TITLE_NAME' => 'Name',
 'LBL_DROPDOWN_LANGUAGE' => 'Language',
 'LBL_DROPDOWN_ITEMS' => 'List Items',
@@ -470,7 +483,7 @@ $mod_strings = array(
 'LBL_HCUSTOM'=>'CUSTOM',
 'LBL_HDEFAULT'=>'DEFAULT',
 'LBL_LANGUAGE'=>'Language:',
-
+'LBL_CUSTOM_FIELDS' => '* field created in Studio',
 
 //SECTION
 'LBL_SECTION_EDLABELS' => 'Edit Labels',
@@ -539,6 +552,7 @@ $mod_strings = array(
 'LBL_BTN_VIEW_RELATIONSHIPS'=>'View Relationships',
 'LBL_BTN_ADD_RELATIONSHIP'=>'Add Relationship',
 'LBL_BTN_RENAME_MODULE' => 'Change Module Name',
+'LBL_BTN_INSERT'=>'Insert',
 //TABS
 
 
@@ -547,7 +561,7 @@ $mod_strings = array(
 'ERROR_INVALID_KEY_VALUE'=> "Error: Invalid Key Value: [']",
 'ERROR_NO_HISTORY' => 'No history files found',
 'ERROR_MINIMUM_FIELDS' => 'The layout must contain at least one field',
-'ERROR_GENERIC_TITLE' => 'An error has occured',
+'ERROR_GENERIC_TITLE' => 'An error has occurred',
 'ERROR_REQUIRED_FIELDS' => 'Are you sure you wish to continue? The following required fields are missing from the layout:  ',
 'ERROR_ARE_YOU_SURE' => 'Are you sure you wish to continue?',
 
@@ -648,12 +662,13 @@ $mod_strings = array(
 
 //POPUP HELP
 'LBL_POPHELP_FIELD_DATA_TYPE'=>'Select the appropriate data type based on the type of data that will be entered into the field.',
+'LBL_POPHELP_SEARCHABLE'=>'Select the boost level for this field. <br />Fields with a higher boost level will be given greater weight when the search is performed. <br />When a search is performed, matching records containing fields with a greater weight will be appear higher in the search results.<br /> If you change the boost level for a field from one level to another, perform a system index to apply the change. <br/> Be sure to select to delete the existing data at the time that the system index is performed.',
 'LBL_POPHELP_IMPORTABLE'=>'<b>Yes</b>: The field will be included in an import operation.<br><b>No</b>: The field will not be included in an import.<br><b>Required</b>: A value for the field must be provided in any import.',
 'LBL_POPHELP_IMAGE_WIDTH'=>'Enter a number for Width, as measured in pixels.<br> The uploaded image will be scaled to this Width.',
 'LBL_POPHELP_IMAGE_HEIGHT'=>'Enter a number for the Height, as measured in pixels.<br> The uploaded image will be scaled to this Height.',
 'LBL_POPHELP_DUPLICATE_MERGE'=>'<b>Enabled</b>: The field will appear in the Merge Duplicates feature, but will not be available to use for the filter conditions in the Find Duplicates feature.<br><b>Disabled</b>: The field will not appear in the Merge Duplicates feature, and will not be available to use for the filter conditions in the Find Duplicates feature.'
 ,
-
+'LBL_POPHELP_GLOBAL_SEARCH'=>'Select to use this field when searching for records using the Global Search on this module.',
 //Revert Module labels
 'LBL_RESET' => 'Reset',
 'LBL_RESET_MODULE' => 'Reset Module',
@@ -703,6 +718,7 @@ $mod_strings = array(
 					             "phone number, with allowance for the country code 1, and<br>" .
                                  "to apply a U.S. format to the phone number when the record<br>" .
                                  "is saved. The following format will be applied: (xxx) xxx-xxxx.",
+'LBL_ALL_MODULES'=>'All Modules',
 
 );
 

@@ -2,7 +2,7 @@
 if(!defined('sugarEntry') || !sugarEntry) die('Not A Valid Entry Point');
 /*********************************************************************************
  * SugarCRM Community Edition is a customer relationship management program developed by
- * SugarCRM, Inc. Copyright (C) 2004-2011 SugarCRM Inc.
+ * SugarCRM, Inc. Copyright (C) 2004-2012 SugarCRM Inc.
  * 
  * This program is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Affero General Public License version 3 as published by the
@@ -38,6 +38,10 @@ if(!defined('sugarEntry') || !sugarEntry) die('Not A Valid Entry Point');
 
 require_once('data/SugarBean.php');
 
+/**
+ * Factory to create SugarBeans
+ * @api
+ */
 class BeanFactory {
     protected static $loadedBeans = array();
     protected static $maxLoaded = 10;
@@ -50,12 +54,26 @@ class BeanFactory {
      * Returns a SugarBean object by id. The Last 10 loaded beans are cached in memory to prevent multiple retrieves per request.
      * If no id is passed, a new bean is created.
      * @static
-     * @param  String $module
+     * @param String $module
      * @param String $id
+     * @param Array $params A name/value array of parameters. Names: encode, deleted, 
+     *        If $params is boolean we revert to the old arguments (encode, deleted), and use $params as $encode.
+     *        This will be changed to using only $params in later versions.
+     * @param Bool $deleted @see SugarBean::retrieve
      * @return SugarBean
      */
-    public static function getBean($module, $id = null)
+    public static function getBean($module, $id = null, $params = array(), $deleted = true)
     {
+    	
+    	// Check if params is an array, if not use old arguments
+    	if (isset($params) && !is_array($params)) {
+    		$params = array('encode' => $params);
+    	}
+    	
+    	// Pull values from $params array
+    	$encode = isset($params['encode']) ? $params['encode'] : true;
+    	$deleted = isset($params['deleted']) ? $params['deleted'] : $deleted;
+    	
         if (!isset(self::$loadedBeans[$module])) {
             self::$loadedBeans[$module] = array();
             self::$touched[$module] = array();
@@ -70,8 +88,11 @@ class BeanFactory {
             if (empty(self::$loadedBeans[$module][$id]))
             {
                 $bean = new $beanClass();
-                $bean->retrieve($id);
-                self::registerBean($module, $bean, $id);
+                $result = $bean->retrieve($id, $encode, $deleted);
+                if($result == null)
+                    return FALSE;
+                else
+                    self::registerBean($module, $bean, $id);
             } else
             {
                 self::$hits++;
@@ -81,7 +102,7 @@ class BeanFactory {
         } else {
             $bean = new $beanClass();
         }
-        
+
         return $bean;
     }
 
@@ -97,6 +118,23 @@ class BeanFactory {
 
         return $beanList[$module];
     }
+
+    /**
+     * Returns the object name / dictionary key for a given module. This should normally
+     * be the same as the bean name, but may not for special case modules (ex. Case vs aCase)
+     * @static
+     * @param String $module
+     * @return bool
+     */
+    public static function getObjectName($module)
+    {
+        global $objectList;
+        if (empty($objectList[$module]))
+            return self::getBeanName($module);
+
+        return $objectList[$module];
+    }
+
 
     /**
      * @static
@@ -157,7 +195,7 @@ class BeanFactory {
 
         if(!empty($bean->id))
            $id = $bean->id;
-        
+
         if ($id)
         {
             self::$loadedBeans[$module][$id] = $bean;

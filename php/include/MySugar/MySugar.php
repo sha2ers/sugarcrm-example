@@ -2,7 +2,7 @@
 if(!defined('sugarEntry') || !sugarEntry) die('Not A Valid Entry Point');
 /*********************************************************************************
  * SugarCRM Community Edition is a customer relationship management program developed by
- * SugarCRM, Inc. Copyright (C) 2004-2011 SugarCRM Inc.
+ * SugarCRM, Inc. Copyright (C) 2004-2012 SugarCRM Inc.
  * 
  * This program is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Affero General Public License version 3 as published by the
@@ -36,10 +36,10 @@ if(!defined('sugarEntry') || !sugarEntry) die('Not A Valid Entry Point');
  ********************************************************************************/
 
 
-
-
-
-
+/**
+ * Homepage dashlet manager
+ * @api
+ */
 class MySugar{
 	var $type;
 
@@ -49,8 +49,8 @@ class MySugar{
 
     function checkDashletDisplay () {
 
-		if((!in_array($this->type, $GLOBALS['moduleList']) 
-				&& !in_array($this->type, $GLOBALS['modInvisList'])) 
+		if((!in_array($this->type, $GLOBALS['moduleList'])
+				&& !in_array($this->type, $GLOBALS['modInvisList']))
 				&& (!in_array('Activities', $GLOBALS['moduleList']))){
 			$displayDashlet = false;
 		}
@@ -69,13 +69,13 @@ class MySugar{
     }
 
 	function addDashlet(){
-		if(!is_file($GLOBALS['sugar_config']['cache_dir'].'dashlets/dashlets.php')) {
+		if(!is_file(sugar_cached('dashlets/dashlets.php'))) {
             require_once('include/Dashlets/DashletCacheBuilder.php');
 
             $dc = new DashletCacheBuilder();
             $dc->buildCache();
 		}
-		require_once($GLOBALS['sugar_config']['cache_dir'].'dashlets/dashlets.php');
+		require_once sugar_cached('dashlets/dashlets.php');
 
 		global $current_user;
 
@@ -87,17 +87,12 @@ class MySugar{
 		    $guid = create_guid();
 			$options = array();
 		    if (isset($_REQUEST['type']) && $_REQUEST['type'] == 'web') {
-		        $dashlet_module = 'Home';
-		        $options['url'] = $_REQUEST['type_module'];
-		        $fp = @fopen($options['url'],'r');
-		        if ( $fp ) {
-		            $page = fread($fp,8192);
-		            $matches = array();
-                    preg_match("/<title>(.*)<\/title>/i",$page,$matches);
-                    if ( isset($matches[1]) )
-                        $options['title'] = str_replace('<![CDATA[','',str_replace(']]>','',$matches[1]));
-                    fclose($fp);
-		        }
+				$dashlet_module = 'Home';
+				require_once('include/Dashlets/DashletRssFeedTitle.php');
+				$options['url'] = $_REQUEST['type_module'];
+				$webDashlet = new DashletRssFeedTitle($options['url']);
+				$options['title'] = $webDashlet->generateTitle();
+				unset($webDashlet);
 		    }
 			elseif (!empty($_REQUEST['type_module'])) {
 				$dashlet_module = $_REQUEST['type_module'];
@@ -127,7 +122,7 @@ class MySugar{
 	}
 
 	function displayDashlet(){
-		global $current_user, $mod_strings;
+		global $current_user, $mod_strings, $app_strings;
 
 		if(!empty($_REQUEST['id'])) {
 		    $id = $_REQUEST['id'];
@@ -147,7 +142,7 @@ class MySugar{
 		        $dashlets[$id]['sort_options'] = array('sortOrder' => $sortOrder, 'orderBy' => $orderBy);
 		        $current_user->setPreference('dashlets', $dashlets, 0, $this->type);
 		    }
-		    
+
 		    require_once($dashlets[$id]['fileLocation']);
 		    $dashlet = new $dashlets[$id]['className']($id, (isset($dashlets[$id]['options']) ? $dashlets[$id]['options'] : array()));
 		    if(!empty($_REQUEST['configure']) && $_REQUEST['configure']) { // save settings
@@ -156,7 +151,7 @@ class MySugar{
 		    }
 		    if(!empty($_REQUEST['dynamic']) && $_REQUEST['dynamic'] == 'true' && $dashlet->hasScript) {
 		        $dashlet->isConfigurable = false;
-		        echo $dashlet->getTitle('') . $mod_strings['LBL_RELOAD_PAGE'];
+		        echo $dashlet->getTitle('') . $app_strings['LBL_RELOAD_PAGE'];
 		    }
 		    else {
 		        $lvsParams = array();
@@ -421,5 +416,3 @@ EOJS;
 
 
 }
-
-?>

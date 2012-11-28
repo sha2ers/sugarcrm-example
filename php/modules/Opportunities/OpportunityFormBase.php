@@ -2,7 +2,7 @@
 if(!defined('sugarEntry') || !sugarEntry) die('Not A Valid Entry Point');
 /*********************************************************************************
  * SugarCRM Community Edition is a customer relationship management program developed by
- * SugarCRM, Inc. Copyright (C) 2004-2011 SugarCRM Inc.
+ * SugarCRM, Inc. Copyright (C) 2004-2012 SugarCRM Inc.
  * 
  * This program is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Affero General Public License version 3 as published by the
@@ -250,7 +250,7 @@ $the_form .= <<<EOQ
     <td scope="row">$lbl_date_closed&nbsp;<span class="required">$lbl_required_symbol</span></td>
 </tr>
 <tr>
-<td ><input name='{$prefix}date_closed' onblur="parseDate(this, '$cal_dateformat');" size='12' maxlength='10' id='${prefix}jscal_field' type="text" value="">&nbsp;<img src="{$jsCalendarImage}" alt="{$app_strings['LBL_ENTER_DATE']}"  id="${prefix}jscal_trigger" align="absmiddle"></td>
+<td ><input name='{$prefix}date_closed' onblur="parseDate(this, '$cal_dateformat');" size='12' maxlength='10' id='${prefix}jscal_field' type="text" value="">&nbsp;<!--not_in_theme!--><img src="{$jsCalendarImage}" alt="{$app_strings['LBL_ENTER_DATE']}"  id="${prefix}jscal_trigger" align="absmiddle"></td>
 </tr>
 EOQ;
 if($showaccount){
@@ -259,7 +259,7 @@ if($showaccount){
     <td scope="row">${mod_strings['LBL_ACCOUNT_NAME']}&nbsp;<span class="required">${lbl_required_symbol}</span></td>
 </tr>
 <tr>
-    <td ><input readonly id='qc_account_name' name='account_name' type='text' value="" size="16"><input id='qc_account_id' name='account_id' type="hidden" value=''>&nbsp;<input  title="{$app_strings['LBL_SELECT_BUTTON_TITLE']}" accessKey="{$app_strings['LBL_SELECT_BUTTON_KEY']}" type="button" class="button" value='{$app_strings['LBL_SELECT_BUTTON_LABEL']}' name=btn1 LANGUAGE=javascript onclick='return window.open("index.php?module=Accounts&action=Popup&html=Popup_picker&form={$formname}&form_submit=false","","width=600,height=400,resizable=1,scrollbars=1");'></td>
+    <td ><input readonly id='qc_account_name' name='account_name' type='text' value="" size="16"><input id='qc_account_id' name='account_id' type="hidden" value=''>&nbsp;<input  title="{$app_strings['LBL_SELECT_BUTTON_TITLE']}" type="button" class="button" value='{$app_strings['LBL_SELECT_BUTTON_LABEL']}' name=btn1 LANGUAGE=javascript onclick='return window.open("index.php?module=Accounts&action=Popup&html=Popup_picker&form={$formname}&form_submit=false","","width=600,height=400,resizable=1,scrollbars=1");'></td>
 </tr>
 EOQ;
 }
@@ -376,14 +376,14 @@ $encoded_popup_request_data = $json->encode($popup_request_data);
 
 $the_form .= <<<EOQ
 		${mod_strings['LBL_ACCOUNT_NAME']}&nbsp;<span class="required">${lbl_required_symbol}</span><br>
-		<input class='sqsEnabled' autocomplete='off' id='qc_account_name' name='account_name' type='text' value="" size="16"><input id='qc_account_id' name='account_id' type="hidden" value=''>&nbsp;<input title="{$app_strings['LBL_SELECT_BUTTON_TITLE']}" accessKey="{$app_strings['LBL_SELECT_BUTTON_KEY']}" type="button" class="button" value='{$app_strings['LBL_SELECT_BUTTON_LABEL']}' name=btn1
+		<input class='sqsEnabled' autocomplete='off' id='qc_account_name' name='account_name' type='text' value="" size="16"><input id='qc_account_id' name='account_id' type="hidden" value=''>&nbsp;<input title="{$app_strings['LBL_SELECT_BUTTON_TITLE']}" type="button" class="button" value='{$app_strings['LBL_SELECT_BUTTON_LABEL']}' name=btn1
 			onclick='open_popup("Accounts", 600, 400, "", true, false, {$encoded_popup_request_data});' /><br>
 EOQ;
 }
 $jsCalendarImage = SugarThemeRegistry::current()->getImageURL('jscalendar.gif');
 $the_form .= <<<EOQ
 		$lbl_date_closed&nbsp;<span class="required">$lbl_required_symbol</span> <br><span class="dateFormat">$ntc_date_format</span><br>
-		<input name='{$prefix}date_closed' size='12' maxlength='10' id='{$prefix}jscal_field' type="text" value=""> <img src="{$jsCalendarImage}" alt="{$app_strings['LBL_ENTER_DATE']}"  id="jscal_trigger" align="absmiddle"><br>
+		<input name='{$prefix}date_closed' size='12' maxlength='10' id='{$prefix}jscal_field' type="text" value=""> <!--not_in_theme!--><img src="{$jsCalendarImage}" alt="{$app_strings['LBL_ENTER_DATE']}"  id="jscal_trigger" align="absmiddle"><br>
 		$lbl_sales_stage&nbsp;<span class="required">$lbl_required_symbol</span><br>
 		<select name='{$prefix}sales_stage'>
 EOQ;
@@ -402,7 +402,7 @@ EOQ;
 
 
 require_once('include/QuickSearchDefaults.php');
-$qsd = new QuickSearchDefaults();
+$qsd = QuickSearchDefaults::getQuickSearchDefaults();
 $sqs_objects = array('qc_account_name' => $qsd->getQSParent());
 $sqs_objects['qc_account_name']['populate_list'] = array('qc_account_name', 'qc_account_id');
 $quicksearch_js = '<script type="text/javascript" language="javascript">sqs_objects = ' . $json->encode($sqs_objects) . '</script>';

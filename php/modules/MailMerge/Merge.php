@@ -2,7 +2,7 @@
 if(!defined('sugarEntry') || !sugarEntry) die('Not A Valid Entry Point');
 /*********************************************************************************
  * SugarCRM Community Edition is a customer relationship management program developed by
- * SugarCRM, Inc. Copyright (C) 2004-2011 SugarCRM Inc.
+ * SugarCRM, Inc. Copyright (C) 2004-2012 SugarCRM Inc.
  * 
  * This program is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Affero General Public License version 3 as published by the
@@ -128,7 +128,7 @@ foreach($item_ids as $key=>$value)
 }//rof
 $merge_array['ids'] = $ids;
 
-$dataDir = getcwd()."/{$GLOBALS['sugar_config']['cache_dir']}MergedDocuments/";
+$dataDir = getcwd(). '/' . sugar_cached('MergedDocuments/');
 if(!file_exists($dataDir))
 {
 	sugar_mkdir($dataDir);
@@ -140,6 +140,7 @@ write_array_to_file('merge_array', $merge_array, $dataDir.$dataFileName);
 //Save the temp file so we can remove when we are done
 $_SESSION['MAILMERGE_TEMP_FILE_'.$mTime] = $dataDir.$dataFileName;
 $site_url = $sugar_config['site_url'];
+//$templateFile = $site_url . '/' . UploadFile::get_upload_url($document);
 $templateFile = $site_url.'/'.UploadFile::get_url(from_html($document->filename),$document->id);
 $dataFile =$dataFileName;
 $redirectUrl = 'index.php?action=index&step=5&module=MailMerge&mtime='.$mTime;
@@ -153,7 +154,7 @@ $fp = sugar_fopen($dataDir.$rtfFileName, 'w');
 fwrite($fp, $contents);
 fclose($fp);
 
-$_SESSION['mail_merge_file_location'] = $GLOBALS['sugar_config']['cache_dir'].'MergedDocuments/'.$rtfFileName;
+$_SESSION['mail_merge_file_location'] = sugar_cached('MergedDocuments/').$rtfFileName;
 $_SESSION['mail_merge_file_name'] = $rtfFileName;
 
 $xtpl->assign("MAILMERGE_FIREFOX_URL", $site_url .'/'.$GLOBALS['sugar_config']['cache_dir'].'MergedDocuments/'.$rtfFileName);

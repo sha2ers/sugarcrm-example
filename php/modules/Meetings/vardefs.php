@@ -2,7 +2,7 @@
 if(!defined('sugarEntry') || !sugarEntry) die('Not A Valid Entry Point');
 /*********************************************************************************
  * SugarCRM Community Edition is a customer relationship management program developed by
- * SugarCRM, Inc. Copyright (C) 2004-2011 SugarCRM Inc.
+ * SugarCRM, Inc. Copyright (C) 2004-2012 SugarCRM Inc.
  * 
  * This program is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Affero General Public License version 3 as published by the
@@ -36,7 +36,7 @@ if(!defined('sugarEntry') || !sugarEntry) die('Not A Valid Entry Point');
  ********************************************************************************/
 
 $dictionary['Meeting'] = array('table' => 'meetings',
-	'unified_search' => true, 'unified_search_default_enabled' => true,
+	'unified_search' => true, 'full_text_search' => true, 'unified_search_default_enabled' => true,
 	'comment' => 'Meeting activities'
                                ,'fields' => array (
   'name' =>
@@ -47,13 +47,14 @@ $dictionary['Meeting'] = array('table' => 'meetings',
     'type' => 'name',
     'dbType' => 'varchar',
 	'unified_search' => true,
+	'full_text_search' => array('boost' => 3),
     'len' => '50',
     'comment' => 'Meeting name',
     'importable' => 'required',
   ),
   'accept_status' => array (
     'name' => 'accept_status',
-    'vname' => 'LBL_SUBJECT',
+    'vname' => 'LBL_ACCEPT_STATUS',
     'type' => 'varchar',
     'dbType' => 'varchar',
     'len' => '20',
@@ -62,7 +63,7 @@ $dictionary['Meeting'] = array('table' => 'meetings',
   //bug 39559 
   'set_accept_links' => array (
     'name' => 'accept_status',
-    'vname' => 'LBL_SUBJECT',
+    'vname' => 'LBL_ACCEPT_LINK',
     'type' => 'varchar',
     'dbType' => 'varchar',
     'len' => '20',
@@ -98,7 +99,7 @@ $dictionary['Meeting'] = array('table' => 'meetings',
   'host_url' =>
   array (
     'name' => 'host_url',
-    'vname' => 'LBL_URL',
+    'vname' => 'LBL_HOST_URL',
     'type' => 'varchar',
     'len' => '400',
     'comment' => 'Host URL',
@@ -108,7 +109,7 @@ $dictionary['Meeting'] = array('table' => 'meetings',
   'displayed_url' =>
   array (
     'name' => 'displayed_url',
-    'vname' => 'LBL_URL',
+    'vname' => 'LBL_DISPLAYED_URL',
     'type' => 'url',
     'len' => '400',
     'comment' => 'Meeting URL',
@@ -137,20 +138,22 @@ $dictionary['Meeting'] = array('table' => 'meetings',
     'name' => 'duration_hours',
     'vname' => 'LBL_DURATION_HOURS',
     'type' => 'int',
-    'len' => '2',
+    'group'=>'duration',
+    'len' => '3',
     'comment' => 'Duration (hours)',
     'importable' => 'required',
     'required' => true,
+    'studio' => 'false',
   ),
   'duration_minutes' =>
   array (
     'name' => 'duration_minutes',
     'vname' => 'LBL_DURATION_MINUTES',
     'type' => 'int',
-    'group'=>'duration_hours',
-    'function' => array('name'=>'getDurationMinutesOptions', 'returns'=>'html', 'include'=>'modules/Calls/CallHelper.php'),
+    'group'=>'duration',
     'len' => '2',
-    'comment' => 'Duration (minutes)'
+    'comment' => 'Duration (minutes)',
+    'studio' => 'false',
   ),
   'date_start' =>
   array (
@@ -163,13 +166,15 @@ $dictionary['Meeting'] = array('table' => 'meetings',
     'required' => true,
     'enable_range_search' => true,
     'options' => 'date_range_search_dom',
+    'validation' => array('type' => 'isbefore', 'compareto' => 'date_end', 'blank' => false),
   ),
 
   'date_end' =>
   array (
     'name' => 'date_end',
     'vname' => 'LBL_DATE_END',
-    'type' => 'datetime',
+    'type' => 'datetimecombo',
+    'dbType' => 'datetime',
     'massupdate'=>false,
     'comment' => 'Date meeting ends',
     'enable_range_search' => true,
@@ -178,10 +183,11 @@ $dictionary['Meeting'] = array('table' => 'meetings',
   'parent_type' =>
   array (
     'name' => 'parent_type',
-    'vname'=>'LBL_LIST_RELATED_TO',
+    'vname'=>'LBL_PARENT_TYPE',
     'type' =>'parent_type',
     'dbType' => 'varchar',
     'group'=>'parent_name',
+    'options'=> 'parent_type_display',
     'len' => 100,
     'comment' => 'Module meeting is associated with',
     'studio' => array('searchview'=>false),
@@ -227,32 +233,62 @@ $dictionary['Meeting'] = array('table' => 'meetings',
   'parent_id' =>
   array (
     'name' => 'parent_id',
-    'vname'=>'LBL_LIST_RELATED_TO',
+    'vname'=>'LBL_PARENT_ID',
     'type' => 'id',
     'group'=>'parent_name',
     'reportable'=>false,
     'comment' => 'ID of item indicated by parent_type',
     'studio' => array('searchview'=>false),
   ),
-  'reminder_checked'=>array(
+  'reminder_checked' => array(
     'name' => 'reminder_checked',
     'vname' => 'LBL_REMINDER',
     'type' => 'bool',
     'source' => 'non-db',
     'comment' => 'checkbox indicating whether or not the reminder value is set (Meta-data only)',
-    'massupdate'=>false,
+    'massupdate' => false,
    ),
-
   'reminder_time' =>
   array (
     'name' => 'reminder_time',
     'vname' => 'LBL_REMINDER_TIME',
-    'type' => 'int',
-    'function' => array('name'=>'getReminderTime', 'returns'=>'html', 'include'=>'modules/Calls/CallHelper.php', 'onListView'=>true ),
+    'type' => 'enum',
+    'dbType' => 'int',
+    'options' => 'reminder_time_options',
     'reportable' => false,
-    'default'=>-1,
+    'massupdate' => false,
+    'default'=> -1,
     'comment' => 'Specifies when a reminder alert should be issued; -1 means no alert; otherwise the number of seconds prior to the start'
-  ),
+  ),  
+  'email_reminder_checked' => array(
+    'name' => 'email_reminder_checked',
+    'vname' => 'LBL_EMAIL_REMINDER',
+    'type' => 'bool',
+    'source' => 'non-db',
+    'comment' => 'checkbox indicating whether or not the email reminder value is set (Meta-data only)',
+    'massupdate' => false,
+   ),  
+  'email_reminder_time' =>
+  array (
+    'name' => 'email_reminder_time',
+    'vname' => 'LBL_EMAIL_REMINDER_TIME',
+    'type' => 'enum',
+    'dbType' => 'int',
+    'options' => 'reminder_time_options',
+    'reportable' => false,
+    'massupdate' => false,
+    'default'=> -1,
+    'comment' => 'Specifies when a email reminder alert should be issued; -1 means no alert; otherwise the number of seconds prior to the start'
+  ),  
+  'email_reminder_sent' => array( 
+    'name' => 'email_reminder_sent',
+    'vname' => 'LBL_EMAIL_REMINDER_SENT',
+    'default' => 0,
+    'type' => 'bool',
+    'comment' => 'Whether email reminder is already sent',
+    'studio' => false,
+    'massupdate'=> false,
+   ), 
    'outlook_id' =>
   array (
     'name' => 'outlook_id',
@@ -270,7 +306,7 @@ $dictionary['Meeting'] = array('table' => 'meetings',
     'len' => '11',
     'reportable' => false,
     'default'=>0,
-    'comment' => 'Meeting update sequence for meetings as per iCalendar standards'
+    'comment' => 'Meeting update sequence for meetings as per iCalendar standards',
   ),
 
   'contact_name' =>
@@ -367,6 +403,103 @@ $dictionary['Meeting'] = array('table' => 'meetings',
 		'name' => 'contact_id',
 		'type' => 'id',
 		'source' => 'non-db',
+	),
+	'repeat_type' =>
+	array(
+		'name' => 'repeat_type',
+		'vname' => 'LBL_REPEAT_TYPE',
+		'type' => 'enum',
+		'len' => 36,
+		'options' => 'repeat_type_dom',
+		'comment' => 'Type of recurrence',
+		'importable' => 'false',
+		'massupdate' => false,
+		'reportable' => false,
+		'studio' => 'false',
+	),	
+	'repeat_interval' =>
+	array(
+		'name' => 'repeat_interval',
+		'vname' => 'LBL_REPEAT_INTERVAL',
+		'type' => 'int',
+		'len' => 3,
+		'default' => 1,
+		'comment' => 'Interval of recurrence',
+		'importable' => 'false',
+		'massupdate' => false,
+		'reportable' => false,
+		'studio' => 'false',
+	),	
+	'repeat_dow' =>
+	array(
+		'name' => 'repeat_dow',
+		'vname' => 'LBL_REPEAT_DOW',
+		'type' => 'varchar',
+		'len' => 7,
+		'comment' => 'Days of week in recurrence',
+		'importable' => 'false',
+		'massupdate' => false,
+		'reportable' => false,
+		'studio' => 'false',
+	),	
+	'repeat_until' =>
+	array(
+		'name' => 'repeat_until',
+		'vname' => 'LBL_REPEAT_UNTIL',
+		'type' => 'date',
+		'comment' => 'Repeat until specified date',
+		'importable' => 'false',
+		'massupdate' => false,
+		'reportable' => false,
+		'studio' => 'false',
+	),	
+	'repeat_count' =>
+	array(
+		'name' => 'repeat_count',
+		'vname' => 'LBL_REPEAT_COUNT',
+		'type' => 'int',
+		'len' => 7,
+		'comment' => 'Number of recurrence',
+		'importable' => 'false',
+		'massupdate' => false,
+		'reportable' => false,
+		'studio' => 'false',
+	),
+	'repeat_parent_id' =>
+	array(
+		'name' => 'repeat_parent_id',
+		'vname' => 'LBL_REPEAT_PARENT_ID',
+		'type' => 'id',
+		'len' => 36,
+		'comment' => 'Id of the first element of recurring records',
+		'importable' => 'false',
+		'massupdate' => false,
+		'reportable' => false,
+		'studio' => 'false',
+	),
+	'recurring_source' =>
+	array(
+		'name' => 'recurring_source',
+		'vname' => 'LBL_RECURRING_SOURCE',
+		'type' => 'varchar',
+		'len' => 36,
+		'comment' => 'Source of recurring meeting',
+		'importable' => false,
+		'massupdate' => false,
+		'reportable' => false,
+		'studio' => false,
+	),
+	'duration' =>
+	array(
+		'name' => 'duration',
+		'vname' => 'LBL_DURATION',
+		'type' => 'enum',
+		'options' => 'duration_dom',
+		'source' => 'non-db',
+		'comment' => 'Duration handler dropdown',
+		'massupdate' => false,
+		'reportable' => false,
+		'importable' => false,
 	),
 ),
  'relationships' => array (

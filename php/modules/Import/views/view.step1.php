@@ -2,7 +2,7 @@
 if(!defined('sugarEntry') || !sugarEntry) die('Not A Valid Entry Point');
 /*********************************************************************************
  * SugarCRM Community Edition is a customer relationship management program developed by
- * SugarCRM, Inc. Copyright (C) 2004-2011 SugarCRM Inc.
+ * SugarCRM, Inc. Copyright (C) 2004-2012 SugarCRM Inc.
  * 
  * This program is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Affero General Public License version 3 as published by the
@@ -57,7 +57,30 @@ class ImportViewStep1 extends ImportView
         $this->currentStep = isset($_REQUEST['current_step']) ? ($_REQUEST['current_step'] + 1) : 1;
         $this->importModule = isset($_REQUEST['import_module']) ? $_REQUEST['import_module'] : '';
         if( isset($_REQUEST['from_admin_wizard']) &&  $_REQUEST['from_admin_wizard'] )
+        {
             $this->importModule = 'Administration';
+        }
+ 	}
+ 	
+ 	/**
+	 * @see SugarView::_getModuleTitleParams()
+	 */
+	protected function _getModuleTitleParams($browserTitle = false)
+	{
+	    global $mod_strings, $app_list_strings;
+	    
+	    $iconPath = $this->getModuleTitleIconPath($this->module);
+	    $returnArray = array();
+	    if (!empty($iconPath) && !$browserTitle) {
+	        $returnArray[] = "<a href='index.php?module={$_REQUEST['import_module']}&action=index'><!--not_in_theme!--><img src='{$iconPath}' alt='{$app_list_strings['moduleList'][$_REQUEST['import_module']]}' title='{$app_list_strings['moduleList'][$_REQUEST['import_module']]}' align='absmiddle'></a>";
+    	}
+    	else {
+    	    $returnArray[] = $app_list_strings['moduleList'][$_REQUEST['import_module']];
+    	}
+	    $returnArray[] = "<a href='index.php?module=Import&action=Step1&import_module={$_REQUEST['import_module']}'>".$mod_strings['LBL_MODULE_NAME']."</a>";
+	    $returnArray[] = $mod_strings['LBL_STEP_1_TITLE'];
+    	
+	    return $returnArray;
     }
 
  	/** 
@@ -68,10 +91,10 @@ class ImportViewStep1 extends ImportView
         global $mod_strings, $app_strings, $current_user;
         global $sugar_config;
 
-        $this->ss->assign("MODULE_TITLE", $this->getModuleTitle(false) );
-        $this->ss->assign("DELETE_INLINE_PNG",  SugarThemeRegistry::current()->getImage('delete_inline','align="absmiddle" alt="'.$app_strings['LNK_DELETE'].'" border="0"'));
-        $this->ss->assign("PUBLISH_INLINE_PNG",  SugarThemeRegistry::current()->getImage('publish_inline','align="absmiddle" alt="'.$mod_strings['LBL_PUBLISH'].'" border="0"'));
-        $this->ss->assign("UNPUBLISH_INLINE_PNG",  SugarThemeRegistry::current()->getImage('unpublish_inline','align="absmiddle" alt="'.$mod_strings['LBL_UNPUBLISH'].'" border="0"'));
+        $this->ss->assign("MODULE_TITLE", $this->getModuleTitle(false));
+        $this->ss->assign("DELETE_INLINE_PNG",  SugarThemeRegistry::current()->getImage('delete_inline','align="absmiddle" border="0"',null,null,'.gif',$app_strings['LNK_DELETE']));
+        $this->ss->assign("PUBLISH_INLINE_PNG",  SugarThemeRegistry::current()->getImage('publish_inline','align="absmiddle" border="0"', null,null,'.gif',$mod_strings['LBL_PUBLISH']));
+        $this->ss->assign("UNPUBLISH_INLINE_PNG",  SugarThemeRegistry::current()->getImage('unpublish_inline','align="absmiddle" border="0"', null,null,'.gif',$mod_strings['LBL_UNPUBLISH']));
         $this->ss->assign("IMPORT_MODULE", $_REQUEST['import_module']);
 
         $showModuleSelection = ($this->importModule == 'Administration');
@@ -103,8 +126,8 @@ class ImportViewStep1 extends ImportView
         $content = $this->ss->fetch('modules/Import/tpls/step1.tpl');
         
         $submitContent = "<table width=\"100%\" cellpadding=\"0\" cellspacing=\"0\" border=\"0\"><tr><td align=\"right\">";
-        $submitContent .= "<input title=\"".$mod_strings['LBL_IMPORT_COMPLETE']."\" onclick=\"SUGAR.importWizard.closeDialog();\" accessKey=\"\" class=\"button\" type=\"submit\" name=\"finished\" value=\"  ".$mod_strings['LBL_IMPORT_COMPLETE']."  \" id=\"finished\">";
-        $submitContent .= "<input title=\"".$mod_strings['LBL_NEXT']."\" accessKey=\"\" class=\"button primary\" type=\"submit\" name=\"button\" value=\"  ".$mod_strings['LBL_NEXT']."  \"  id=\"gonext\"></td></tr></table>";
+        $submitContent .= "<input title=\"".$mod_strings['LBL_IMPORT_COMPLETE']."\" onclick=\"SUGAR.importWizard.closeDialog();\" class=\"button\" type=\"submit\" name=\"finished\" value=\"  ".$mod_strings['LBL_IMPORT_COMPLETE']."  \" id=\"finished\">";
+        $submitContent .= "<input title=\"".$mod_strings['LBL_NEXT']."\" class=\"button primary\" type=\"submit\" name=\"button\" value=\"  ".$mod_strings['LBL_NEXT']."  \"  id=\"gonext\"></td></tr></table>";
 
         $this->ss->assign("JAVASCRIPT",$this->_getJS() );
         $this->ss->assign("CONTENT",$content);
@@ -209,18 +232,18 @@ YAHOO.util.Event.onDOMReady(function(){
             {
                 externalSourceBttns[i].set("checked", true, true);
             }
+            selectedExternalSource = '';
         }
         else
         {
             trEl.style.display = '';
             document.getElementById('gonext').disabled = true;
-
+            
             //Highlight the first selection by default
             if(externalSourceBttns.length >= 1)
             {
-                selectedExternalSource = externalSourceBttns[0].get("value");
-                externalSourceBttns[0].set("checked", true, true);
-                isExtSourceValid(selectedExternalSource);
+                if(selectedExternalSource == '')
+                    oButtonGroup.check(0);
             }
         }
     }

@@ -2,7 +2,7 @@
 if(!defined('sugarEntry') || !sugarEntry) die('Not A Valid Entry Point');
 /*********************************************************************************
  * SugarCRM Community Edition is a customer relationship management program developed by
- * SugarCRM, Inc. Copyright (C) 2004-2011 SugarCRM Inc.
+ * SugarCRM, Inc. Copyright (C) 2004-2012 SugarCRM Inc.
  * 
  * This program is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Affero General Public License version 3 as published by the
@@ -110,15 +110,17 @@ $layout_defs['Campaigns'] = array(
 			'sort_by' => 'campaign_log.id'
 		),
         'lead' => array(
-			'order' => 140,
-			'module' => 'CampaignLog',
-			'get_subpanel_data'=>"function:track_log_entries",
-            'function_parameters'=>array(0=>'lead','EMAIL_MARKETING_ID_VALUE'=>'',/*'group_by'=>'campaign_log.target_id','distinct'=>'campaign_log.target_id'*/),
-			'subpanel_name' => 'default',
-			'title_key' => 'LBL_LOG_ENTRIES_LEAD_TITLE',
-			'sort_order' => 'desc',
-			'sort_by' => 'campaign_log.id'
-		),
+            'order' => 140,
+            'module' => 'CampaignLog',
+            'get_subpanel_data'=>"function:track_log_leads",
+            'subpanel_name' => 'default',
+            'title_key' => 'LBL_LOG_ENTRIES_LEAD_TITLE',
+            'sort_order' => 'desc',
+            'sort_by' => 'campaign_log.id',
+            'top_buttons' => array(
+                array('widget_class' => 'SubPanelAddToProspectListButton', 'create' => true),
+            )
+        ),
         'contact' => array(
 			'order' => 150,
 			'module' => 'CampaignLog',
@@ -129,7 +131,7 @@ $layout_defs['Campaigns'] = array(
 			'sort_order' => 'desc',
 			'sort_by' => 'campaign_log.id'
 		),
-        'invalid email' => array(
+        'invalid_email' => array(
 			'order' => 160,
 			'module' => 'CampaignLog',
 			'get_subpanel_data'=>"function:track_log_entries",
@@ -139,7 +141,7 @@ $layout_defs['Campaigns'] = array(
 			'sort_order' => 'desc',
 			'sort_by' => 'campaign_log.id'
 		),				
-        'send error' => array(
+        'send_error' => array(
 			'order' => 170,
 			'module' => 'CampaignLog',
 			'get_subpanel_data'=>"function:track_log_entries",

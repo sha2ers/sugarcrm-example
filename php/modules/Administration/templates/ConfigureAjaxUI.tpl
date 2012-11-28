@@ -1,7 +1,7 @@
 {*
 /*********************************************************************************
  * SugarCRM Community Edition is a customer relationship management program developed by
- * SugarCRM, Inc. Copyright (C) 2004-2011 SugarCRM Inc.
+ * SugarCRM, Inc. Copyright (C) 2004-2012 SugarCRM Inc.
  * 
  * This program is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Affero General Public License version 3 as published by the
@@ -35,7 +35,7 @@
  ********************************************************************************/
 
 *}
-<script type="text/javascript" src="{sugar_getjspath file='include/javascript/sugar_grp_yui_widgets.js'}"></script>
+<script type="text/javascript" src="{sugar_getjspath file='cache/include/javascript/sugar_grp_yui_widgets.js'}"></script>
 <form name="ConfigureAjaxUI" method="POST"  method="POST" action="index.php">
 	<input type="hidden" name="module" value="Administration">
 	<input type="hidden" name="action" value="UpdateAjaxUI">
@@ -45,6 +45,7 @@
 	<input type="hidden" name="return_action" value="{$RETURN_ACTION}">
 
 	{$title}<br/>
+        <p>{sugar_translate label="LBL_CONFIG_AJAX_DESC"}</p><br/>
 	<p>{sugar_translate label="LBL_CONFIG_AJAX_HELP"}</p><br/>
 	<input title="{$APP.LBL_SAVE_BUTTON_TITLE}" accessKey="{$APP.LBL_SAVE_BUTTON_KEY}" class="button primary"
 		   onclick="SUGAR.saveConfigureTabs();" type="submit" name="saveButton"

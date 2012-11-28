@@ -2,7 +2,7 @@
 if(!defined('sugarEntry') || !sugarEntry) die('Not A Valid Entry Point');
 /*********************************************************************************
  * SugarCRM Community Edition is a customer relationship management program developed by
- * SugarCRM, Inc. Copyright (C) 2004-2011 SugarCRM Inc.
+ * SugarCRM, Inc. Copyright (C) 2004-2012 SugarCRM Inc.
  * 
  * This program is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Affero General Public License version 3 as published by the
@@ -46,10 +46,10 @@ if( !isset( $install_script ) || !$install_script ){
 ///////////////////////////////////////////////////////////////////////////////
 ////    START OUTPUT
 
-
+$langHeader = get_language_header();
 $out = <<<EOQ
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
-<html>
+<html {$langHeader}>
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
 <meta http-equiv="Content-Style-Type" content="text/css">
@@ -69,22 +69,22 @@ $out = <<<EOQ
 				</p>
 				</th>
 				<th width="200" height="30" style="text-align: right;"><a href="http://www.sugarcrm.com" target=
-				"_blank"><IMG src="include/images/sugarcrm_login.png" width="145" height="30" alt="SugarCRM" border="0"></a>
+				"_blank"><IMG src="include/images/sugarcrm_login.png" alt="SugarCRM" border="0"></a>
 				</th>
 			</tr>
 			<tr>
 			    <td colspan="2" id="ready">{$mod_strings['LBL_TITLE_ARE_YOU_READY']} </td>
-			</tr>			
+			</tr>
 			<tr>
 				<td colspan="2">
 				    <p><strong>{$mod_strings['LBL_WELCOME_PLEASE_READ_BELOW']}</strong></p>
-						
+
 					<table width="100%" cellpadding="0" cellpadding="0" border="0" class="Welcome">
-						<tr>						
+						<tr>
 						   <th>
 						      <span onclick="showtime('sys_comp');" style="cursor:pointer;cursor:hand">
-						          <span id='basic_sys_comp'><img src="themes/default/images/basic_search.gif" border="0"></span>
-						          <span id='adv_sys_comp' style='display:none'><img src="themes/default/images/advanced_search.gif" border="0"></span>
+						          <span id='basic_sys_comp'><img alt="{$mod_strings['LBL_BASIC_SEARCH']}" src="themes/default/images/basic_search.gif" border="0"></span>
+						          <span id='adv_sys_comp' style='display:none'><img alt="{$mod_strings['LBL_ADVANCED_SEARCH']}" src="themes/default/images/advanced_search.gif" border="0"></span>
 						          &nbsp;{$mod_strings['REQUIRED_SYS_COMP']}
 						      </span>
 						   </th>
@@ -92,14 +92,14 @@ $out = <<<EOQ
 						<td>
 							<div id='sys_comp' >{$mod_strings['REQUIRED_SYS_COMP_MSG']}</div>
 						</td>
-					</table>			
-				
+					</table>
+
 					<table width="100%" cellpadding="0" cellpadding="0" border="0" class="Welcome">
 						<tr>
 						    <th>
 						        <span onclick="showtime('sys_check');" style="cursor:pointer;cursor:hand">
-						            <span id='basic_sys_check'><img src="themes/default/images/basic_search.gif" border="0"></span>
-						            <span id='adv_sys_check' style='display:none'><img src="themes/default/images/advanced_search.gif" border="0"></span>
+						            <span id='basic_sys_check'><img alt="{$mod_strings['LBL_BASIC_SEARCH']}" src="themes/default/images/basic_search.gif" border="0"></span>
+						            <span id='adv_sys_check' style='display:none'><img alt="{$mod_strings['LBL_ADVANCED_SEARCH']}" src="themes/default/images/advanced_search.gif" border="0"></span>
 						            &nbsp;{$mod_strings['REQUIRED_SYS_CHK']}
 						        </span>
 						    </th>
@@ -107,14 +107,14 @@ $out = <<<EOQ
 						<td>
 						    <div id='sys_check' >{$mod_strings['REQUIRED_SYS_CHK_MSG']}</div>
 						</td>
-					</table>			
-				
+					</table>
+
 					<table width="100%" cellpadding="0" cellpadding="0" border="0" class="Welcome">
 						<tr>
 						    <th>
 							    <span onclick="showtime('installType');" style="cursor:pointer;cursor:hand">
-								    <span id='basic_installType'><img src="themes/default/images/basic_search.gif" border="0"></span>
-								    <span id='adv_installType' style='display:none'><img src="themes/default/images/advanced_search.gif" border="0"></span>
+								    <span id='basic_installType'><img alt="{$mod_strings['LBL_BASIC_TYPE']}" src="themes/default/images/basic_search.gif" border="0"></span>
+								    <span id='adv_installType' style='display:none'><img alt="{$mod_strings['LBL_ADVANCED_TYPE']}" src="themes/default/images/advanced_search.gif" border="0"></span>
 								    &nbsp;{$mod_strings['REQUIRED_INSTALLTYPE']}
 							    </span>
 						    </th>
@@ -125,7 +125,7 @@ $out = <<<EOQ
 					</table>
 			    </td>
 			</tr>
-			
+
 			<tr>
 				<td align="right" colspan="2" height="20">
 					<hr>

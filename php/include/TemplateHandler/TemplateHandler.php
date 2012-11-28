@@ -1,7 +1,7 @@
 <?php
 /*********************************************************************************
  * SugarCRM Community Edition is a customer relationship management program developed by
- * SugarCRM, Inc. Copyright (C) 2004-2011 SugarCRM Inc.
+ * SugarCRM, Inc. Copyright (C) 2004-2012 SugarCRM Inc.
  * 
  * This program is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Affero General Public License version 3 as published by the
@@ -34,20 +34,20 @@
  * "Powered by SugarCRM".
  ********************************************************************************/
 
+
+
 /**
  * TemplateHandler builds templates using SugarFields and a generic view.
  * Currently it handles EditViews and DetailViews. It creates a smarty template cached in
  * cache/modules/moduleName/view
- *
+ * @api
  */
-
-
 class TemplateHandler {
     var $cacheDir;
     var $templateDir = 'modules/';
     var $ss;
     function TemplateHandler() {
-      $this->cacheDir = $GLOBALS['sugar_config']['cache_dir'];
+      $this->cacheDir = sugar_cached('');
     }
 
     function loadSmarty(){
@@ -83,8 +83,8 @@ class TemplateHandler {
         while($e = $d->read()){
             if(!empty($view) && $e != $view )continue;
             $end =strlen($e) - 4;
-            if(is_file($cacheDir .'/' . $e) && $end > 1 && substr($e, $end) == '.tpl'){
-                unlink($cacheDir .'/' . $e);
+            if(is_file($cacheDir . $e) && $end > 1 && substr($e, $end) == '.tpl'){
+                unlink($cacheDir . $e);
             }
         }
     }
@@ -249,7 +249,7 @@ class TemplateHandler {
      * @param view string view need (eg DetailView, EditView, etc)
      */
     function checkTemplate($module, $view, $checkFormName = false, $formName='') {
-        if(!empty($GLOBALS['sugar_config']['developerMode']) || !empty($_SESSION['developerMode'])){
+        if(inDeveloperMode() || !empty($_SESSION['developerMode'])){
             return false;
         }
         $view = $checkFormName ? $formName : $view;
@@ -288,6 +288,14 @@ class TemplateHandler {
      */
     function deleteTemplate($module, $view) {
         if(is_file($this->cacheDir . $this->templateDir . $module . '/' .$view . '.tpl')) {
+            // Bug #54634 : RTC 18144 : Cannot add more than 1 user to role but popup is multi-selectable
+            if ( !isset($this->ss) )
+            {
+                $this->loadSmarty();
+            }
+            $cache_file_name = $this->ss->_get_compile_path($this->cacheDir . $this->templateDir . $module . '/' .$view . '.tpl');
+            SugarCache::cleanFile($cache_file_name);
+
             return unlink($this->cacheDir . $this->templateDir . $module . '/' .$view . '.tpl');
         }
         return false;
@@ -299,14 +307,23 @@ class TemplateHandler {
      * This function creates the $sqs_objects array that will be used by the quicksearch Javascript
      * code.  The $sqs_objects array is wrapped in a $json->encode call.
      *
-     * @param $def The vardefs.php definitions
-     * @param $defs2 The Meta-Data file definitions
-     *
+     * @param array $def The vardefs.php definitions
+     * @param array $defs2 The Meta-Data file definitions
+     * @param string $view
+     * @param strign $module
+     * @return string
      */
-    function createQuickSearchCode($defs, $defs2, $view = '', $module='') {
+    public function createQuickSearchCode($defs, $defs2, $view = '', $module='')
+    {
         $sqs_objects = array();
         require_once('include/QuickSearchDefaults.php');
-        $qsd = new QuickSearchDefaults();
+        if(isset($this) && $this instanceof TemplateHandler) //If someone calls createQuickSearchCode as a static method (@see ImportViewStep3) $this becomes anoter object, not TemplateHandler
+        {
+            $qsd = QuickSearchDefaults::getQuickSearchDefaults($this->getQSDLookup());
+        }else
+        {
+            $qsd = QuickSearchDefaults::getQuickSearchDefaults(array());
+        }
         $qsd->setFormName($view);
         if(preg_match('/^SearchForm_.+/', $view)){
         	if(strpos($view, 'popup_query_form')){
@@ -379,26 +396,42 @@ class TemplateHandler {
                 if ($view == "ConvertLead")
                 {
                     $field['name'] = $module . $field['name'];
-					if (!empty($field['id_name']))
-					   $field['id_name'] = $field['name'] . "_" . $field['id_name'];
+                    if (isset($field['module']) && isset($field['id_name']) && substr($field['id_name'], -4) == "_ida") {
+                        $lc_module = strtolower($field['module']);
+                        $ida_suffix = "_".$lc_module.$lc_module."_ida";
+                        if (preg_match('/'.$ida_suffix.'$/', $field['id_name']) > 0) {
+                            $field['id_name'] = $module . $field['id_name'];
+                        }
+                        else
+                            $field['id_name'] = $field['name'] . "_" . $field['id_name'];
+                    }
+                    else {
+                        if (!empty($field['id_name']))
+                            $field['id_name'] = $field['name'] . "_" . $field['id_name'];
+                    }
                 }
 				$name = $qsd->form_name . '_' . $field['name'];
-				
 
 
                 if($field['type'] == 'relate' && isset($field['module']) && (preg_match('/_name$|_c$/si',$name) || !empty($field['quicksearch']))) {
-                    if(!preg_match('/_c$/si',$name) && preg_match('/^(Campaigns|Teams|Users|Contacts|Accounts)$/si', $field['module'], $matches)) {
+                    if (!preg_match('/_c$/si',$name)
+                        && (!isset($field['id_name']) || !preg_match('/_c$/si',$field['id_name']))
+                        && preg_match('/^(Campaigns|Teams|Users|Contacts|Accounts)$/si', $field['module'], $matches)
+                    ) {
 
                         if($matches[0] == 'Campaigns') {
                             $sqs_objects[$name] = $qsd->loadQSObject('Campaigns', 'Campaign', $field['name'], $field['id_name'], $field['id_name']);
                         } else if($matches[0] == 'Users'){
-                            if($field['name'] == 'reports_to_name')
+                            if($field['name'] == 'reports_to_name'){
                                 $sqs_objects[$name] = $qsd->getQSUser('reports_to_name','reports_to_id');
-                            else {
-                                if ($view == "ConvertLead")
-								    $sqs_objects[$name] = $qsd->getQSUser($field['name'], $field['id_name']);
-								else 
-								    $sqs_objects[$name] = $qsd->getQSUser();
+                             // Bug #52994 : QuickSearch for a 1-M User relationship changes assigned to user
+                            }elseif($field['name'] == 'assigned_user_name'){
+                                 $sqs_objects[$name] = $qsd->getQSUser('assigned_user_name','assigned_user_id');
+                             }
+                             else
+                             {
+                                 $sqs_objects[$name] = $qsd->getQSUser($field['name'], $field['id_name']);
+
 							}
                         } else if($matches[0] == 'Campaigns') {
                             $sqs_objects[$name] = $qsd->loadQSObject('Campaigns', 'Campaign', $field['name'], $field['id_name'], $field['id_name']);
@@ -442,9 +475,36 @@ class TemplateHandler {
                 } else if($field['type'] == 'parent') {
                     $sqs_objects[$name] = $qsd->getQSParent();
                 } //if-else
+
+                // Bug 53949 - Captivea (sve) - Partial fix : Append metadata fields that are not already included in $sqs_objects array
+                // (for example with hardcoded modules before, metadata arrays are not taken into account in 6.4.x 6.5.x)
+                // As QuickSearchDefault methods are called at other places, this will not fix the SQS problem for everywhere, but it fixes it on Editview
+
+                //merge populate_list && field_list with vardef
+                if (!empty($field['field_list']) && !empty($field['populate_list'])) {
+                    for ($j=0; $j<count($field['field_list']); $j++) {
+                		//search for the same couple (field_list_item,populate_field_item)
+               			$field_list_item = $field['field_list'][$j];
+               			$field_list_item_alternate = $qsd->form_name . '_' . $field['field_list'][$j];
+               			$populate_list_item = $field['populate_list'][$j];
+                		$found = false;
+                		for ($k=0; $k<count($sqs_objects[$name]['field_list']); $k++) {
+                			if (($field_list_item == $sqs_objects[$name]['populate_list'][$k] || $field_list_item_alternate == $sqs_objects[$name]['populate_list'][$k]) && //il faut inverser field_list et populate_list (cf lignes 465,466 ci-dessus)
+                				$populate_list_item == $sqs_objects[$name]['field_list'][$k]) {
+                				$found = true;
+                				break;
+                			}
+                		}
+                		if (!$found) {
+                			$sqs_objects[$name]['field_list'][] = $field['populate_list'][$j]; // as in lines 462 and 463
+                			$sqs_objects[$name]['populate_list'][] = $field['field_list'][$j];
+                		}
+                	}
+                }
+
             } //foreach
         }
-        
+
        //Implement QuickSearch for the field
        if(!empty($sqs_objects) && count($sqs_objects) > 0) {
            $quicksearch_js = '<script language="javascript">';
@@ -458,5 +518,15 @@ class TemplateHandler {
        return '';
     }
 
+    
+    /**
+     * Get lookup array for QuickSearchDefaults custom class
+     * @return array
+     * @see QuickSearchDefaults::getQuickSearchDefaults()
+     */
+    protected function getQSDLookup()
+    {
+        return array();
+    }
 }
 ?>

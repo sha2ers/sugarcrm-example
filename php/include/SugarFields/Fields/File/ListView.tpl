@@ -1,7 +1,7 @@
 {*
 /*********************************************************************************
  * SugarCRM Community Edition is a customer relationship management program developed by
- * SugarCRM, Inc. Copyright (C) 2004-2011 SugarCRM Inc.
+ * SugarCRM, Inc. Copyright (C) 2004-2012 SugarCRM Inc.
  * 
  * This program is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Affero General Public License version 3 as published by the
@@ -43,6 +43,6 @@
 {capture name=imageURLCapture assign=imageURL}
 {sugar_getimagepath file=$imageName}
 {/capture}
-{if strlen($imageURL)>1}<img src="{$imageURL}" border="0">{/if}
+{if strlen($imageURL)>1}{sugar_getimage name=$imageName alt=$imageName other_attributes='border="0" '}{/if}
 {/if}
 </a>

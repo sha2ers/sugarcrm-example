@@ -1,6 +1,6 @@
 /*********************************************************************************
  * SugarCRM Community Edition is a customer relationship management program developed by
- * SugarCRM, Inc. Copyright (C) 2004-2011 SugarCRM Inc.
+ * SugarCRM, Inc. Copyright (C) 2004-2012 SugarCRM Inc.
  * 
  * This program is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Affero General Public License version 3 as published by the
@@ -731,7 +731,7 @@ SE.autoComplete = {
     },
 
     /**
-     * Redisplays the textareas after an address is commited
+     * Redisplays the textareas after an address is committed.
      */
     toggleTextareaShow : function(sType, aArgs) {
         var textBoxId = aArgs[0]._oTextbox.id; // "addressTo0"
@@ -767,6 +767,7 @@ SE.composeLayout = {
     bccHidden : true,
     outboundAccountErrors : null,
     loadedTinyInstances : {}, //Tracks which tinyMCE editors have initalized with html content.
+    subjectMaxlen : 255,
 
     showAddressDetails : function(e) {
     	var linkElement = document.getElementById("More"+e.id);
@@ -902,7 +903,7 @@ SE.composeLayout = {
      		SE.composeLayout[idx].getUnitByPosition("right").collapse();
      		//Initialize tinyMCE
             SE.composeLayout._1_tiny(false);
-            
+
      		//Init templates and address book
      		SE.composeLayout._2_final();
 
@@ -1301,24 +1302,23 @@ SE.composeLayout = {
     },
 
 
-    /*/////////////////////////////////////////////////////////////////////////////
+    /////////////////////////////////////////////////////////////////////////////
     ///    EMAIL TEMPLATE CODE
-     */
     applyEmailTemplate : function (idx, id) {
 
         //bug #20680
         var box_title = mod_strings.LBL_EMAILTEMPLATE_MESSAGE_SHOW_TITLE;
 		var box_msg = mod_strings.LBL_EMAILTEMPLATE_MESSAGE_SHOW_MSG;
 		var box_none_msg = mod_strings.LBL_EMAILTEMPLATE_MESSAGE_CLEAR_MSG;
-		
+
 		//bug #6224
 		var to_addr = document.getElementById('addressTO'+idx);
-		if (to_addr.value.search(/[^;,]{6,}[;,][^;,]{6,}/) != -1) 
+		if (to_addr.value.search(/[^;,]{6,}[;,][^;,]{6,}/) != -1)
 		{
 			box_title = mod_strings.LBL_EMAILTEMPLATE_MESSAGE_WARNING_TITLE;
 			box_msg = mod_strings.LBL_EMAILTEMPLATE_MESSAGE_MULTIPLE_RECIPIENTS + '<br /><br />' + box_msg;
 		}
-		
+
 		// id is selected index of email template drop-down
 		if(id == '' || id == "0") {
 			YAHOO.SUGAR.MessageBox.show({
@@ -1355,13 +1355,21 @@ SE.composeLayout = {
 		if (start > -1) {
 	        tinyHTML = tinyHTML.substr(start);
             tiny.setContent(tinyHTML);
-		} else { 
+		} else {
        	    tiny.setContent('');
 		}
+        //now that content is set, call method to set signature
+        setTimeout("SUGAR.email2.composeLayout.setSignature("+idx+");",500);
     },
 
 	processResult : function(idx , id){
-        call_json_method('EmailTemplates','retrieve','record='+id,'email_template_object', this.appendEmailTemplateJSON);
+		var post_data = {"module":"EmailTemplates","record":id};
+		var global_rpcClient =  new SugarRPCClient();
+
+		result = global_rpcClient.call_method('retrieve', post_data, true);
+		if(!result['record']) return;
+		json_objects['email_template_object'] = result['record'];
+		this.appendEmailTemplateJSON();
 
         // get attachments if any
         AjaxObject.target = '';
@@ -1373,16 +1381,25 @@ SE.composeLayout = {
 
         // query based on template, contact_id0,related_to
         //jchi 09/10/2008 refix #7743
-        if(json_objects['email_template_object']['fields']['subject'] != '' ) { // cn: bug 7743, don't stomp populated Subject Line
+        if(json_objects['email_template_object']['fields']['subject'] != '' )
+        {
+            // cn: bug 7743, don't stomp populated Subject Line
             document.getElementById('emailSubject' + idx).value = decodeURI(encodeURI(json_objects['email_template_object']['fields']['subject']));
         }
-
-        var text = decodeURI(encodeURI(json_objects['email_template_object']['fields']['body_html'])).replace(/<BR>/ig, '\n').replace(/<br>/gi, "\n").replace(/&amp;/gi,'&').replace(/&lt;/gi,'<').replace(/&gt;/gi,'>').replace(/&#039;/gi,'\'').replace(/&quot;/gi,'"');
-
-        // cn: bug 14361 - text-only templates don't fill compose screen
-        if(text == '') {
-            text = decodeURI(encodeURI(json_objects['email_template_object']['fields']['body'])).replace(/<BR>/ig, '\n').replace(/<br>/gi, "\n").replace(/&amp;/gi,'&').replace(/&lt;/gi,'<').replace(/&gt;/gi,'>').replace(/&#039;/gi,'\'').replace(/&quot;/gi,'"').replace(/\r\n/gi,"<br/>");
+        var text = '';
+        if(json_objects['email_template_object']['fields']['text_only'] == 1)
+        {
+        	text = "<p>" + decodeURI(encodeURI(json_objects['email_template_object']['fields']['body'])).replace(/<BR>/ig, '</p><p>').replace(/<br>/gi, "</p><p>").replace(/&amp;/gi,'&').replace(/&lt;/gi,'<').replace(/&gt;/gi,'>').replace(/&#039;/gi,'\'').replace(/&quot;/gi,'"') + "</p>";
+        	document.getElementById('setEditor' + idx).checked = true;
+        	SUGAR.email2.composeLayout.renderTinyMCEToolBar(idx, 1);
         }
+        else
+        {
+        	text = decodeURI(encodeURI(json_objects['email_template_object']['fields']['body_html'])).replace(/<BR>/ig, '\n').replace(/<br>/gi, "\n").replace(/&amp;/gi,'&').replace(/&lt;/gi,'<').replace(/&gt;/gi,'>').replace(/&#039;/gi,'\'').replace(/&quot;/gi,'"');
+        	document.getElementById('setEditor' + idx).checked = false;
+        	SUGAR.email2.composeLayout.renderTinyMCEToolBar(idx, 0);
+        }
+
 
         var tiny = SE.util.getTiny('htmleditor' + idx);
         var tinyHTML = tiny.getContent();
@@ -1397,6 +1414,8 @@ SE.composeLayout = {
 		} else {
         	tiny.setContent(text);
 		}
+		//now that content is set, call method to set signature
+        setTimeout("SUGAR.email2.composeLayout.setSignature("+idx+");",500);
     },
 
     /**
@@ -1413,7 +1432,7 @@ SE.composeLayout = {
 			return;
         }
 
-        if(idx) {
+        if(idx != null) {
             var sel = document.getElementById('signatures' + idx);
         } else {
             var sel = document.getElementById('signature_id');
@@ -1434,8 +1453,8 @@ SE.composeLayout = {
 
         }
 
-        var openTag = '<div><span><span>';
-        var closeTag = '</span></span></div>';
+        var openTag = '<br class="signature-begin" />';
+        var closeTag = '<br class="signature-end" />';
         var t = tinyMCE.getInstanceById('htmleditor' + idx);
         //IE 6 Hack
         if(typeof(t) != 'undefined')
@@ -1450,7 +1469,13 @@ SE.composeLayout = {
 
         var htmllow = html.toLowerCase();
         var start = htmllow.indexOf(openTag);
-        var end = htmllow.indexOf(closeTag) + closeTag.length;
+        var end = htmllow.indexOf(closeTag);
+        if (end >= 0) {
+            end += closeTag.length;
+        }
+        else {
+            end = htmllow.length;
+        }
 
         // selected "none" - remove signature from email
         if(signature == '') {
@@ -1487,16 +1512,52 @@ SE.composeLayout = {
                 html = htmlPart1 + htmlPart2;
             }
 
-            // [pre|ap]pend
+            // pre|append
 			start = html.indexOf('<div><hr></div>');
             if(SE.userPrefs.signatures.signature_prepend == 'true' && start > -1) {
 				var htmlPart1 = html.substr(0, start);
 				var htmlPart2 = html.substr(start, html.length);
                 var newHtml = htmlPart1 + openTag + newSignature + closeTag + htmlPart2;
             } else if(SUGAR.email2.userPrefs.signatures.signature_prepend == 'true') {
-            	var newHtml = '<br/>' + openTag + newSignature + closeTag + html;
+
+            	//bug 48285
+                var newHtml = html;
+
+                //remove custom spacing
+                var spacing = '<span id="spacing"><br /><br /><br /></span>&nbsp;';
+                var customSpacingStart = html.indexOf(spacing);
+
+                if (customSpacingStart > -1)
+                {
+                    var part1 = newHtml.substr(0, customSpacingStart);
+                    var part2 = newHtml.substr(customSpacingStart+spacing.length, newHtml.length);
+                    newHtml = part1 + part2;
+                }
+
+                //append signature
+                var bodyStartTag = '<body>';
+                var body = newHtml.indexOf(bodyStartTag);
+
+                if (body > -1)
+                {
+                    var part1 = newHtml.substr(0, body+bodyStartTag.length);
+                    var part2 = newHtml.substr(body+bodyStartTag.length, newHtml.length);
+                    newHtml = part1 + spacing + openTag + newSignature + closeTag + part2;
+                }
+                else
+                {
+                    newHtml = openTag + newSignature + closeTag + newHtml;
+                }
+                //end bug 48285
             } else {
-                var newHtml = html + openTag + newSignature + closeTag;
+                var body = html.indexOf('</body>');
+                if (body > -1) {
+                    var part1 = html.substr(0, body);
+                    var part2 = html.substr(body, html.length);
+                    var newHtml = part1 + openTag + newSignature + closeTag + part2;
+                } else {
+                    var newHtml = html + openTag + newSignature + closeTag;
+                }
             }
             //tinyMCE.setContent(newHtml);
             t.setContent(newHtml);
@@ -1584,6 +1645,7 @@ SE.composeLayout = {
      * @param int Instance index
      */
     saveDraft : function(tinyInstance) {
+        SE.tinyInstances.currentHtmleditor = 'htmleditor' + tinyInstance;
         this.sendEmail(tinyInstance, true);
     },
 
@@ -1692,7 +1754,7 @@ SE.composeLayout = {
 
         // make async call to delete cached file
         AjaxObject.target = '';
-        AjaxObject.startRequest('', urlStandard + "&emailUIAction=removeUploadedAttachment&file="+file);
+        AjaxObject.startRequest('', urlStandard + "&emailUIAction=removeUploadedAttachment&file="+unescape(file));
     },
 
     /**
@@ -1753,8 +1815,8 @@ SE.composeLayout = {
         var form = document.getElementById('emailCompose' + idx);
         var composeOptionsFormName = "composeOptionsForm" + idx;
 
-        
-        var t = SE.util.getTiny(SE.tinyInstances.currentHtmleditor);
+
+        var t = SE.util.getTiny('htmleditor' + idx);
         if (t != null || typeof(t) != "undefined") {
             var html = t.getContent();
         } else {
@@ -1848,7 +1910,7 @@ SE.composeLayout = {
                         if(form.attachments.value != '') {
                             form.attachments.value += "::";
                         }
-                        form.attachments.value += node.value;
+                        form.attachments.value += unescape(node.value);
                     }
                 }
             }
@@ -1968,7 +2030,7 @@ SE.composeLayout = {
         } // if
     },
 
-    setContentOnThisTiny : function() {
+    setContentOnThisTiny : function(recursive) {
     	var tiny = SE.util.getTiny('htmleditor' + SE.composeLayout.currentInstanceId);
         var tinyHTML = tiny.getContent();
         composePackage.body = decodeURI(encodeURI(composePackage.body));
@@ -1978,9 +2040,38 @@ SE.composeLayout = {
         } // if
         //Flag determines if we should clear the tiny contents or just append
         if (typeof(composePackage.clearBody) != 'undefined' && composePackage.clearBody)
+        {
             SE.composeLayout.tinyHTML = '';
+        }
         else
-            SE.composeLayout.tinyHTML = tinyHTML + composePackage.body;
+        {
+
+            //check to see if tiny is defined, and this is not a recursive call if not, then call self function one more time
+            if(typeof tiny == 'undefined'  &&  typeof recursive == 'undefined'){
+                //call this same function again, this time setting the recursive flag to true
+                setTimeout("SE.composeLayout.setContentOnThisTiny(true);", 3000);
+                return;
+            }
+
+            //bug 48179
+            //check tinyHTML for closing tags
+            var body = tinyHTML.lastIndexOf('</body>');
+            spacing = '<span id="spacing"><br /><br /><br /></span>&nbsp;';
+
+            if (body > -1)
+            {
+                var part1 = tinyHTML.substr(0, body);
+                var part2 = tinyHTML.substr(body, tinyHTML.length);
+                var newHtml = part1 + spacing + composePackage.body + part2;
+            }
+            else
+            {
+                var newHtml = tinyHTML + spacing + composePackage.body;
+            }
+            //end bug 48179
+
+            SE.composeLayout.tinyHTML = newHtml;
+        }
 
          tiny.setContent(SE.composeLayout.tinyHTML);
          //Indicate that the contents has been loaded successfully.
@@ -2239,7 +2330,7 @@ SE.composeLayout = {
 			   && ( this['ccHidden'+idx]  == false && this['bccHidden'+idx] == false) )
 			Dom.addClass("add_addr_options_tr"+idx, "yui-hidden");
 
-		// SE.composeLayout.resizeEditor(idx);
+		SE.composeLayout.resizeEditor(idx);
     },
     /**
     *  Hide the cc and bcc fields if they were shown.
@@ -2467,4 +2558,4 @@ SE.util = {
 ///////////////////////////////////////////////////////////////////////////////
 
 
-})();//End namespace
+})();

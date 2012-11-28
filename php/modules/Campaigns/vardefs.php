@@ -2,7 +2,7 @@
 if(!defined('sugarEntry') || !sugarEntry) die('Not A Valid Entry Point');
 /*********************************************************************************
  * SugarCRM Community Edition is a customer relationship management program developed by
- * SugarCRM, Inc. Copyright (C) 2004-2011 SugarCRM Inc.
+ * SugarCRM, Inc. Copyright (C) 2004-2012 SugarCRM Inc.
  * 
  * This program is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Affero General Public License version 3 as published by the
@@ -39,6 +39,7 @@ $dictionary['Campaign'] = array ('audited'=>true,
 	'comment' => 'Campaigns are a series of operations undertaken to accomplish a purpose, usually acquiring leads',
 	'table' => 'campaigns',
 	'unified_search' => true,
+	'full_text_search' => true,
 	'fields' => array (
 		'tracker_key' => array (
 			'name' => 'tracker_key',
@@ -68,6 +69,7 @@ $dictionary['Campaign'] = array ('audited'=>true,
 			'importable' => 'required',
             'required' => true,
 			'unified_search' => true,
+			'full_text_search' => array('boost' => 3),
 			),
 		'refer_url' => array (
 			'name' => 'refer_url',
@@ -237,6 +239,8 @@ $dictionary['Campaign'] = array ('audited'=>true,
             'relationship' => 'campaign_leads',
             'source'=>'non-db',
 		    'vname' => 'LBL_LEADS',
+            'link_class' => 'ProspectLink',
+            'link_file' => 'modules/Campaigns/ProspectLink.php'
         ),
 
         'opportunities'=> array (
@@ -252,6 +256,8 @@ $dictionary['Campaign'] = array ('audited'=>true,
             'relationship' => 'campaign_contacts',
             'source'=>'non-db',
 		    'vname' => 'LBL_CONTACTS',
+            'link_class' => 'ProspectLink',
+            'link_file' => 'modules/Campaigns/ProspectLink.php'
         ),
         'accounts'=> array (
             'name' => 'accounts',
@@ -259,6 +265,8 @@ $dictionary['Campaign'] = array ('audited'=>true,
             'relationship' => 'campaign_accounts',
             'source'=>'non-db',
 		    'vname' => 'LBL_ACCOUNTS',
+            'link_class' => 'ProspectLink',
+            'link_file' => 'modules/Campaigns/ProspectLink.php'
         ),
 
 

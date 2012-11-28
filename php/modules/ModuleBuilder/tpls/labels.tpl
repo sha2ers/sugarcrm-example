@@ -1,7 +1,7 @@
 {*
 /*********************************************************************************
  * SugarCRM Community Edition is a customer relationship management program developed by
- * SugarCRM, Inc. Copyright (C) 2004-2011 SugarCRM Inc.
+ * SugarCRM, Inc. Copyright (C) 2004-2012 SugarCRM Inc.
  * 
  * This program is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Affero General Public License version 3 as published by the
@@ -69,7 +69,7 @@
     {foreach from=$MOD item='label' key='key'}
     <tr>
         <td align="right" style="padding: 0 1em 0 0">{$key}:</td>
-        <td><input type='hidden' name='label_{$key}' id='label_{$key}' value='no_change'><input onchange='document.getElementById("label_{$key}").value = this.value; ModuleBuilder.state.isDirty=true;' value='{$label}' size='60'></td>
+        <td><input type='hidden' name='label_{$key}' id='label_{$key}' value='no_change'><input id='input_{$key}' onchange='document.getElementById("label_{$key}").value = this.value; ModuleBuilder.state.isDirty=true;' value='{$label}' size='60'></td>
     </tr>
     {/foreach}
 

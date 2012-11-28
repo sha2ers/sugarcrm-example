@@ -1,7 +1,7 @@
 {*
 /*********************************************************************************
  * SugarCRM Community Edition is a customer relationship management program developed by
- * SugarCRM, Inc. Copyright (C) 2004-2011 SugarCRM Inc.
+ * SugarCRM, Inc. Copyright (C) 2004-2012 SugarCRM Inc.
  * 
  * This program is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Affero General Public License version 3 as published by the
@@ -42,7 +42,7 @@
 {if !empty($link) && $link != "http://" && $link != "https://"}
 {capture name=getStart assign=linkStart}{$link|substr:0:7}{/capture}
 <input type="hidden" class="sugar_field" id="{{if empty($displayParams.idName)}}{{sugarvar key='name'}}{{else}}{{$displayParams.idName}}{{/if}}" value="{if ( $linkStart != 'http://' || $linkStart != 'https:/' ) && $link}http://{/if}{$link}">
-<iframe src="{if $linkStart != 'http://' && $linkStart != 'https:/' && $link}http://{/if}{$link}" height="{{sugarvar key='height'}}" width="100%"/></iframe>
+<iframe src="{if $linkStart != 'http://' && $linkStart != 'https:/' && $link}http://{/if}{$link}" title="{if $linkStart != 'http://' && $linkStart != 'https:/' && $link}http://{/if}{$link}" height="{{sugarvar key='height'}}" width="100%"/></iframe>
 {/if}
 {{if !empty($displayParams.enableConnectors)}}
 {{sugarvar_connector view='DetailView'}} 

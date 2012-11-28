@@ -1,7 +1,7 @@
 <?php
 /*********************************************************************************
  * SugarCRM Community Edition is a customer relationship management program developed by
- * SugarCRM, Inc. Copyright (C) 2004-2011 SugarCRM Inc.
+ * SugarCRM, Inc. Copyright (C) 2004-2012 SugarCRM Inc.
  * 
  * This program is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Affero General Public License version 3 as published by the
@@ -47,6 +47,7 @@ $dictionary['SugarFeed'] = array(
     'len' => 255,
     'comment' => 'Name of the feed',
     'unified_search' => true,
+    'full_text_search' => true,
     'audited' => true,
     'merge_filter' => 'selected',  //field will be enabled for merge and will be a part of the default search criteria..other valid values for this property are enabled and disabled, default value is disabled.
                             //property value is case insensitive.
@@ -60,6 +61,7 @@ $dictionary['SugarFeed'] = array(
     'len' => 255,
     'comment' => 'Name of the feed',
     'unified_search' => true,
+    'full_text_search' => array('boost' => 1),
     'audited' => true,
     'merge_filter' => 'selected',  //field will be enabled for merge and will be a part of the default search criteria..other valid values for this property are enabled and disabled, default value is disabled.
                             //property value is case insensitive.
@@ -73,6 +75,7 @@ $dictionary['SugarFeed'] = array(
     'len' => 100,
     'comment' => 'related module',
     'unified_search' => true,
+    'full_text_search' => array('boost' => 1),
     'audited' => false,
     'merge_filter' => 'selected',  //field will be enabled for merge and will be a part of the default search criteria..other valid values for this property are enabled and disabled, default value is disabled.
                             //property value is case insensitive.
@@ -97,6 +100,7 @@ $dictionary['SugarFeed'] = array(
     'len' => 255,
     'comment' => 'Name of the feed',
     'unified_search' => true,
+    'full_text_search' => array('boost' => 1),
     'audited' => false,
     'merge_filter' => 'selected',  //field will be enabled for merge and will be a part of the default search criteria..other valid values for this property are enabled and disabled, default value is disabled.
                             //property value is case insensitive.
@@ -109,6 +113,7 @@ $dictionary['SugarFeed'] = array(
     'len' => 30,
     'comment' => 'Name of the feed',
     'unified_search' => true,
+    'full_text_search' => array('boost' => 1),
     'audited' => false,
     'merge_filter' => 'selected',  //field will be enabled for merge and will be a part of the default search criteria..other valid values for this property are enabled and disabled, default value is disabled.
                             //property value is case insensitive.

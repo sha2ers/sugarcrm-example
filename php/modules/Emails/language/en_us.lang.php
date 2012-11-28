@@ -2,7 +2,7 @@
 if(!defined('sugarEntry') || !sugarEntry) die('Not A Valid Entry Point');
 /*********************************************************************************
  * SugarCRM Community Edition is a customer relationship management program developed by
- * SugarCRM, Inc. Copyright (C) 2004-2011 SugarCRM Inc.
+ * SugarCRM, Inc. Copyright (C) 2004-2012 SugarCRM Inc.
  * 
  * This program is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Affero General Public License version 3 as published by the
@@ -76,6 +76,7 @@ $mod_strings = array (
 	'LBL_ADD_FILE'				=> 'Add Files',
 	'LBL_ARCHIVED_EMAIL'		=> 'Archived Email',
 	'LBL_ARCHIVED_MODULE_NAME'	=> 'Create Archived Emails',
+    'LBL_ARCHIVED_EMAILS_CREATE'  => 'Create',
 	'LBL_ATTACHMENTS'			=> 'Attachments:',
 	'LBL_HAS_ATTACHMENT'		=> 'Has Attachment?:',
 	'LBL_BCC'					=> 'Bcc:',
@@ -99,7 +100,8 @@ $mod_strings = array (
 	'LBL_EDIT_MY_SETTINGS'		=> 'Edit My Settings',
 	'LBL_EMAIL_ATTACHMENT'		=> 'Email Attachment',
 	'LBL_EMAIL_EDITOR_OPTION'	=> 'Send HTML Email',
-	'LBL_EMAIL_SELECTOR'		=> 'Select',
+	'LBL_EMAIL_SELECTOR_SELECT' => 'Select',
+	'LBL_EMAIL_SELECTOR_CLEAR'  => 'Clear',
 	'LBL_EMAIL'					=> 'Email Address:',
 	'LBL_EMAILS_ACCOUNTS_REL'	=> 'Emails:Accounts',
 	'LBL_EMAILS_BUGS_REL'		=> 'Emails:Bugs',
@@ -140,14 +142,14 @@ $mod_strings = array (
     'LBL_RAW'                  => 'Raw Email',
 	'LBL_SAVE_AS_DRAFT_BUTTON_KEY'=> 'R',
 	'LBL_SAVE_AS_DRAFT_BUTTON_LABEL'=> 'Save Draft',
-	'LBL_SAVE_AS_DRAFT_BUTTON_TITLE'=> 'Save Draft [Alt+R]',
+	'LBL_SAVE_AS_DRAFT_BUTTON_TITLE'=> 'Save Draft',
 	'LBL_SEARCH_FORM_DRAFTS_TITLE'=> 'Search Drafts',
 	'LBL_SEARCH_FORM_SENT_TITLE'=> 'Search Sent Emails',
 	'LBL_SEARCH_FORM_TITLE'		=> 'Email Search',
 	'LBL_SEND_ANYWAYS'			=> 'This email has no subject.  Send/save anyway?',
 	'LBL_SEND_BUTTON_KEY'		=> 'S',
 	'LBL_SEND_BUTTON_LABEL'		=> 'Send',
-	'LBL_SEND_BUTTON_TITLE'		=> 'Send [Alt+S]',
+	'LBL_SEND_BUTTON_TITLE'		=> 'Send',
 	'LBL_SEND'					=> 'SEND',
 	'LBL_SENT_MODULE_NAME'		=> 'Sent Emails',
 	'LBL_SHOW_ALT_TEXT'			=> 'Show Plain Text',
@@ -202,20 +204,20 @@ $mod_strings = array (
 	'WARNING_UPLOAD_DIR_NOT_WRITABLE'	=> 'Attachments may fail: An incorrect or unusable value for "upload_tmp_dir" was detected.  Please correct this in your php.ini file.',
 
     // for All emails
-    'LBL_BUTTON_RAW_TITLE'   => 'Show Raw Message [Alt+E]',
+    'LBL_BUTTON_RAW_TITLE'   => 'Show Raw Message',
     'LBL_BUTTON_RAW_KEY'     => 'e',
     'LBL_BUTTON_RAW_LABEL'   => 'Show Raw',
     'LBL_BUTTON_RAW_LABEL_HIDE' => 'Hide Raw',
 
 	// for InboundEmail
 	'LBL_BUTTON_CHECK'			=> 'Check Mail',
-	'LBL_BUTTON_CHECK_TITLE'	=> 'Check For New Email [Alt+C]',
+	'LBL_BUTTON_CHECK_TITLE'	=> 'Check For New Email',
 	'LBL_BUTTON_CHECK_KEY'		=> 'c',
 	'LBL_BUTTON_FORWARD'		=> 'Forward',
-	'LBL_BUTTON_FORWARD_TITLE'	=> 'Forward This Email [Alt+F]',
+	'LBL_BUTTON_FORWARD_TITLE'	=> 'Forward This Email',
 	'LBL_BUTTON_FORWARD_KEY'	=> 'f',
 	'LBL_BUTTON_REPLY_KEY'		=> 'r',
-	'LBL_BUTTON_REPLY_TITLE'	=> 'Reply [Alt+R]',
+	'LBL_BUTTON_REPLY_TITLE'	=> 'Reply',
 	'LBL_BUTTON_REPLY'			=> 'Reply',
 	'LBL_CASES_SUBPANEL_TITLE'	=> 'Cases',
 	'LBL_INBOUND_TITLE'			=> 'Inbound Email',
@@ -238,10 +240,10 @@ $mod_strings = array (
 	'LBL_ASSIGN_WARN'			=> 'Ensure that all 2 options are selected.',
 	'LBL_BACK_TO_GROUP'			=> 'Back to Group Inbox',
 	'LBL_BUTTON_DISTRIBUTE_KEY'	=> 'a',
-	'LBL_BUTTON_DISTRIBUTE_TITLE'=> 'Assign [Alt+A]',
+	'LBL_BUTTON_DISTRIBUTE_TITLE'=> 'Assign',
 	'LBL_BUTTON_DISTRIBUTE'		=> 'Assign',
 	'LBL_BUTTON_GRAB_KEY'		=> 't',
-	'LBL_BUTTON_GRAB_TITLE'		=> 'Take from Group [Alt+T]',
+	'LBL_BUTTON_GRAB_TITLE'		=> 'Take from Group',
 	'LBL_BUTTON_GRAB'			=> 'Take from Group',
 	'LBL_CREATE_BUG'			=> 'Create Bug',
 	'LBL_CREATE_CASE'			=> 'Create Case',
@@ -369,9 +371,29 @@ $mod_strings = array (
 	'LBL_EXCHANGE_SMTPPORT'					=> 'Exchange Server Port:',
 	'LBL_EXCHANGE_SMTPSERVER'				=> 'Exchange Server:',
 
+	'LBL_EDIT_LAYOUT' => 'Edit Layout' /*for 508 compliance fix*/,
+	'LBL_ATTACHMENT' => 'Attachment' /*for 508 compliance fix*/,
+	'LBL_DELETE_INLINE' => 'Delete' /*for 508 compliance fix*/,
+	'LBL_CREATE_CASES' => 'Create Cases' /*for 508 compliance fix*/,
+	'LBL_CREATE_LEADS' => 'Create Leads' /*for 508 compliance fix*/,
+	'LBL_CREATE_CONTACTS' => 'Create Contacts' /*for 508 compliance fix*/,
+	'LBL_CREATE_BUGS' => 'Create Bugs' /*for 508 compliance fix*/,
+	'LBL_CREATE_TASKS' => 'Create Tasks' /*for 508 compliance fix*/,
+	'LBL_CHECK_INLINE' => 'Correct' /*for 508 compliance fix*/,
+	'LBL_CLOSE' => 'Close' /*for 508 compliance fix*/,
+	'LBL_HELP' => 'Help' /*for 508 compliance fix*/,
+	'LBL_GMAIL_LOGO' => 'Gmail' /*for 508 compliance fix*/,
+	'LBL_YAHOO_MAIL' => 'Yahoo' /*for 508 compliance fix*/,
+	'LBL_EXCHANGE_LOGO' => 'Exchange' /*for 508 compliance fix*/,
+	'LBL_WAIT' => 'Wait' /*for 508 compliance fix*/,
+	'LBL_CHECKEMAIL' => 'Check Email' /*for 508 compliance fix*/,
+	'LBL_COMPOSEEMAIL' => 'Compose Email' /*for 508 compliance fix*/,
+	'LBL_EMAILSETTINGS' => 'Email Settings' /*for 508 compliance fix*/,
+
 	// SNIP
 	'LBL_CONTACTS_SUBPANEL_TITLE_SNIP' => 'Email Contacts',
 	'LBL_EMAILS_MEETINGS_REL' => 'Emails:Meetings',
 	'LBL_DATE_CREATED' => 'Date Created',
 	'LBL_DATE_MODIFIED' => 'Date Modified',
 );
+

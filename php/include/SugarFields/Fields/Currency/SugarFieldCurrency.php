@@ -2,7 +2,7 @@
 
 /*********************************************************************************
  * SugarCRM Community Edition is a customer relationship management program developed by
- * SugarCRM, Inc. Copyright (C) 2004-2011 SugarCRM Inc.
+ * SugarCRM, Inc. Copyright (C) 2004-2012 SugarCRM Inc.
  * 
  * This program is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Affero General Public License version 3 as published by the
@@ -72,5 +72,23 @@ class SugarFieldCurrency extends SugarFieldFloat
         $value = str_replace($settings->currency_symbol,"",$value);
         
         return $settings->float($value,$vardef,$focus);
+    }
+
+    /**
+	 * format the currency field based on system locale values for currency
+     * Note that this may be different from the precision specified in the vardefs.
+	 * @param string $rawfield value of the field
+     * @param string $somewhere vardef for the field being processed
+	 * @return number formatted according to currency settings
+	 */
+    public function formatField($rawField, $vardef){
+        // for currency fields, use the user or system precision, not the precision in the vardef
+        //this is achived by passing in $precision as null
+        $precision = null;
+
+        if ( $rawField === '' || $rawField === NULL ) {
+            return '';
+        }
+        return format_number($rawField,$precision,$precision);
     }
 }

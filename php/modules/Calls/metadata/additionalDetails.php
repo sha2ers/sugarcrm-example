@@ -2,7 +2,7 @@
 if(!defined('sugarEntry') || !sugarEntry) die('Not A Valid Entry Point');
 /*********************************************************************************
  * SugarCRM Community Edition is a customer relationship management program developed by
- * SugarCRM, Inc. Copyright (C) 2004-2011 SugarCRM Inc.
+ * SugarCRM, Inc. Copyright (C) 2004-2012 SugarCRM Inc.
  * 
  * This program is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Affero General Public License version 3 as published by the
@@ -58,6 +58,14 @@ function additionalDetailsCall($fields) {
         }
         $overlib_string .=  '<br>';
 	}
+    if (!empty($fields['PARENT_ID']))
+    {
+            $overlib_string .= "<b>". $mod_strings['LBL_RELATED_TO'] . "</b> ".
+                    "<a href='index.php?module=".$fields['PARENT_TYPE']."&action=DetailView&record=".$fields['PARENT_ID']."'>".
+                    $fields['PARENT_NAME'] . "</a>";
+            $overlib_string .= '<br>';
+    }
+
 	if(!empty($fields['DESCRIPTION'])) {
 		$overlib_string .= '<b>'. $mod_strings['LBL_DESCRIPTION'] . '</b> ' . substr($fields['DESCRIPTION'], 0, 300);
 		if(strlen($fields['DESCRIPTION']) > 300) $overlib_string .= '...';
@@ -67,14 +75,9 @@ function additionalDetailsCall($fields) {
 	$editLink = "index.php?action=EditView&module=Calls&record={$fields['ID']}";
 	$viewLink = "index.php?action=DetailView&module=Calls&record={$fields['ID']}";
 
-	$return_module = empty($_REQUEST['module']) ? 'Calls' : $_REQUEST['module'];
-	$return_action = empty($_REQUEST['action']) ? 'ListView' : $_REQUEST['action'];
-
-	$editLink .= "&return_module=$return_module&return_action=$return_action";
-	$viewLink .= "&return_module=$return_module&return_action=$return_action";
-
 	return array('fieldToAddTo' => 'NAME',
 				 'string' => $overlib_string,
 				 'editLink' => $editLink,
 				 'viewLink' => $viewLink);
 }
+

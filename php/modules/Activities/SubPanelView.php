@@ -2,7 +2,7 @@
 if(!defined('sugarEntry') || !sugarEntry) die('Not A Valid Entry Point');
 /*********************************************************************************
  * SugarCRM Community Edition is a customer relationship management program developed by
- * SugarCRM, Inc. Copyright (C) 2004-2011 SugarCRM Inc.
+ * SugarCRM, Inc. Copyright (C) 2004-2012 SugarCRM Inc.
  * 
  * This program is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Affero General Public License version 3 as published by the
@@ -55,7 +55,7 @@ global $action;
 
 global $app_strings;
 global $app_list_strings;
-//we don't want the parent module's string file, but rather the string file specifc to this subpanel
+//we don't want the parent module's string file, but rather the string file specific to this subpanel
 global $current_language;
 $current_module_strings = return_module_language($current_language, 'Activities');
 global $timedate;
@@ -91,7 +91,7 @@ foreach ($focus_tasks_list as $task) {
 		if ($task->date_due == '0000-00-00') $date_due = '';
 		else {
 			$date_due = $task->date_due;
-					
+
 		}
 		$open_activity_list[] = Array('name' => $task->name,
 									 'id' => $task->id,
@@ -210,7 +210,7 @@ foreach ($focus_notes_list as $note) {
 		$count = count($history_list);
 		$count--;
 		$history_list[$count]['filename'] = $note->filename;
-		$history_list[$count]['fileurl'] = UploadFile::get_url($note->filename,$note->id);
+		$history_list[$count]['fileurl'] = UploadFile::get_upload_url($note);
 	}
 
 }
@@ -225,8 +225,8 @@ else
 	$xtpl=new XTemplate ('modules/Activities/SubPanelView.html');
 }
 
-$xtpl->assign("DELETE_INLINE_PNG",  SugarThemeRegistry::current()->getImage('delete_inline','align="absmiddle" alt="'.$app_strings['LNK_DELETE'].'" border="0"'));
-$xtpl->assign("EDIT_INLINE_PNG",  SugarThemeRegistry::current()->getImage('edit_inline','align="absmiddle" alt="'.$app_strings['LNK_EDIT'].'" border="0"'));
+$xtpl->assign("DELETE_INLINE_PNG",  SugarThemeRegistry::current()->getImage('delete_inline','align="absmiddle" border="0"', null,null,'.gif',$app_strings['LNK_DELETE']));
+$xtpl->assign("EDIT_INLINE_PNG",  SugarThemeRegistry::current()->getImage('edit_inline','align="absmiddle" border="0"', null,null,'.gif',$app_strings['LNK_EDIT']));
 
 $xtpl->assign("MOD", $current_module_strings);
 $xtpl->assign("APP", $app_strings);
@@ -265,14 +265,14 @@ $button .= "<input type='hidden' name='action'>\n";
 
 if($currentModule != 'Project' && $currentModule != 'ProjectTask')
 {
-	$button .= "<input title='".$current_module_strings['LBL_NEW_TASK_BUTTON_TITLE']."' accessKey='".$current_module_strings['LBL_NEW_TASK_BUTTON_KEY']."' class='button' onclick=\"this.form.action.value='EditView';this.form.module.value='Tasks'\" type='submit' name='button' value='".$current_module_strings['LBL_NEW_TASK_BUTTON_LABEL']."'>\n";
+	$button .= "<input title='".$current_module_strings['LBL_NEW_TASK_BUTTON_TITLE']."'  class='button' onclick=\"this.form.action.value='EditView';this.form.module.value='Tasks'\" type='submit' name='button' value='".$current_module_strings['LBL_NEW_TASK_BUTTON_LABEL']."'>\n";
 }
 
-$button .= "<input title='".$current_module_strings['LBL_SCHEDULE_MEETING_BUTTON_TITLE']."' accessKey='".$current_module_strings['LBL_SCHEDULE_MEETING_BUTTON_KEY']."' class='button' onclick=\"this.form.action.value='EditView';this.form.module.value='Meetings'\" type='submit' name='button' value='".$current_module_strings['LBL_SCHEDULE_MEETING_BUTTON_LABEL']."'>\n";
+$button .= "<input title='".$current_module_strings['LBL_SCHEDULE_MEETING_BUTTON_TITLE']."'  class='button' onclick=\"this.form.action.value='EditView';this.form.module.value='Meetings'\" type='submit' name='button' value='".$current_module_strings['LBL_SCHEDULE_MEETING_BUTTON_LABEL']."'>\n";
 
-$button .= "<input title='".$current_module_strings['LBL_SCHEDULE_CALL_BUTTON_LABEL']."' accessKey='".$current_module_strings['LBL_SCHEDULE_CALL_BUTTON_KEY']."' class='button' onclick=\"this.form.action.value='EditView';this.form.module.value='Calls'\" type='submit' name='button' value='".$current_module_strings['LBL_SCHEDULE_CALL_BUTTON_LABEL']."'>\n";
+$button .= "<input title='".$current_module_strings['LBL_SCHEDULE_CALL_BUTTON_LABEL']."'  class='button' onclick=\"this.form.action.value='EditView';this.form.module.value='Calls'\" type='submit' name='button' value='".$current_module_strings['LBL_SCHEDULE_CALL_BUTTON_LABEL']."'>\n";
 
-$button .= "<input title='".$app_strings['LBL_COMPOSE_EMAIL_BUTTON_TITLE']."' accessKey='".$app_strings['LBL_COMPOSE_EMAIL_BUTTON_KEY']."' class='button' onclick=\"this.form.type.value='out';this.form.action.value='EditView';this.form.module.value='Emails';\" type='submit' name='button' value='".$app_strings['LBL_COMPOSE_EMAIL_BUTTON_LABEL']."'>\n";
+$button .= "<input title='".$app_strings['LBL_COMPOSE_EMAIL_BUTTON_TITLE']."'  class='button' onclick=\"this.form.type.value='out';this.form.action.value='EditView';this.form.module.value='Emails';\" type='submit' name='button' value='".$app_strings['LBL_COMPOSE_EMAIL_BUTTON_LABEL']."'>\n";
 
 $button .= "</form>\n";
 
@@ -306,15 +306,15 @@ foreach($open_activity_list as $activity)
 	if (isset($activity['parent_type'])) $activity_fields['PARENT_MODULE'] = $activity['parent_type'];
 	switch ($activity['type']) {
 		case 'Call':
-			$activity_fields['SET_COMPLETE'] = "<a href='index.php?return_module=$currentModule&return_action=$action&return_id=$focus->id&action=EditView&module=Calls&status=Held&record=".$activity['id']."&status=Held'>".SugarThemeRegistry::current()->getImage("close_inline","title=".translate('LBL_LIST_CLOSE','Activities')." border='0'")."</a>";
+			$activity_fields['SET_COMPLETE'] = "<a href='index.php?return_module=$currentModule&return_action=$action&return_id=$focus->id&action=EditView&module=Calls&status=Held&record=".$activity['id']."&status=Held'>".SugarThemeRegistry::current()->getImage("close_inline","title=".translate('LBL_LIST_CLOSE','Activities')." border='0'",null,null,'.gif',$mod_strings['LBL_LIST_CLOSE'])."</a>";
 			$activity_fields['STATUS'] = $app_list_strings['call_status_dom'][$activity['status']];
 			break;
 		case 'Meeting':
-			$activity_fields['SET_COMPLETE'] = "<a href='index.php?return_module=$currentModule&return_action=$action&return_id=$focus->id&action=EditView&module=Meetings&status=Held&record=".$activity['id']."&status=Held'>".SugarThemeRegistry::current()->getImage("close_inline","title=".translate('LBL_LIST_CLOSE','Activities')." border='0'")."</a>";
+			$activity_fields['SET_COMPLETE'] = "<a href='index.php?return_module=$currentModule&return_action=$action&return_id=$focus->id&action=EditView&module=Meetings&status=Held&record=".$activity['id']."&status=Held'>".SugarThemeRegistry::current()->getImage("close_inline","title=".translate('LBL_LIST_CLOSE','Activities')." border='0'", null,null,'.gif',$mod_strings['LBL_LIST_CLOSE'])."</a>";
 			$activity_fields['STATUS'] = $app_list_strings['meeting_status_dom'][$activity['status']];
 			break;
 		case 'Task':
-			$activity_fields['SET_COMPLETE'] = "<a href='index.php?return_module=$currentModule&return_action=$action&return_id=$focus->id&action=EditView&module=Tasks&status=Completed&record=".$activity['id']."&status=Completed'>".SugarThemeRegistry::current()->getImage("close_inline","title=".translate('LBL_LIST_CLOSE','Activities')." border='0'")."</a>";
+			$activity_fields['SET_COMPLETE'] = "<a href='index.php?return_module=$currentModule&return_action=$action&return_id=$focus->id&action=EditView&module=Tasks&status=Completed&record=".$activity['id']."&status=Completed'>".SugarThemeRegistry::current()->getImage("close_inline","title=".translate('LBL_LIST_CLOSE','Activities')." border='0'", null,null,'.gif',$mod_strings['LBL_LIST_CLOSE'])."</a>";
 			$activity_fields['STATUS'] = $app_list_strings['task_status_dom'][$activity['status']];
 			break;
 	}
@@ -325,7 +325,7 @@ foreach($open_activity_list as $activity)
  global $click_bg;
 $xtpl->assign("BG_HILITE", $hilite_bg);
 $xtpl->assign("BG_CLICK", $click_bg);
-$xtpl->assign("ACTIVITY_MODULE_PNG", SugarThemeRegistry::current()->getImage($activity_fields['MODULE'].'','border="0" alt="'.$activity_fields['NAME'].'"'));
+$xtpl->assign("ACTIVITY_MODULE_PNG", SugarThemeRegistry::current()->getImage($activity_fields['MODULE'].'','border="0"', null,null,'.gif',$activity_fields['NAME']));
 	$xtpl->assign("ACTIVITY", $activity_fields);
 
 	if($oddRow)
@@ -357,7 +357,7 @@ $popup_request_data = array(
 		'form_name' => 'EditView',
 		'field_to_name_array' => array(),
 		);
-	
+
 $json = getJSONobj();
 $encoded_popup_request_data = $json->encode($popup_request_data);
 
@@ -378,9 +378,9 @@ $button .= "<input type='hidden' name='return_module' value='".$currentModule."'
 $button .= "<input type='hidden' name='return_action' value='".$action."'>\n";
 $button .= "<input type='hidden' name='return_id' value='".$focus->id."'>\n";
 $button .= "<input type='hidden' name='action'>\n";
-$button .= "<input title='".$current_module_strings['LBL_NEW_NOTE_BUTTON_TITLE']."' accessKey='".$current_module_strings['LBL_NEW_NOTE_BUTTON_KEY']."' class='button' onclick=\"this.form.action.value='EditView';this.form.module.value='Notes'\" type='submit' name='button' value='".$current_module_strings['LBL_NEW_NOTE_BUTTON_LABEL']."'>\n";
-$button .= "<input title='".$current_module_strings['LBL_TRACK_EMAIL_BUTTON_TITLE']."' accessKey='".$current_module_strings['LBL_TRACK_EMAIL_BUTTON_KEY']."' class='button' onclick=\"this.form.type.value='archived';this.form.action.value='EditView';this.form.module.value='Emails'\" type='submit' name='button' value='".$current_module_strings['LBL_TRACK_EMAIL_BUTTON_LABEL']."'>\n";
-$button .= "<input title='".$current_module_strings['LBL_ACCUMULATED_HISTORY_BUTTON_TITLE']."' accessKey='".$current_module_strings['LBL_ACCUMULATED_HISTORY_BUTTON_KEY']."' class='button' type='button' onclick='open_popup(\"Activities\", \"600\", \"400\", \"&record=$focus->id&module_name=$currentModule\", true, false, $encoded_popup_request_data);' name='button' value='".$current_module_strings['LBL_ACCUMULATED_HISTORY_BUTTON_LABEL']."'>\n";
+$button .= "<input title='".$current_module_strings['LBL_NEW_NOTE_BUTTON_TITLE']."'  class='button' onclick=\"this.form.action.value='EditView';this.form.module.value='Notes'\" type='submit' name='button' value='".$current_module_strings['LBL_NEW_NOTE_BUTTON_LABEL']."'>\n";
+$button .= "<input title='".$current_module_strings['LBL_TRACK_EMAIL_BUTTON_TITLE']."'  class='button' onclick=\"this.form.type.value='archived';this.form.action.value='EditView';this.form.module.value='Emails'\" type='submit' name='button' value='".$current_module_strings['LBL_TRACK_EMAIL_BUTTON_LABEL']."'>\n";
+$button .= "<input title='".$current_module_strings['LBL_ACCUMULATED_HISTORY_BUTTON_TITLE']."'  class='button' type='button' onclick='open_popup(\"Activities\", \"600\", \"400\", \"&record=$focus->id&module_name=$currentModule\", true, false, $encoded_popup_request_data);' name='button' value='".$current_module_strings['LBL_ACCUMULATED_HISTORY_BUTTON_LABEL']."'>\n";
 $button .= "</form>\n";
 
 // Stick the form header out there.
@@ -424,13 +424,13 @@ foreach($history_list as $activity)
 
 	if (isset($activity['location'])) $activity_fields['LOCATION'] = $activity['location'];
 	if (isset($activity['filename'])) {
-		$activity_fields['ATTACHMENT'] = "<a href='".$activity['fileurl']."' target='_blank'>".SugarThemeRegistry::current()->getImage("attachment","alt='".$activity['filename']."' border='0' align='absmiddle'")."</a>";
+		$activity_fields['ATTACHMENT'] = "<a href='".$activity['fileurl']."' target='_blank'>".SugarThemeRegistry::current()->getImage("attachment","border='0' align='absmiddle'",null,null,'.gif',$activity['filename'])."</a>";
     }
 
 	if (isset($activity['parent_type'])) $activity_fields['PARENT_MODULE'] = $activity['parent_type'];
 
 	$xtpl->assign("ACTIVITY", $activity_fields);
-	$xtpl->assign("ACTIVITY_MODULE_PNG", SugarThemeRegistry::current()->getImage($activity_fields['MODULE'].'','border="0" alt="'.$activity_fields['NAME'].'"'));
+	$xtpl->assign("ACTIVITY_MODULE_PNG", SugarThemeRegistry::current()->getImage($activity_fields['MODULE'].'','border="0"', null,null,'.gif',$activity_fields['NAME']));
 
 	if($oddRow)
     {

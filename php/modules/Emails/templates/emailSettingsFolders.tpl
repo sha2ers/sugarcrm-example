@@ -1,7 +1,7 @@
 {*
 /*********************************************************************************
  * SugarCRM Community Edition is a customer relationship management program developed by
- * SugarCRM, Inc. Copyright (C) 2004-2011 SugarCRM Inc.
+ * SugarCRM, Inc. Copyright (C) 2004-2012 SugarCRM Inc.
  * 
  * This program is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Affero General Public License version 3 as published by the
@@ -46,7 +46,7 @@
 			<div>
 				{$app_strings.LBL_EMAIL_SETTINGS_USER_FOLDERS}:
 				<div id="rollover">
-                    <a href="#" class="rollover"><img border="0" src="{sugar_getimagepath file='helpInline.gif'}"><span>{$app_strings.LBL_EMAIL_MULTISELECT}</span></a>
+                    <a href="#" class="rollover">{sugar_getimage alt=$mod_strings.LBL_HELP name="helpInline" ext=".gif" other_attributes='border="0" '}<span>{$app_strings.LBL_EMAIL_MULTISELECT}</span></a>
                 </div>
 			</div>
 			<br/>

@@ -1,7 +1,7 @@
 {*
 /*********************************************************************************
  * SugarCRM Community Edition is a customer relationship management program developed by
- * SugarCRM, Inc. Copyright (C) 2004-2011 SugarCRM Inc.
+ * SugarCRM, Inc. Copyright (C) 2004-2012 SugarCRM Inc.
  * 
  * This program is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Affero General Public License version 3 as published by the
@@ -42,9 +42,9 @@
                 {foreach from=$row item=value}
                     {if $smarty.foreach.row.first}
                         {if $HAS_HEADER}
-                            <td scope="row" style="text-align: left;">{$value}</td>
+                            <td scope="col" style="text-align: left;">{$value}</td>
                         {else}
-                            <td scope="row" style="text-align: left;" colspan="{$column_count}">{$MOD.LBL_MISSING_HEADER_ROW}</td>
+                            <td scope="col" style="text-align: left;" colspan="{$column_count}">{$MOD.LBL_MISSING_HEADER_ROW}</td>
                         {/if}
                      {else}
                         <td class="impSample">{$value}</td>

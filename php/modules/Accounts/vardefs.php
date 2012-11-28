@@ -2,7 +2,7 @@
 if(!defined('sugarEntry') || !sugarEntry) die('Not A Valid Entry Point');
 /*********************************************************************************
  * SugarCRM Community Edition is a customer relationship management program developed by
- * SugarCRM, Inc. Copyright (C) 2004-2011 SugarCRM Inc.
+ * SugarCRM, Inc. Copyright (C) 2004-2012 SugarCRM Inc.
  * 
  * This program is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Affero General Public License version 3 as published by the
@@ -35,7 +35,7 @@ if(!defined('sugarEntry') || !sugarEntry) die('Not A Valid Entry Point');
  * "Powered by SugarCRM".
  ********************************************************************************/
 
-$dictionary['Account'] = array('table' => 'accounts', 'audited'=>true, 'unified_search' => true, 'unified_search_default_enabled' => true, 'duplicate_merge'=>true,
+$dictionary['Account'] = array('table' => 'accounts', 'audited'=>true, 'unified_search' => true, 'full_text_search' => true, 'unified_search_default_enabled' => true, 'duplicate_merge'=>true,
   'comment' => 'Accounts are organizations or entities that are the target of selling, support, and marketing activities, or have already purchased products or services',
   'fields' => array (
 
@@ -129,6 +129,20 @@ $dictionary['Account'] = array('table' => 'accounts', 'audited'=>true, 'unified_
     'source'=>'non-db',
         'vname'=>'LBL_CASES',
   ),
+  //bug 42902
+  'email'=> array(
+			'name' => 'email',
+  			'type' => 'email',
+			'query_type' => 'default',
+			'source' => 'non-db',
+			'operator' => 'subquery',
+			'subquery' => 'SELECT eabr.bean_id FROM email_addr_bean_rel eabr JOIN email_addresses ea ON (ea.id = eabr.email_address_id) WHERE eabr.deleted=0 AND ea.email_address LIKE',
+			'db_field' => array(
+				'id',
+			),
+			'vname' =>'LBL_ANY_EMAIL',
+			'studio' => array('visible'=>false, 'searchview'=>true),
+		),	
   'tasks' =>
   array (
     'name' => 'tasks',
@@ -179,6 +193,7 @@ $dictionary['Account'] = array('table' => 'accounts', 'audited'=>true, 'unified_
     'bean_name'=>'Email',
     'source'=>'non-db',
     'vname'=>'LBL_EMAILS',
+    'studio' => array("formula" => false),
   ),
   'documents'=>
   array (
@@ -218,6 +233,7 @@ $dictionary['Account'] = array('table' => 'accounts', 'audited'=>true, 'unified_
 	    'reportable'=>false,
 	    'unified_search' => true,
 	    'rel_fields' => array('primary_address' => array('type'=>'bool')),
+        'studio' => array("formula" => false),
 	),
   	'email_addresses_primary' =>
 	array (
@@ -227,6 +243,7 @@ $dictionary['Account'] = array('table' => 'accounts', 'audited'=>true, 'unified_
         'source' => 'non-db',
 		'vname' => 'LBL_EMAIL_ADDRESS_PRIMARY',
 		'duplicate_merge'=> 'disabled',
+        'studio' => array("formula" => false),
 	),
   'opportunities' =>
   array (
@@ -269,6 +286,7 @@ $dictionary['Account'] = array('table' => 'accounts', 'audited'=>true, 'unified_
     	'bean_name'=>'CampaignLog',
     	'source'=>'non-db',
 		'vname'=>'LBL_CAMPAIGNLOG',
+        'studio' => array("formula" => false),
   ),  
   'campaign_accounts' =>
     array (
@@ -317,13 +335,6 @@ $dictionary['Account'] = array('table' => 'accounts', 'audited'=>true, 'unified_
     'table' => 'users',
   ),
 
-  'products' => array(
-      'name' => 'products',
-      'type' => 'link',
-      'relationship' => 'products_accounts',
-      'source' => 'non-db',
-      'vname' => 'LBL_PRODUCTS',
-  ),
 
  'campaign_id' =>
   array (

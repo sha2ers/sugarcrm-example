@@ -2,7 +2,7 @@
 if(!defined('sugarEntry') || !sugarEntry) die('Not A Valid Entry Point');
 /*********************************************************************************
  * SugarCRM Community Edition is a customer relationship management program developed by
- * SugarCRM, Inc. Copyright (C) 2004-2011 SugarCRM Inc.
+ * SugarCRM, Inc. Copyright (C) 2004-2012 SugarCRM Inc.
  * 
  * This program is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Affero General Public License version 3 as published by the
@@ -108,8 +108,8 @@ foreach($temp_field_array as $field_array)
 //Print the master record header to the page
 $params = array();
 $params[] = "<a href='index.php?module={$focus->merge_bean->module_dir}&action=index'>{$GLOBALS['app_list_strings']['moduleList'][$focus->merge_bean->module_dir]}</a>";
-$params[] = "<a href='index.php?module={$focus->merge_bean->module_dir}&action=DetailView&record={$focus->merge_bean->id}'>{$focus->merge_bean->name}</a>";
 $params[] = $mod_strings['LBL_LBL_MERGE_RECORDS_STEP_1'];
+$params[] = $focus->merge_bean->name;
 echo getClassicModuleTitle($focus->merge_bean->module_dir, $params, true);
 
 $xtpl = new XTemplate ('modules/MergeRecords/Step1.html');
@@ -176,7 +176,7 @@ function addFieldRow($colName,$colLabel,$colValue) {
     <span id=filter_{$colName} style='visibility:visible' value="{$colLabel}" valueId="{$colName}">
         <table width='100%' border='0' cellpadding='0'>
             <tr>
-                <td width='2%'><a class="listViewTdToolsS1" href="javascript:remove_filter('filter_{$colName}')"><img src='{$deleteInlineImage}' align='absmiddle' alt='{$LBL_REMOVE}' border='0' height='12' width='12'>&nbsp;</a></td>
+                <td width='2%'><a class="listViewTdToolsS1" href="javascript:remove_filter('filter_{$colName}')"><!--not_in_theme!--><img src='{$deleteInlineImage}' align='absmiddle' alt='{$LBL_REMOVE}' border='0' height='12' width='12'>&nbsp;</a></td>
                 <td width='20%'>{$colLabel}:&nbsp;</td>
                 <td width='10%'><select name='{$colName}SearchType'>{$operator_options}</select></td>
                 <td width='68%'><input value="{$colValue}" id="{$colName}SearchField" name="{$colName}SearchField" type="text"></td>                  

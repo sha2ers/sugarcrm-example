@@ -2,7 +2,7 @@
 if(!defined('sugarEntry') || !sugarEntry) die('Not A Valid Entry Point');
 /*********************************************************************************
  * SugarCRM Community Edition is a customer relationship management program developed by
- * SugarCRM, Inc. Copyright (C) 2004-2011 SugarCRM Inc.
+ * SugarCRM, Inc. Copyright (C) 2004-2012 SugarCRM Inc.
  * 
  * This program is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Affero General Public License version 3 as published by the
@@ -48,10 +48,10 @@ $langDropDown = get_select_options_with_id($supportedLanguages, $current_languag
 ///////////////////////////////////////////////////////////////////////////////
 ////	START OUTPUT
 
-
+$langHeader = get_language_header();
 $out = <<<EOQ
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
-<html>
+<html {$langHeader}>
 <head>
    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
    <meta http-equiv="Content-Style-Type" content="text/css">
@@ -65,14 +65,14 @@ $out = <<<EOQ
   <table cellspacing="0" cellpadding="0" border="0" align="center" class="shell">
   <tr><td colspan="2" id="help"><a href="{$help_url}" target='_blank'>{$mod_strings['LBL_HELP']} </a></td></tr>
     <tr>
-			<th width="500">      
+			<th width="500">
 		<p>
 		<img src="{$sugar_md}" alt="SugarCRM" border="0">
 		</p>
 		{$mod_strings['LBL_TITLE_WELCOME']} {$setup_sugar_version} {$mod_strings['LBL_WELCOME_SETUP_WIZARD']}</th>
 
       <th width="200" height="30" style="text-align: right;"><a href="http://www.sugarcrm.com" target=
-          "_blank"><IMG src="include/images/sugarcrm_login.png" width="145" height="30" alt="SugarCRM" border="0"></a>
+          "_blank"><IMG src="include/images/sugarcrm_login.png" alt="SugarCRM" border="0"></a>
       </th>
     </tr>
    <tr>

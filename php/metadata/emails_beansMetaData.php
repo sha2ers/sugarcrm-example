@@ -2,7 +2,7 @@
 if(!defined('sugarEntry') || !sugarEntry) die('Not A Valid Entry Point');
 /*********************************************************************************
  * SugarCRM Community Edition is a customer relationship management program developed by
- * SugarCRM, Inc. Copyright (C) 2004-2011 SugarCRM Inc.
+ * SugarCRM, Inc. Copyright (C) 2004-2012 SugarCRM Inc.
  * 
  * This program is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Affero General Public License version 3 as published by the
@@ -282,12 +282,13 @@ $dictionary['emails_beans'] = array('table' => 'emails_beans',
 
 /**
  * Large text field table, shares a 1:1 with the emails table.  Moving all longtext fields to this table allows more
- * effiencient email management and full-text search capabilities with MyISAM for MySQL.
+ * effiencient email management and full-text search capabilities.
  */
 $dictionary['emails_text'] = array(
 	'table' => 'emails_text',
 	'comment' => 'Large email text fields',
 	'mysqlengine' => 'MyISAM',
+	'engine' => 'MyISAM',
 	'fields' => array(
 		'email_id' => array (
 			'name'			=> 'email_id',
@@ -341,7 +342,7 @@ $dictionary['emails_text'] = array(
 		'description_html' => array (
 			'name'			=> 'description_html',
 			'vname'			=> 'LBL_HTML_BODY',
-			'type'			=> 'longtext',
+			'type'			=> 'longhtml',
             'reportable'	=> false,
 			'comment'		=> 'Email body in HTML format',
 		),
@@ -371,13 +372,3 @@ $dictionary['emails_text'] = array(
 		),
 	),
 );
-
-
-
-
-
-
-
-
-
-

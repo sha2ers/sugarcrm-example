@@ -1,7 +1,7 @@
 {*
 /*********************************************************************************
  * SugarCRM Community Edition is a customer relationship management program developed by
- * SugarCRM, Inc. Copyright (C) 2004-2011 SugarCRM Inc.
+ * SugarCRM, Inc. Copyright (C) 2004-2012 SugarCRM Inc.
  * 
  * This program is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Affero General Public License version 3 as published by the
@@ -47,17 +47,28 @@ class="yui-navset detailview_tabs"
     {{counter name="tabCount" start=-1 print=false assign="tabCount"}}
     <ul class="yui-nav">
     {{foreach name=section from=$sectionPanels key=label item=panel}}
-        {{counter name="tabCount" print=false}}
-        <li><a id="tab{{$tabCount}}" href="javascript:void(0)"><em>{sugar_translate label='{{$label}}' module='{{$module}}'}</em></a></li>
+        {{capture name=label_upper assign=label_upper}}{{$label|upper}}{{/capture}}
+        {* override from tab definitions *}
+        {{if (isset($tabDefs[$label_upper].newTab) && $tabDefs[$label_upper].newTab == true)}}
+            {{counter name="tabCount" print=false}}
+            <li><a id="tab{{$tabCount}}" href="javascript:void(0)"><em>{sugar_translate label='{{$label}}' module='{{$module}}'}</em></a></li>
+        {{/if}}
     {{/foreach}}
     </ul>
     {{/if}}
     <div {{if $useTabs}}class="yui-content"{{/if}}>
 {{* Loop through all top level panels first *}}
 {{counter name="panelCount" print=false start=0 assign="panelCount"}}
+{{counter name="tabCount" start=-1 print=false assign="tabCount"}}
 {{foreach name=section from=$sectionPanels key=label item=panel}}
 {{assign var='panel_id' value=$panelCount}}
-<div id='{{$label}}' class='detail view'>
+{{capture name=label_upper assign=label_upper}}{{$label|upper}}{{/capture}}
+  {{if (isset($tabDefs[$label_upper].newTab) && $tabDefs[$label_upper].newTab == true)}}
+    {{counter name="tabCount" print=false}}
+    {{if $tabCount != 0}}</div>{{/if}}
+    <div id='tabcontent{{$tabCount}}'>
+  {{/if}}
+<div id='detailpanel_{{$smarty.foreach.section.iteration}}' class='detail view  detail508 {{$panelState}}'>
 {counter name="panelFieldCount" start=0 print=false assign="panelFieldCount"}
 {{* Print out the panel title if one exists*}}
 
@@ -67,11 +78,32 @@ class="yui-navset detailview_tabs"
     {sugar_include type='php' file='{{$panel}}'}
 {{else}}
 
-	{{if !empty($label) && !is_int($label) && $label != 'DEFAULT' && !$useTabs}}
-	<h4>{sugar_translate label='{{$label}}' module='{{$module}}'}</h4>
-	{{/if}}
+    {{if !empty($label) && !is_int($label) && $label != 'DEFAULT' && (!isset($tabDefs[$label_upper].newTab) || (isset($tabDefs[$label_upper].newTab) && $tabDefs[$label_upper].newTab == false))}}
+    <h4>
+      <a href="javascript:void(0)" class="collapseLink" onclick="collapsePanel({{$smarty.foreach.section.iteration}});">
+      <img border="0" id="detailpanel_{{$smarty.foreach.section.iteration}}_img_hide" src="{sugar_getimagepath file="basic_search.gif"}"></a>
+      <a href="javascript:void(0)" class="expandLink" onclick="expandPanel({{$smarty.foreach.section.iteration}});">
+      <img border="0" id="detailpanel_{{$smarty.foreach.section.iteration}}_img_show" src="{sugar_getimagepath file="advanced_search.gif"}"></a>
+      {sugar_translate label='{{$label}}' module='{{$module}}'}
+    {{if ( isset($tabDefs[$label_upper].panelDefault) && $tabDefs[$label_upper].panelDefault == "collapsed" && isset($tabDefs[$label_upper].newTab) && $tabDefs[$label_upper].newTab == false) }}
+      {{assign var='panelState' value=$tabDefs[$label_upper].panelDefault}}
+    {{else}}
+      {{assign var='panelState' value="expanded"}}
+    {{/if}}
+    {{if isset($panelState) && $panelState == 'collapsed'}}
+    <script>
+      document.getElementById('detailpanel_{{$smarty.foreach.section.iteration}}').className += ' collapsed';
+    </script>
+    {{else}}
+    <script>
+      document.getElementById('detailpanel_{{$smarty.foreach.section.iteration}}').className += ' expanded';
+    </script>
+    {{/if}}
+    </h4>
+
+    {{/if}}
 	{{* Print out the table data *}}
-	<table id='detailpanel_{{$smarty.foreach.section.iteration}}' cellspacing='{$gridline}'>
+  <table id='{{$label}}' class="panelContainer" cellspacing='{$gridline}'>
 
 
 
@@ -87,7 +119,8 @@ class="yui-navset detailview_tabs"
 	    	{if !({{$colData.field.hideIf}}) }
 	    {{/if}}
 			{counter name="fieldsUsed"}
-			<td width='{{$def.templateMeta.widths[$smarty.foreach.colIteration.index].label}}%' scope="row">
+			{{if empty($colData.field.hideLabel)}}
+			<td width='{{$def.templateMeta.widths[$smarty.foreach.colIteration.index].label}}%' scope="col">
 				{{if !empty($colData.field.name)}}
 				    {if !$fields.{{$colData.field.name}}.hidden}
                 {{/if}}
@@ -111,18 +144,19 @@ class="yui-navset detailview_tabs"
                    {{elseif isset($fields[$colData.field.name].popupHelp)}}
                      {capture name="popupText" assign="popupText"}{sugar_translate label="{{$fields[$colData.field.name].popupHelp}}" module='{{$module}}'}{/capture}
                    {{/if}}
-                   {overlib_includes}
                    {sugar_help text=$popupText WIDTH=400}
                 {{/if}}
                 {{if !empty($colData.field.name)}}
                 {/if}
+                {{/if}}
                 {{/if}}
 			</td>
 			<td width='{{$def.templateMeta.widths[$smarty.foreach.colIteration.index].field}}%' {{if $colData.colspan}}colspan='{{$colData.colspan}}'{{/if}} {{if isset($fields[$colData.field.name].type) && $fields[$colData.field.name].type == 'phone'}}class="phone"{{/if}}>
 			    {{if !empty($colData.field.name)}}
 			    {if !$fields.{{$colData.field.name}}.hidden}
 			    {{/if}}
-				{{if $colData.field.customCode || $colData.field.assign}}
+				{{$colData.field.prefix}}
+				{{if ($colData.field.customCode && !$colData.field.customCodeRenderField) || $colData.field.assign}}
 					{counter name="panelFieldCount"}
 					<span id="{{$colData.field.name}}" class="sugar_field">{{sugar_evalcolumn var=$colData.field colData=$colData}}</span>
 				{{elseif $fields[$colData.field.name] && !empty($colData.field.fields) }}
@@ -139,6 +173,11 @@ class="yui-navset detailview_tabs"
 					{counter name="panelFieldCount"}
 					{{sugar_field parentFieldArray='fields' vardef=$fields[$colData.field.name] displayType='DetailView' displayParams=$colData.field.displayParams typeOverride=$colData.field.type}}
 				{{/if}}
+				{{if !empty($colData.field.customCode) && $colData.field.customCodeRenderField}}
+				    {counter name="panelFieldCount"}
+				    <span id="{{$colData.field.name}}" class="sugar_field">{{sugar_evalcolumn var=$colData.field colData=$colData}}</span>
+                {{/if}}
+				{{$colData.field.suffix}}
 				{{if !empty($colData.field.name)}}
 				{/if}
 				{{/if}}
@@ -146,7 +185,7 @@ class="yui-navset detailview_tabs"
 	    {{if !empty($colData.field.hideIf)}}
 			{else}
 
-			<td scope="row">&nbsp;</td><td>&nbsp;</td>
+			<td>&nbsp;</td><td>&nbsp;</td>
 			{/if}
 	    {{/if}}
 		{{/foreach}}
@@ -157,18 +196,26 @@ class="yui-navset detailview_tabs"
 	{/if}
 	{{/foreach}}
 	</table>
+    {{if !empty($label) && !is_int($label) && $label != 'DEFAULT' && (!isset($tabDefs[$label_upper].newTab) || (isset($tabDefs[$label_upper].newTab) && $tabDefs[$label_upper].newTab == false))}}
+    <script type="text/javascript">SUGAR.util.doWhen("typeof initPanel == 'function'", function() {ldelim} initPanel({{$smarty.foreach.section.iteration}}, '{{$panelState}}'); {rdelim}); </script>
+    {{/if}}
 {{/if}}
 </div>
-{if $panelFieldCount == 0 && !$useTabs}}
+{if $panelFieldCount == 0}
 
 <script>document.getElementById("{{$label}}").style.display='none';</script>
 {/if}
 {{/foreach}}
-</div></div>
+{{if $useTabs}}
+  </div>
+{{/if}}
+
+</div>
+</div>
 {{include file=$footerTpl}}
 {{if $useTabs}}
 <script type='text/javascript' src='{sugar_getjspath file='include/javascript/popup_helper.js'}'></script>
-<script type="text/javascript" src="{sugar_getjspath file='include/javascript/sugar_grp_yui_widgets.js'}"></script>
+<script type="text/javascript" src="{sugar_getjspath file='cache/include/javascript/sugar_grp_yui_widgets.js'}"></script>
 <script type="text/javascript">
 var {{$module}}_detailview_tabs = new YAHOO.widget.TabView("{{$module}}_detailview_tabs");
 {{$module}}_detailview_tabs.selectTab(0);

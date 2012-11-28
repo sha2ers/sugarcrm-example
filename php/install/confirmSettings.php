@@ -2,7 +2,7 @@
 if(!defined('sugarEntry') || !sugarEntry) die('Not A Valid Entry Point');
 /*********************************************************************************
  * SugarCRM Community Edition is a customer relationship management program developed by
- * SugarCRM, Inc. Copyright (C) 2004-2011 SugarCRM Inc.
+ * SugarCRM, Inc. Copyright (C) 2004-2012 SugarCRM Inc.
  * 
  * This program is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Affero General Public License version 3 as published by the
@@ -37,19 +37,18 @@ if(!defined('sugarEntry') || !sugarEntry) die('Not A Valid Entry Point');
 
 
 
-global $sugar_config,$db;
+global $sugar_config, $db, $app_strings;
+if (isset($sugar_config['default_language']) == false)
+{
+    $sugar_config['default_language'] = $GLOBALS['current_language'];
+}
+$app_strings = return_application_language($GLOBALS['current_language']);
 
 if( !isset( $install_script ) || !$install_script ){
     die($mod_strings['ERR_NO_DIRECT_SCRIPT']);
 }
 
-
-
-
-
-$dbType = '';
-$oci8 = '';
-
+$db = getDbConnection();
 
 $dbCreate = "({$mod_strings['LBL_CONFIRM_WILL']} ";
 if(!$_SESSION['setup_db_create_database']){
@@ -83,10 +82,11 @@ $defaultLanguages = "";
 
 ///////////////////////////////////////////////////////////////////////////////
 ////	START OUTPUT
+$langHeader = get_language_header();
 
 $out =<<<EOQ
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
-<html>
+<html {$langHeader}>
 <head>
    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
    <meta http-equiv="Content-Script-Type" content="text/javascript">
@@ -106,7 +106,7 @@ $out =<<<EOQ
 		<img src="{$sugar_md}" alt="SugarCRM" border="0">
 		</p>
 		{$mod_strings['LBL_CONFIRM_TITLE']}</th>
-        <th width="200" style="text-align: right;"><a href="http://www.sugarcrm.com" target="_blank"><IMG src="$loginImage" width="145" height="30" alt="SugarCRM" border="0"></a>
+        <th width="200" style="text-align: right;"><a href="http://www.sugarcrm.com" target="_blank"><IMG src="$loginImage" alt="SugarCRM" border="0"></a>
         </th>
     </tr>
     <tr>
@@ -114,8 +114,8 @@ $out =<<<EOQ
 
         <table width="100%" cellpadding="0" cellpadding="0" border="0" class="StyleDottedHr">
             <tr><th colspan="3" align="left">{$mod_strings['LBL_DBCONF_TITLE']}</th></tr>
-            {$dbType}
-            {$oci8}
+            <tr><td></td><td><b>{$mod_strings['LBL_CONFIRM_DB_TYPE']}</b></td><td>{$_SESSION['setup_db_type']}</td></tr>
+            <tr><td></td><td><b>{$mod_strings['LBL_DBCONF_HOST_NAME']}</b></td><td>{$_SESSION['setup_db_host_name']}</td></tr>
             <tr>
                 <td></td>
                 <td><b>{$mod_strings['LBL_DBCONF_DB_NAME']}</b></td>
@@ -192,17 +192,6 @@ $out .=<<<EOQ
             </tr>
 EOQ;
 }
-/*
-if(isset($_SESSION['licenseKey_submitted']) && ($_SESSION['licenseKey_submitted'])
-            && (isset($GLOBALS['db']) && !empty($GLOBALS['db']))){
-$out .=<<<EOQ
-
-<!--
--->
-EOQ;
-}
-*/
-
 
 $out .=<<<EOQ
 
@@ -305,6 +294,14 @@ $envString = '
         <td  >'.$mod_strings['LBL_CHECKSYS_OK'].'</td>
       </tr>';
 
+// upload dir
+        $envString .='
+      <tr>
+        <td></td>
+        <td><strong>'.$mod_strings['LBL_CHECKSYS_UPLOAD'].'</strong></td>
+        <td>'.$mod_strings['LBL_CHECKSYS_OK'].'</td>
+      </tr>';
+
 // data dir
 
         $envString .='
@@ -332,7 +329,7 @@ if(empty($memory_limit)){
     $memory_limit = "-1";
 }
 if(!defined('SUGARCRM_MIN_MEM')) {
-    define('SUGARCRM_MIN_MEM', 40);
+    define('SUGARCRM_MIN_MEM', 40*1024*1024);
 }
 $sugarMinMem = constant('SUGARCRM_MIN_MEM');
 // logic based on: http://us2.php.net/manual/en/ini.core.php#ini.memory-limit
@@ -342,8 +339,18 @@ if( $memory_limit == "" ){          // memory_limit disabled at compile time, no
     $memory_msg = "{$mod_strings['LBL_CHECKSYS_MEM_UNLIMITED']}";
 } else {
     $mem_display = $memory_limit;
-    rtrim($memory_limit, 'M');
-    $memory_limit_int = (int) $memory_limit;
+    preg_match('/^\s*([0-9.]+)\s*([KMGTPE])B?\s*$/i', $memory_limit, $matches);
+    $num = (float)$matches[1];
+    // Don't break so that it falls through to the next case.
+    switch (strtoupper($matches[2])) {
+        case 'G':
+            $num = $num * 1024;
+        case 'M':
+            $num = $num * 1024;
+        case 'K':
+            $num = $num * 1024;
+    }
+    $memory_limit_int = intval($num);
     $SUGARCRM_MIN_MEM = (int) constant('SUGARCRM_MIN_MEM');
     if( $memory_limit_int < constant('SUGARCRM_MIN_MEM') ){
         $memory_msg = "<span class='stop'><b>$memory_limit{$mod_strings['ERR_CHECKSYS_MEM_LIMIT_1']}" . constant('SUGARCRM_MIN_MEM') . "{$mod_strings['ERR_CHECKSYS_MEM_LIMIT_2']}</b></span>";
@@ -438,9 +445,36 @@ if( $memory_limit == "" ){          // memory_limit disabled at compile time, no
             <td  >'.$fileMaxStatus.'</td>
           </tr>';
 
+      //CHECK Sprite support
+        if(function_exists('imagecreatetruecolor'))
+        {
+            $spriteSupportStatus = "{$mod_strings['LBL_CHECKSYS_OK']}</font>";
+        }else{
+            $spriteSupportStatus = "<span class='stop'><b>{$mod_strings['ERROR_SPRITE_SUPPORT']}</b></span>";
+        }
+            $envString .='
+          <tr>
+            <td></td>
+            <td><strong>'.$mod_strings['LBL_SPRITE_SUPPORT'].'</strong></td>
+            <td  >'.$spriteSupportStatus.'</td>
+          </tr>';
 
-
-
+        // Suhosin allow to use upload://
+        if (UploadStream::getSuhosinStatus() == true || (strpos(ini_get('suhosin.perdir'), 'e') !== false && strpos($_SERVER["SERVER_SOFTWARE"],'Microsoft-IIS') === false))
+        {
+            $suhosinStatus = "{$mod_strings['LBL_CHECKSYS_OK']}";
+        }
+        else
+        {
+            $suhosinStatus = "<span class='stop'><b>{$app_strings['ERR_SUHOSIN']}</b></span>";
+        }
+        $envString .= '
+        <tr>
+            <td></td>
+            <td><strong>PHP allows to use stream (' . UploadStream::STREAM_NAME . '://)</strong></td>
+            <td>' . $suhosinStatus . '</td>
+        </tr>
+        ';
 
 // PHP.ini
 $phpIniLocation = get_cfg_var("cfg_file_path");
@@ -578,14 +612,3 @@ function togglePass(){
 
 EOQ;
 echo $out;
-
-?>
-
-
-
-
-
-
-
-
-

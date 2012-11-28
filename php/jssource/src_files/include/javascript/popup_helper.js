@@ -1,6 +1,6 @@
 /*********************************************************************************
  * SugarCRM Community Edition is a customer relationship management program developed by
- * SugarCRM, Inc. Copyright (C) 2004-2011 SugarCRM Inc.
+ * SugarCRM, Inc. Copyright (C) 2004-2012 SugarCRM Inc.
  * 
  * This program is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Affero General Public License version 3 as published by the
@@ -35,6 +35,61 @@
 
 
 
+
+/**
+ * Helper function used in send_backs to close the popup window if closePopup is true.
+ */
+function closePopup() {
+	var closePopup = window.opener.get_close_popup();
+	if (closePopup)
+	{
+		window.close();
+	}	
+}
+
+/**
+ * Bug: 48726
+ * Helper function used in send_backs to show confirm dialog with appropriate message. 
+ * Collects label data from the the parent window.
+ * 
+ * If similar bugs appear, please refer to Bug 48726, and use these helper functions.
+ */
+function confirmDialog(arrayContents, formName) {
+	var newData = '';
+	var labels = '';
+	var oldData = '';
+	eval("var data = {" + arrayContents.join(",") + "}");
+	var opener = window.opener.document;
+	for (var key in data)
+	{
+		var displayValue = replaceHTMLChars(data[key]);
+		if (opener.forms[formName] && opener.getElementById(key + '_label') != null && !key.match(/account/))
+		{
+	        var dataLabel = opener.getElementById(key + '_label').innerHTML.replace(/\n/gi,'').replace(/<\/?[^>]+(>|$)/g, "");
+	        labels += dataLabel + ' \n';
+			newData += dataLabel + ' ' + displayValue + '\n';
+			if(window.opener.document.forms[formName].elements[key]) {
+				oldData += dataLabel + ' ' + opener.forms[formName].elements[key].value + '\n';
+			}
+		}
+	}
+
+	var popupConfirm = 0;
+	if (data['account_id'] && (newData.split("\n").length - 1) > 2)
+	{
+		if(newData != oldData && oldData != labels)
+		{
+			if(confirm(SUGAR.language.get('app_strings', 'NTC_OVERWRITE_ADDRESS_PHONE_CONFIRM') + '\n\n' + newData))
+			{
+				popupConfirm = 1;
+			} else {
+				popupConfirm = -1;	
+			}
+		}
+	}
+	
+	return popupConfirm;
+}
 
 function send_back(module, id)
 {
@@ -82,8 +137,6 @@ function send_back(module, id)
                }
 			}
 			
-			
-			
 			if (typeof(the_value) == 'string') {
 				the_value = the_value.replace(/\r\n|\n|\r/g, '\\n');
 			}
@@ -91,20 +144,19 @@ function send_back(module, id)
 			array_contents.push('"' + the_name + '":"' + the_value + '"');
 		}
 	}
+
+	var popupConfirm = confirmDialog(array_contents, form_name);
 	
 	eval("var name_to_value_array = {" + array_contents.join(",") + "}");
+	
+	closePopup();
 
-	var result_data = {"form_name":form_name,"name_to_value_array":name_to_value_array,"passthru_data":passthru_data};
-	var close_popup = window.opener.get_close_popup();
+	var result_data = {"form_name":form_name,"name_to_value_array":name_to_value_array,"passthru_data":passthru_data,"popupConfirm":popupConfirm};
 	call_back_function(result_data);
-
-	if(close_popup)
-	{
-		window.close();
-	}
 }
 
-function send_back_teams(module, form, field, error_message, request_data, form_team_id) {	
+function send_back_teams(module, form, field, error_message, request_data, form_team_id)
+{	
 	var array_contents = Array();
 	
 	if(form_team_id){
@@ -148,15 +200,12 @@ function send_back_teams(module, form, field, error_message, request_data, form_
 	
 	var form_name = request_data.form_name;
 	var field_name = request_data.field_name;
-	var call_back_function = eval("window.opener." + request_data.call_back_function);
 
+	closePopup();
+	
+	var call_back_function = eval("window.opener." + request_data.call_back_function);
 	var result_data={"form_name":form_name,"field_name":field_name,"teams":array_teams,"passthru_data":passthru_data};
-	var close_popup = window.opener.get_close_popup();
 	call_back_function(result_data);
-	if(close_popup)
-	{
-		window.close();
-	}	
 
 }
 
@@ -199,24 +248,51 @@ function send_back_selected(module, form, field, error_message, request_data)
 	var form_name = request_data.form_name;
 	var field_to_name_array = request_data.field_to_name_array;
 	
+	closePopup();
+	
 	var call_back_function = eval("window.opener." + request_data.call_back_function);
 	var result_data={"form_name":form_name,"selection_list":selection_list_array ,"passthru_data":passthru_data,"select_entire_list":form.select_entire_list.value,"current_query_by_page":form.current_query_by_page.value};
-	var close_popup = window.opener.get_close_popup();
 	call_back_function(result_data);
-
-	if(close_popup)
-	{
-		window.close();
-	}
 }
 
 
 
 function toggleMore(spanId, img_id, module, action, params){
 	toggle_more_go = function() {
-		oReturn = function(body, caption, width, theme) {
-					return overlib(body, CAPTION, caption, STICKY, MOUSEOFF, 1000, WIDTH, width, CLOSETEXT, ('<img border=0 style="margin-left:2px; margin-right: 2px;" src=themes/' + theme + '/images/close.gif>'), CLOSETITLE, 'Click to Close', CLOSECLICK, FGCLASS, 'olFgClass', CGCLASS, 'olCgClass', BGCLASS, 'olBgClass', TEXTFONTCLASS, 'olFontClass', CAPTIONFONTCLASS, 'olCapFontClass', CLOSEFONTCLASS, 'olCloseFontClass', REF, spanId, REFC, 'LL', REFX, 13);
+				oReturn = function(body, caption, width, theme) {
+					
+					$(".ui-dialog").find(".open").dialog("close");
+
+					var el = '#'+spanId+ ' img';
+					if (action == 'DisplayInlineTeams')
+					{
+					    el = '#'+spanId;
+					}
+					var $dialog = $('<div class="open"></div>')
+					.html(body)
+					.dialog({
+						autoOpen: false,
+						title: caption,
+						width: 300,
+						position: {
+						    my: 'right top',
+						    at: 'left top',
+						    of: $(el)
+					  }
+					});
+
+					var width = $dialog.dialog( "option", "width" );
+					var pos = $(el).offset();
+					var ofWidth = $(el).width();
+
+					if((pos.left + ofWidth) - 40 < width) {
+					    $dialog.dialog("option","position",{my: 'left top',at: 'right top',of: $(el)})	;
+					}
+
+					$dialog.dialog('open');
+
 				}
+				
 		success = function(data) {
 					eval(data.responseText);
 
@@ -254,3 +330,8 @@ SUGAR.util.doWhen("window.document.forms['popup_query_form'] != null "
         }
     }
 );
+$(document).ready(function(){
+    $("ul.clickMenu").each(function(index, node){
+        $(node).sugarActionMenu();
+    });
+});

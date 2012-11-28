@@ -2,7 +2,7 @@
 
 /*********************************************************************************
  * SugarCRM Community Edition is a customer relationship management program developed by
- * SugarCRM, Inc. Copyright (C) 2004-2011 SugarCRM Inc.
+ * SugarCRM, Inc. Copyright (C) 2004-2012 SugarCRM Inc.
  * 
  * This program is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Affero General Public License version 3 as published by the
@@ -40,14 +40,11 @@
 
 *}
 
-{if $overlib}
-	<script type='text/javascript' src='include/javascript/overlibmws.js'></script>
-	<script type='text/javascript' src='include/javascript/overlibmws_iframe.js'></script>
-	<div id='overDiv' style='position:absolute; visibility:hidden; z-index:1000;'></div>
-{/if}
 
 <table cellpadding='0' cellspacing='0' width='100%' border='0' class='list View'>
-	{include file='include/ListView/ListViewPagination.tpl'}
+{assign var="link_select_id" value="selectLinkTop"}
+{assign var="link_action_id" value="actionLinkTop"}
+{include file='include/ListView/ListViewPagination.tpl'}
 
 	<tr height='20'>
 	    {if !empty($quickViewLinks)}
@@ -58,19 +55,23 @@
 			<th scope='col' width='{$params.width}%' >
 				<span sugar="sugar{$colCounter}"><div style='white-space: nowrap;'width='100%' align='{$params.align|default:'left'}'>
                 {if $params.sortable|default:true}
-	                <a href='{$pageData.urls.orderBy}{$params.orderBy|default:$colHeader|lower}' class='listViewThLinkS1'>{sugar_translate label=$params.label module=$pageData.bean.moduleDir}</a>&nbsp;&nbsp;
+	                <a href='{$pageData.urls.orderBy}{$params.orderBy|default:$colHeader|lower}' class='listViewThLinkS1' title=$arrowAlt>{sugar_translate label=$params.label module=$pageData.bean.moduleDir}&nbsp;&nbsp;
 					{if $params.orderBy|default:$colHeader|lower == $pageData.ordering.orderBy}
 						{if $pageData.ordering.sortOrder == 'ASC'}
-							{capture assign="imageName"}arrow_down.{$arrowExt}{/capture}
-							<img border='0' src='{sugar_getimagepath file=$imageName}' width='{$arrowWidth}' height='{$arrowHeight}' align='absmiddle' alt='{$arrowAlt}'>
+							{capture assign="imageName"}arrow_down.$arrowExt{/capture}
+                            {capture assign="alt_sort"}{sugar_translate label='LBL_ALT_SORT_DESC'}{/capture}
+							{sugar_getimage name=$imageName width=$arrowWidth height=$arrowHeight attr='align="absmiddle" border="0" ' alt="$alt_sort"}
 						{else}
-							{capture assign="imageName"}arrow_up.{$arrowExt}{/capture}
-							<img border='0' src='{sugar_getimagepath file=$imageName}' width='{$arrowWidth}' height='{$arrowHeight}' align='absmiddle' alt='{$arrowAlt}'>
+							{capture assign="imageName"}arrow_up.$arrowExt{/capture}
+                            {capture assign="alt_sort"}{sugar_translate label='LBL_ALT_SORT_ASC'}{/capture}
+							{sugar_getimage name=$imageName width=$arrowWidth height=$arrowHeight attr='align="absmiddle" border="0" ' alt="$alt_sort"}
 						{/if}
 					{else}
-						{capture assign="imageName"}arrow.{$arrowExt}{/capture}
-						<img border='0' src='{sugar_getimagepath file=$imageName}' width='{$arrowWidth}' height='{$arrowHeight}' align='absmiddle' alt='{$arrowAlt}'>
+						{capture assign="imageName"}arrow.$arrowExt{/capture}
+                        {capture assign="alt_sort"}{sugar_translate label='LBL_ALT_SORT'}{/capture}
+						{sugar_getimage name=$imageName width=$arrowWidth height=$arrowHeight attr='align="absmiddle" border="0" ' alt="$alt_sort"}
 					{/if}
+                    </a>
 				{else}
 					{sugar_translate label=$params.label module=$pageData.bean.moduleDir}
 				{/if}
@@ -90,7 +91,7 @@
 			{if !empty($quickViewLinks)}
 			<td width='1%' nowrap>
 				{if $pageData.access.edit && $pageData.bean.moduleDir != "Employees"}
-					<a title='{$editLinkString}' id="edit-{$rowData.ID}" href='index.php?action=EditView&module={$pageData.bean.moduleDir}&record={$rowData.ID}&offset={$pageData.offsets.current+$smarty.foreach.rowIteration.iteration}&stamp={$pageData.stamp}&return_module={$pageData.bean.moduleDir}'><img border="0" src="{sugar_getimagepath file="edit_inline.gif"}"></a>
+					<a title='{$editLinkString}' id="edit-{$rowData.ID}" href='index.php?action=EditView&module={$params.module|default:$pageData.bean.moduleDir}&record={$rowData[$params.id]|default:$rowData.ID}&offset={$pageData.offsets.current+$smarty.foreach.rowIteration.iteration}&stamp={$pageData.stamp}&return_module={$params.module|default:$pageData.bean.moduleDir}' title="{sugar_translate label="LBL_EDIT_INLINE"}">{sugar_getimage name="edit_inline.gif" attr='border="0" '}</a>
 				{/if}
 			</td>
 			{/if}
@@ -122,7 +123,9 @@
 	    </td>
 	</tr>
 	{/foreach}
-	{include file='include/ListView/ListViewPagination.tpl'}
+{assign var="link_select_id" value="selectLinkBottom"}
+{assign var="link_action_id" value="actionLinkBottom"}
+{include file='include/ListView/ListViewPagination.tpl'}
 </table>
 <script type='text/javascript'>
 {literal}function lvg_nav(m,id,act,offset,t){if(t.href.search(/#/) < 0){return;}else{if(act=='pte'){act='ProjectTemplatesEditView';}else if(act=='d'){ act='DetailView';}else if( act =='ReportsWizard'){act = 'ReportsWizard';}else{ act='EditView';}{/literal}url = 'index.php?module='+m+'&offset=' + offset + '&stamp={$pageData.stamp}&return_module='+m+'&action='+act+'&record='+id;t.href=url;{literal}}}{/literal}

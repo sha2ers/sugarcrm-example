@@ -2,7 +2,7 @@
 if(!defined('sugarEntry') || !sugarEntry) die('Not A Valid Entry Point');
 /*********************************************************************************
  * SugarCRM Community Edition is a customer relationship management program developed by
- * SugarCRM, Inc. Copyright (C) 2004-2011 SugarCRM Inc.
+ * SugarCRM, Inc. Copyright (C) 2004-2012 SugarCRM Inc.
  * 
  * This program is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Affero General Public License version 3 as published by the
@@ -36,7 +36,7 @@ if(!defined('sugarEntry') || !sugarEntry) die('Not A Valid Entry Point');
  ********************************************************************************/
 
 
-$dictionary['SchedulersJobs'] = array('table' => 'schedulers_times',
+$dictionary['SchedulersTimes'] = array('table' => 'schedulers_times',
 	'fields' => array (
 		'id' => array (
 			'name' => 'id',
@@ -70,7 +70,7 @@ $dictionary['SchedulersJobs'] = array('table' => 'schedulers_times',
 			'name' => 'scheduler_id',
 			'vname' => 'LBL_SCHEDULER_ID',
 			'type' => 'id',
-			'db_type' => 'varchar',
+			'dbType' => 'varchar',
 			'len' => 36,
 			'required' => true,
 			'reportable' => false,

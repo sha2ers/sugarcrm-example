@@ -2,7 +2,7 @@
 if(!defined('sugarEntry') || !sugarEntry) die('Not A Valid Entry Point');
 /*********************************************************************************
  * SugarCRM Community Edition is a customer relationship management program developed by
- * SugarCRM, Inc. Copyright (C) 2004-2011 SugarCRM Inc.
+ * SugarCRM, Inc. Copyright (C) 2004-2012 SugarCRM Inc.
  * 
  * This program is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Affero General Public License version 3 as published by the
@@ -61,8 +61,6 @@ global $app_list_strings;
 global $current_user;
 global $sugar_config;
 
-$jsCustomVersion = $sugar_config['js_custom_version'];
-$sugar_version = $sugar_version;
 $title				= '';
 $msg				= '';
 $tls				= '';
@@ -229,7 +227,7 @@ echo '	</table>';
 ///////////////////////////////////////////////////////////////////////////////
 ////	COMPLETE RENDERING OF THE POPUP
 echo '<input type="hidden" id="sf_returnstatus" name="returnstatus" value="'. $returnArray['status'] .'">';
-echo '<input type="hidden" id="sf_foldersList" name="foldersList" value="'. $foldersList .'">';
+echo '<input type="hidden" id="sf_foldersList" name="foldersList" value="'. htmlspecialchars($foldersList) .'">';
 echo '<input type="hidden" id="sf_selectedfoldersList" name="selectedfoldersList" value="'. implode(",", $requestMailBox) .'">';
 echo '<input type="hidden" id="sf_searchField" name="searchField" value="'. $searchField .'">';
 

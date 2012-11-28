@@ -2,7 +2,7 @@
 if(!defined('sugarEntry') || !sugarEntry) die('Not A Valid Entry Point');
 /*********************************************************************************
  * SugarCRM Community Edition is a customer relationship management program developed by
- * SugarCRM, Inc. Copyright (C) 2004-2011 SugarCRM Inc.
+ * SugarCRM, Inc. Copyright (C) 2004-2012 SugarCRM Inc.
  * 
  * This program is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Affero General Public License version 3 as published by the
@@ -45,7 +45,7 @@ class SugarpdfFactory{
      * @return valid Tcpdf
      */
     function loadSugarpdf($type = 'default', $module, $bean = null, $sugarpdf_object_map = array()){
-        $type = strtolower($type);
+        $type = strtolower(basename($type));
         //SugarpdfFactory::_loadConfig($sugarpdf, $type);
         //first let's check if the module handles this Tcpdf
         $sugarpdf = null;

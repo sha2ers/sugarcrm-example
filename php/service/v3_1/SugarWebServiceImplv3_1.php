@@ -2,7 +2,7 @@
 if(!defined('sugarEntry'))define('sugarEntry', true);
 /*********************************************************************************
  * SugarCRM Community Edition is a customer relationship management program developed by
- * SugarCRM, Inc. Copyright (C) 2004-2011 SugarCRM Inc.
+ * SugarCRM, Inc. Copyright (C) 2004-2012 SugarCRM Inc.
  * 
  * This program is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Affero General Public License version 3 as published by the
@@ -81,7 +81,7 @@ class SugarWebServiceImplv3_1 extends SugarWebServiceImplv3 {
      */
     function get_module_fields_md5($session, $module_name){
 
-        $GLOBALS['log']->info('Begin: SugarWebServiceImpl->get_module_fields_md5');
+        $GLOBALS['log']->info('Begin: SugarWebServiceImpl->get_module_fields_md5(v3_1) for module: '. print_r($module_name, true));
 
         $results = array();
         if( is_array($module_name) )
@@ -92,9 +92,9 @@ class SugarWebServiceImplv3_1 extends SugarWebServiceImplv3 {
         else
             $results[$module_name] = md5(serialize(self::get_module_fields($session, $module_name)));
 
-        return $results;
+        $GLOBALS['log']->info('End: SugarWebServiceImpl->get_module_fields_md5 (v3_1) for module: ' . print_r($module_name, true));
 
-        $GLOBALS['log']->info('End: SugarWebServiceImpl->get_module_fields_md5');
+        return $results;
     }
 
     /**
@@ -144,7 +144,7 @@ class SugarWebServiceImplv3_1 extends SugarWebServiceImplv3 {
         }
         if (!self::$helperObject->checkSessionAndModuleAccess($session, 'invalid_session', $module_name, 'read', 'no_access', $error))
         {
-            $GLOBALS['log']->info('End: SugarWebServiceImpl->get_entries');
+            $GLOBALS['log']->info('No Access: SugarWebServiceImpl->get_entries');
             return;
         } // if
 
@@ -181,7 +181,7 @@ class SugarWebServiceImplv3_1 extends SugarWebServiceImplv3 {
                 $linkoutput_list[] = self::$helperObject->get_return_value_for_link_fields($seed, $module_name, $link_name_to_fields_array);
             }
 
-            $GLOBALS['log']->info('Should we track view: ' . $trackView);
+            $GLOBALS['log']->info('Should we track view: ' . $track_view);
             if($track_view)
             {
                 self::$helperObject->trackView($seed, 'detailview');
@@ -232,6 +232,10 @@ class SugarWebServiceImplv3_1 extends SugarWebServiceImplv3 {
             if($module_name == 'Users' && !empty($seed->id) && ($seed->id != $current_user->id) && $name == 'user_hash'){
                 continue;
             }
+            if(!empty($seed->field_name_map[$name]['sensitive'])) {
+                    continue;
+            }
+
             if(!is_array($value)){
                 $seed->$name = $value;
                 $return_fields[] = $name;
@@ -375,18 +379,6 @@ class SugarWebServiceImplv3_1 extends SugarWebServiceImplv3 {
             $nameValueArray['mobile_max_list_entries'] = self::$helperObject->get_name_value('mobile_max_list_entries', $sugar_config['wl_list_max_entries_per_page'] );
             $nameValueArray['mobile_max_subpanel_entries'] = self::$helperObject->get_name_value('mobile_max_subpanel_entries', $sugar_config['wl_list_max_entries_per_subpanel'] );
 
-            if($application == 'mobile')
-            {
-                $modules = $availModuleNames = array();
-                $availModules = array_keys($_SESSION['avail_modules']); //ACL check already performed.
-                $modules = self::$helperObject->get_visible_mobile_modules($availModules);
-                $nameValueArray['available_modules'] = $modules;
-                //Get the vardefs md5
-                foreach($modules as $mod_def)
-                    $availModuleNames[] = $mod_def['module_key'];
-
-                $nameValueArray['vardefs_md5'] = self::get_module_fields_md5(session_id(), $availModuleNames);
-            }
 
             $currencyObject = new Currency();
             $currencyObject->retrieve($cur_id);
@@ -427,9 +419,6 @@ class SugarWebServiceImplv3_1 extends SugarWebServiceImplv3 {
     	    case 'default':
     	        $modules = self::$helperObject->get_visible_modules($availModules);
     	       break;
-    	    case 'mobile':
-    	        $modules = self::$helperObject->get_visible_mobile_modules($availModules);
-    	        break;
     	    case 'all':
     	    default:
     	        $modules = self::$helperObject->getModulesFromList(array_flip($availModules), $availModules);
@@ -493,7 +482,7 @@ class SugarWebServiceImplv3_1 extends SugarWebServiceImplv3 {
         return $results;
     }
 
-    
+
     /**
      * Retrieve the layout metadata for a given module given a specific type and view.
      *
@@ -574,6 +563,11 @@ class SugarWebServiceImplv3_1 extends SugarWebServiceImplv3 {
         if (!self::$helperObject->checkSessionAndModuleAccess($session, 'invalid_session', $module_name, 'read', 'no_access', $error)) {
             $GLOBALS['log']->info('End: SugarWebServiceImpl->get_entry_list');
             return;
+        } // if
+
+        if (!self::$helperObject->checkQuery($error, $query, $order_by)) {
+    		$GLOBALS['log']->info('End: SugarWebServiceImpl->get_entry_list');
+        	return;
         } // if
 
         // If the maximum number of entries per page was specified, override the configuration value.
@@ -686,11 +680,11 @@ class SugarWebServiceImplv3_1 extends SugarWebServiceImplv3 {
     	require_once('modules/Home/UnifiedSearchAdvanced.php');
     	require_once 'include/utils.php';
     	$usa = new UnifiedSearchAdvanced();
-        if(!file_exists($GLOBALS['sugar_config']['cache_dir'].'modules/unified_search_modules.php')) {
+        if(!file_exists($cachedfile = sugar_cached('modules/unified_search_modules.php'))) {
             $usa->buildCache();
         }
 
-    	include($GLOBALS['sugar_config']['cache_dir'].'modules/unified_search_modules.php');
+    	include($cachedfile);
     	$modules_to_search = array();
     	$unified_search_modules['Users'] =   array('fields' => array());
 

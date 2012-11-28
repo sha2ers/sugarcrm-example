@@ -2,7 +2,7 @@
 
 /*********************************************************************************
  * SugarCRM Community Edition is a customer relationship management program developed by
- * SugarCRM, Inc. Copyright (C) 2004-2011 SugarCRM Inc.
+ * SugarCRM, Inc. Copyright (C) 2004-2012 SugarCRM Inc.
  * 
  * This program is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Affero General Public License version 3 as published by the
@@ -106,13 +106,14 @@
 	</tr>
 	</tr><tr>
 		<td  scope="row" valign="top">{$MOD.LBL_LOCALE_DEFAULT_NAME_FORMAT}: </td>
-		<td  >
-			<input onkeyup="setPreview();" onkeydown="setPreview();" id="default_locale_name_format" type="text" name="default_locale_name_format" value="{$config.default_locale_name_format}">
-			<br>
-			{$MOD.LBL_LOCALE_NAME_FORMAT_DESC}
+		<td>
+            {html_options name='default_locale_name_format' id="default_locale_name_format" selected=$config.default_locale_name_format options=$NAMEFORMATS}
 		</td>
-		<td  scope="row" valign="top">{$MOD.LBL_LOCALE_EXAMPLE_NAME_FORMAT}: </td>
-		<td   valign="top"><input name="no_value" id="nameTarget" value="" style="border: none;" disabled></td>
+        {if isset($upgradeInvalidLocaleNameFormat)}
+        <td>
+            {$MOD.ERR_INVALID_LOCALE_NAME_FORMAT_UPGRADE}
+        </td>
+        {/if}
 	</tr>
 
 	</table>
@@ -183,7 +184,7 @@
 </table>
 
 
-{if $dbType == 'mysql'}
+{if !empty($collationOptions)}
 <table width="100%" border="0" cellspacing="1" cellpadding="0" class="edit view">
 	<tr>
 		<th align="left" scope="row" colspan="2">
@@ -201,7 +202,6 @@
 		</td>
 	</tr>
 </table>
-
 
 
 {/if}

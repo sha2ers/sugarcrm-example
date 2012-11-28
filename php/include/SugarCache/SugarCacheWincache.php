@@ -1,7 +1,7 @@
 <?php
 /*********************************************************************************
  * SugarCRM Community Edition is a customer relationship management program developed by
- * SugarCRM, Inc. Copyright (C) 2004-2011 SugarCRM Inc.
+ * SugarCRM, Inc. Copyright (C) 2004-2012 SugarCRM Inc.
  * 
  * This program is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Affero General Public License version 3 as published by the
@@ -67,7 +67,7 @@ class SugarCacheWincache extends SugarCacheAbstract
         $value
         )
     {
-        wincache_ucache_set($key,$value,$this->expireTimeout);
+        wincache_ucache_set($key,$value,$this->_expireTimeout);
     }
     
     /**

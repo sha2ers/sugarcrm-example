@@ -1,7 +1,7 @@
 <?php
 /*********************************************************************************
  * SugarCRM Community Edition is a customer relationship management program developed by
- * SugarCRM, Inc. Copyright (C) 2004-2011 SugarCRM Inc.
+ * SugarCRM, Inc. Copyright (C) 2004-2012 SugarCRM Inc.
  * 
  * This program is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Affero General Public License version 3 as published by the
@@ -77,7 +77,9 @@ class EmailManController extends SugarController
         if( !isset($_POST['mail_smtpauth_req']) )
         {
             $_POST['mail_smtpauth_req'] = 0;
-            $_POST['notify_allow_default_outbound'] = 0; //If smtp auth is disabled ensure outbound is disabled.
+		if (empty($_POST['campaignConfig'])) {
+			$_POST['notify_allow_default_outbound'] = 0; // If smtp auth is disabled ensure outbound is disabled.
+		}
         }
 
         if( !empty($_POST['notify_allow_default_outbound']) )

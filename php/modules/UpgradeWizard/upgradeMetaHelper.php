@@ -1,7 +1,7 @@
 <?php
 /*********************************************************************************
  * SugarCRM Community Edition is a customer relationship management program developed by
- * SugarCRM, Inc. Copyright (C) 2004-2011 SugarCRM Inc.
+ * SugarCRM, Inc. Copyright (C) 2004-2012 SugarCRM Inc.
  * 
  * This program is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Affero General Public License version 3 as published by the
@@ -82,7 +82,7 @@ class UpgradeMetaHelper{
 	 * @return $return_array Two-dimensional Array of [module][modified file(s) Array]
 	 */
 		function getModifiedModules() {
-		
+
 		$md5_string = array();
 		if(file_exists(clean_path(getcwd().'/files.md5'))){
 			require(clean_path(getcwd().'/files.md5'));
@@ -122,7 +122,7 @@ class UpgradeMetaHelper{
 	}
 
 function saveMatchingFilesQueries($currStep,$value){
-	$upgrade_progress_dir = getcwd().'/'.$GLOBALS['sugar_config']['upload_dir'].'upgrades/temp';
+	$upgrade_progress_dir = sugar_cached('upgrades/temp');
 	if(!is_dir($upgrade_progress_dir)){
 		mkdir($upgrade_progress_dir);
 	}
@@ -149,7 +149,7 @@ function saveMatchingFilesQueries($currStep,$value){
 }
 
 function getAllCustomizedModulesBeyondStudio() {
-	
+
 	require_once('modules/UpgradeWizard/uw_utils.php');
 	$md5_string = array();
 	if(file_exists(clean_path(getcwd().'/files.md5'))){
@@ -214,7 +214,7 @@ function getAllCustomizedModulesBeyondStudio() {
  * modules. Show the list in the preflight check UI.
  */
 function getAllCustomizedModules() {
-		
+
 		require_once('files.md5');
 
 	    $return_array = array();
@@ -282,7 +282,6 @@ function getAllCustomizedModules() {
 		$this->evparser = new EditViewMetaParser();
 		$this->dvparser = new DetailViewMetaParser();
 		$this->svparser = new SearchFormMetaParser();
-
 
 		foreach($this->upgrade_modules as $module_name=>$files) {
 			$this->parseFile($module_name, $files);

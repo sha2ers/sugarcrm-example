@@ -2,7 +2,7 @@
 if(!defined('sugarEntry') || !sugarEntry) die('Not A Valid Entry Point');
 /*********************************************************************************
  * SugarCRM Community Edition is a customer relationship management program developed by
- * SugarCRM, Inc. Copyright (C) 2004-2011 SugarCRM Inc.
+ * SugarCRM, Inc. Copyright (C) 2004-2012 SugarCRM Inc.
  * 
  * This program is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Affero General Public License version 3 as published by the
@@ -61,8 +61,7 @@ $params[] = $mod_strings['LBL_EMAIL_SETUP_WIZARD_TITLE'];
 echo getClassicModuleTitle('Campaigns', $params, true);
 
 
-global $theme;
-global $currentModule;
+global $theme, $currentModule, $sugar_config;
 
 
 
@@ -111,6 +110,9 @@ if (!isset($focus->settings['massemailer_tracking_entities_location_type']) or e
     $ss->assign("USERDEFINED_CHECKED", "checked");
     $ss->assign("TRACKING_ENTRIES_LOCATION",$focus->settings["massemailer_tracking_entities_location"]);
 }
+
+$ss->assign("SITEURL",$sugar_config['site_url']);
+
 // Change the default campaign to not store a copy of each message.
 if (!empty($focus->settings['massemailer_email_copy']) and $focus->settings['massemailer_email_copy']=='1') {
     $ss->assign("YES_CHECKED", "checked='checked'");

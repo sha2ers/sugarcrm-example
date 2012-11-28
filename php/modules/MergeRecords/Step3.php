@@ -3,7 +3,7 @@ if (!defined('sugarEntry') || !sugarEntry)
     die('Not A Valid Entry Point');
 /*********************************************************************************
  * SugarCRM Community Edition is a customer relationship management program developed by
- * SugarCRM, Inc. Copyright (C) 2004-2011 SugarCRM Inc.
+ * SugarCRM, Inc. Copyright (C) 2004-2012 SugarCRM Inc.
  * 
  * This program is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Affero General Public License version 3 as published by the
@@ -111,8 +111,8 @@ $focus = new MergeRecord();
 $focus->load_merge_bean($_REQUEST['merge_module'], true, $base_id);
 $params = array();
 $params[] = "<a href='index.php?module={$focus->merge_bean->module_dir}&action=index'>{$GLOBALS['app_list_strings']['moduleList'][$focus->merge_bean->module_dir]}</a>";
-$params[] = "<a href='index.php?module={$focus->merge_bean->module_dir}&action=DetailView&record={$focus->merge_bean->id}'>{$focus->merge_bean->name}</a>";
 $params[] = $mod_strings['LBL_MODULE_NAME'];
+$params[] = $focus->merge_bean->name;
 echo getClassicModuleTitle($focus->merge_bean->module_dir, $params, true);
 
 $mergeBeanArray = array ();
@@ -505,28 +505,7 @@ function get_related_name($field_def,$id_value) {
 	                $related_def = $focus->field_defs[$field_def['rname']];
 	                //if field defs has concat field array set, then concatenate values
 	                if(isset($related_def['db_concat_fields']) && !empty($related_def['db_concat_fields'])){
-	                    $temp_str = '';
-
-	                    if ( ( $focus->db->dbType == 'mysql' ) || ( $focus->db->dbType == 'oci8' ) ){
-	                        foreach($related_def['db_concat_fields'] as $vals){
-	                            if(empty($temp_str)){
-	                                $temp_str .= ' concat('. $vals;
-	                            }else{
-	                                $temp_str .= ", ' ', " .$vals;
-	                            }
-	                        }
-	                        $temp_str .= ')';
-	                    }else{
-	                        foreach($related_def['db_concat_fields'] as $vals){
-	                            if(empty($temp_str)){
-	                                $temp_str .= $vals;
-	                            }else{
-	                                $temp_str .= " + ' ' + " .$vals;
-	                            }
-	                        }
-	                    }
-
-	                    $col_name = $temp_str;
+                        $col_name = $focus->db->concat($field_def['table'], $related_def['db_concat_fields']);
 	                }
                   }
             }

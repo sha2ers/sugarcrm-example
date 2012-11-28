@@ -2,7 +2,7 @@
 if(!defined('sugarEntry') || !sugarEntry) die('Not A Valid Entry Point');
 /*********************************************************************************
  * SugarCRM Community Edition is a customer relationship management program developed by
- * SugarCRM, Inc. Copyright (C) 2004-2011 SugarCRM Inc.
+ * SugarCRM, Inc. Copyright (C) 2004-2012 SugarCRM Inc.
  * 
  * This program is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Affero General Public License version 3 as published by the
@@ -35,7 +35,7 @@ if(!defined('sugarEntry') || !sugarEntry) die('Not A Valid Entry Point');
  * "Powered by SugarCRM".
  ********************************************************************************/
 
- 
+
 require_once('include/SugarObjects/templates/basic/Basic.php');
 require_once('include/upload_file.php');
 require_once('include/formbase.php');
@@ -57,7 +57,7 @@ class File extends Basic
 		if (!empty($this->uploadfile)) {
 			$this->filename = $this->uploadfile;
 		}
-		
+
 		return parent::save($check_notify);
  	}
 
@@ -69,40 +69,76 @@ class File extends Basic
 		global $app_list_strings;
 		global $img_name;
 		global $img_name_bare;
-		
+
 		$this->uploadfile = $this->filename;
-		
+
 		// Bug 41453 - Make sure we call the parent method as well
 		parent::fill_in_additional_detail_fields();
-		
+
 		if (!$this->file_ext) {
 			$img_name = SugarThemeRegistry::current()->getImageURL(strtolower($this->file_ext)."_image_inline.gif");
 			$img_name_bare = strtolower($this->file_ext)."_image_inline";
 		}
-		
+
 		//set default file name.
 		if (!empty ($img_name) && file_exists($img_name)) {
 			$img_name = $img_name_bare;
-		} 
+		}
 		else {
 			$img_name = "def_image_inline"; //todo change the default image.
 		}
-		$this->file_url_noimage = basename(UploadFile::get_url($this->filename, $this->id));
-		
+		$this->file_url_noimage = $this->id;
+
 		if(!empty($this->status_id)) {
 	       $this->status = $app_list_strings['document_status_dom'][$this->status_id];
 	    }
 	}
-	
+
 	/**
 	 * @see SugarBean::retrieve()
 	 */
-	public function retrieve($id = -1, $encode=true) 
+	public function retrieve($id = -1, $encode=true, $deleted=true)
 	{
-		$ret_val = parent::retrieve($id, $encode);
-	
+		$ret_val = parent::retrieve($id, $encode, $deleted);
+
 		$this->name = $this->document_name;
-		
+
 		return $ret_val;
 	}
+
+    /**
+     * Method to delete an attachment
+     *
+     * @param string $isduplicate
+     * @return bool
+     */
+    public function deleteAttachment($isduplicate = "false")
+    {
+        if ($this->ACLAccess('edit')) {
+            if ($isduplicate == "true") {
+                return true;
+            }
+            $removeFile = "upload://{$this->id}";
+        }
+        if (file_exists($removeFile)) {
+            if (!unlink($removeFile)) {
+                $GLOBALS['log']->error("*** Could not unlink() file: [ {$removeFile} ]");
+            } else {
+                $this->uploadfile = '';$this->uploadfile = '';
+                $this->filename = '';
+                $this->file_mime_type = '';
+                $this->file_ext = '';
+                $this->save();
+                return true;
+            }
+        } else {
+            $this->uploadfile = '';
+            $this->filename = '';
+            $this->file_mime_type = '';
+            $this->file_ext = '';
+            $this->save();
+            return true;
+        }
+        return false;
+    }
 }

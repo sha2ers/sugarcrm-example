@@ -2,7 +2,7 @@
 if(!defined('sugarEntry') || !sugarEntry) die('Not A Valid Entry Point');
 /*********************************************************************************
  * SugarCRM Community Edition is a customer relationship management program developed by
- * SugarCRM, Inc. Copyright (C) 2004-2011 SugarCRM Inc.
+ * SugarCRM, Inc. Copyright (C) 2004-2012 SugarCRM Inc.
  * 
  * This program is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Affero General Public License version 3 as published by the
@@ -36,12 +36,7 @@ if(!defined('sugarEntry') || !sugarEntry) die('Not A Valid Entry Point');
  ********************************************************************************/
 
 
-
-
-
-
 require_once("include/upload_file.php");
-
 require_once('include/utils/db_utils.php');
 
 global $currentModule;
@@ -123,6 +118,11 @@ class Popup_Picker
 			}
 
 			if ($task->status != "Not Started" && $task->status != "In Progress" && $task->status != "Pending Input") {
+                $ts = '';
+                if(!empty($task->fetched_row['date_due'])) {
+                    //tasks can have an empty date due field
+                    $ts = $timedate->fromDb($task->fetched_row['date_due'])->ts;
+                }
 				$history_list[] = array('name' => $task->name,
 									 'id' => $task->id,
 									 'type' => "Task",
@@ -137,7 +137,7 @@ class Popup_Picker
 									 'date_modified' => $date_due,
 									 'description' => $this->getTaskDetails($task),
 									 'date_type' => $app_strings['DATA_TYPE_DUE'],
-									 'sort_value' => strtotime($task->fetched_row['date_due'].' GMT'),
+									 'sort_value' => $ts,
 									 );
 			} else {
 				$open_activity_list[] = array('name' => $task->name,
@@ -159,7 +159,7 @@ class Popup_Picker
 		} // end Tasks
 
 		foreach ($focus_meetings_list as $meeting) {
-			
+
 			if (empty($meeting->contact_id) && empty($meeting->contact_name)) {
 				$meeting_contacts = $meeting->get_linked_beans('contacts','Contact');
 				if (!empty($meeting_contacts[0]->id) && !empty($meeting_contacts[0]->name)) {
@@ -182,7 +182,7 @@ class Popup_Picker
 									 'date_modified' => $meeting->date_start,
 									 'description' => $this->formatDescription($meeting->description),
 									 'date_type' => $app_strings['DATA_TYPE_START'],
-									 'sort_value' => strtotime($meeting->fetched_row['date_start'].' GMT'),
+									 'sort_value' => $timedate->fromDb($meeting->fetched_row['date_start'])->ts,
 									 );
 			} else {
 				$open_activity_list[] = array('name' => $meeting->name,
@@ -228,7 +228,7 @@ class Popup_Picker
 									 'date_modified' => $call->date_start,
 									 'description' => $this->formatDescription($call->description),
 									 'date_type' => $app_strings['DATA_TYPE_START'],
-									 'sort_value' => strtotime($call->fetched_row['date_start'].' GMT'),
+									 'sort_value' => $timedate->fromDb($call->fetched_row['date_start'])->ts,
 									 );
 			} else {
 				$open_activity_list[] = array('name' => $call->name,
@@ -250,13 +250,18 @@ class Popup_Picker
 		} // end Calls
 
 		foreach ($focus_emails_list as $email) {
-			
+
 			if (empty($email->contact_id) && empty($email->contact_name)) {
 				$email_contacts = $email->get_linked_beans('contacts','Contact');
 				if (!empty($email_contacts[0]->id) && !empty($email_contacts[0]->name)) {
 					$email->contact_id = $email_contacts[0]->id;
 					$email->contact_name = $email_contacts[0]->name;
 				}
+			}
+			$ts = '';
+			if(!empty($email->fetched_row['date_sent'])) {
+			    //emails can have an empty date sent field
+			    $ts = $timedate->fromDb($email->fetched_row['date_sent'])->ts;
 			}
 			$history_list[] = array('name' => $email->name,
 									 'id' => $email->id,
@@ -272,34 +277,83 @@ class Popup_Picker
 									 'date_modified' => $email->date_start." ".$email->time_start,
 									 'description' => $this->getEmailDetails($email),
 									 'date_type' => $app_strings['DATA_TYPE_SENT'],
-									 'sort_value' => strtotime($email->fetched_row['date_sent'].' GMT'),
+									 'sort_value' => $ts,
 									 );
 		} //end Emails
 
-		foreach ($focus_notes_list as $note) {
-			
-			$history_list[] = array('name' => $note->name,
-									 'id' => $note->id,
-									 'type' => "Note",
-									 'direction' => '',
-									 'module' => "Notes",
-									 'status' => '',
-									 'parent_id' => $note->parent_id,
-									 'parent_type' => $note->parent_type,
-									 'parent_name' => $note->parent_name,
-									 'contact_id' => $note->contact_id,
-									 'contact_name' => $note->contact_name,
-									 'date_modified' => $note->date_modified,
-									 'description' => $this->formatDescription($note->description),
-									 'date_type' => $app_strings['DATA_TYPE_MODIFIED'],
-									 'sort_value' => strtotime($note->fetched_row['date_modified'].' GMT'),
-									 );
-			if(!empty($note->filename)) {
-				$count = count($history_list);
-				$count--;
-				$history_list[$count]['filename'] = $note->filename;
-				$history_list[$count]['fileurl'] = UploadFile::get_url($note->filename,$note->id);
-			}
+        // Bug 46439 'No email archived when clicking on View Summary' (All condition)
+        if (method_exists($focus,'get_unlinked_email_query'))
+        {
+            $queryArray = $focus->get_unlinked_email_query(array('return_as_array'=>'true'));
+            $query = $queryArray['select'];
+            $query .= $queryArray['from'];
+            if (!empty($queryArray['join_tables']))
+            {
+                foreach ($queryArray['join_tables'] as $join_table)
+                {
+                    if ($join_table != '')
+                    {
+                        $query .= ', '.$join_table.' ';
+                    }
+                }
+            }
+            $query .= $queryArray['join'];
+            $query .= $queryArray['where'];
+            $emails = new Email();
+            $focus_unlinked_emails_list = $emails->process_list_query($query, 0);
+            $focus_unlinked_emails_list = $focus_unlinked_emails_list['list'];
+            foreach ($focus_unlinked_emails_list as $email)
+            {
+                $email->retrieve($email->id);
+                $history_list[] = array(
+                    'name' => $email->name,
+                    'id' => $email->id,
+                    'type' => "Email",
+                    'direction' => '',
+                    'module' => "Emails",
+                    'status' => '',
+                    'parent_id' => $email->parent_id,
+                    'parent_type' => $email->parent_type,
+                    'parent_name' => $email->parent_name,
+                    'contact_id' => $email->contact_id,
+                    'contact_name' => $email->contact_name,
+                    'date_modified' => $email->date_start." ".$email->time_start,
+                    'description' => $this->getEmailDetails($email),
+                    'date_type' => $app_strings['DATA_TYPE_SENT'],
+                    'sort_value' => strtotime($email->fetched_row['date_sent'].' GMT'),
+                );
+            }
+        } //end Unlinked Emails
+
+		foreach ($focus_notes_list as $note)
+        {
+			if ($note->ACLAccess('view'))
+            {
+                $history_list[] = array('name' => $note->name,
+                                         'id' => $note->id,
+                                         'type' => "Note",
+                                         'direction' => '',
+                                         'module' => "Notes",
+                                         'status' => '',
+                                         'parent_id' => $note->parent_id,
+                                         'parent_type' => $note->parent_type,
+                                         'parent_name' => $note->parent_name,
+                                         'contact_id' => $note->contact_id,
+                                         'contact_name' => $note->contact_name,
+                                         'date_modified' => $note->date_modified,
+                                         'description' => $this->formatDescription($note->description),
+                                         'date_type' => $app_strings['DATA_TYPE_MODIFIED'],
+                                         'sort_value' => strtotime($note->fetched_row['date_modified'].' GMT'),
+                                         );
+                if(!empty($note->filename))
+                {
+                    $count = count($history_list);
+                    $count--;
+                    $history_list[$count]['filename'] = $note->filename;
+                    $history_list[$count]['fileurl'] = UploadFile::get_url($note->filename,$note->id);
+                }
+            }
+
 		} // end Notes
 
         $xtpl=new XTemplate ('modules/Activities/Popup_picker.html');
@@ -312,7 +366,7 @@ class Popup_Picker
         echo "<table width='100%' cellpadding='0' cellspacing='0'><tr><td>";
         echo getClassicModuleTitle($focus->module_dir, array(translate('LBL_MODULE_NAME', $focus->module_dir),$focus->name), false);
         echo "</td><td align='right' class='moduleTitle'>";
-        echo "<A href='javascript:print();' class='utilsLink'><img src='".SugarThemeRegistry::current()->getImageURL("print.gif")."' width='13' height='13' alt='".$app_strings['LNK_PRINT']."' border='0' align='absmiddle'></a>&nbsp;<A href='javascript:print();' class='utilsLink'>".$app_strings['LNK_PRINT']."</A>\n";
+        echo "<A href='javascript:print();' class='utilsLink'>" . SugarThemeRegistry::current()->getImage('print', "border='0' align='absmiddle'", 13, 13, ".gif", $app_strings['LNK_PRINT']) . "</a>&nbsp;<A href='javascript:print();' class='utilsLink'>".$app_strings['LNK_PRINT']."</A>\n";
         echo "</td></tr></table>";
 
         $oddRow = true;
@@ -353,13 +407,13 @@ class Popup_Picker
 
             if (isset($activity['location'])) $activity_fields['LOCATION'] = $activity['location'];
             if (isset($activity['filename'])) {
-                $activity_fields['ATTACHMENT'] = "<a href='index.php?entryPoint=download&id=".$activity['id']."&type=Notes' target='_blank'>".SugarThemeRegistry::current()->getImage("attachment","alt='".$activity['filename']."' border='0' align='absmiddle'")."</a>";
+                $activity_fields['ATTACHMENT'] = "<a href='index.php?entryPoint=download&id=".$activity['id']."&type=Notes' target='_blank'>".SugarThemeRegistry::current()->getImage("attachment","border='0' align='absmiddle'",null,null,'.gif',$activity['filename'])."</a>";
             }
 
             if (isset($activity['parent_type'])) $activity_fields['PARENT_MODULE'] = $activity['parent_type'];
 
             $xtpl->assign("ACTIVITY", $activity_fields);
-            $xtpl->assign("ACTIVITY_MODULE_PNG", SugarThemeRegistry::current()->getImage($activity_fields['MODULE'].'','border="0" alt="'.$activity_fields['NAME'].'"'));
+            $xtpl->assign("ACTIVITY_MODULE_PNG", SugarThemeRegistry::current()->getImage($activity_fields['MODULE'].'','border="0"', null,null,'.gif',$activity_fields['NAME']));
 
             if($oddRow)
             {

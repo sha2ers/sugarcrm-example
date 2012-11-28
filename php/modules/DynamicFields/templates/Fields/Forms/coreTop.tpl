@@ -2,7 +2,7 @@
 
 /*********************************************************************************
  * SugarCRM Community Edition is a customer relationship management program developed by
- * SugarCRM, Inc. Copyright (C) 2004-2011 SugarCRM Inc.
+ * SugarCRM, Inc. Copyright (C) 2004-2012 SugarCRM Inc.
  * 
  * This program is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Affero General Public License version 3 as published by the
@@ -45,16 +45,16 @@
 	<td class='mbLBL' width='30%' >{sugar_translate module="DynamicFields" label="COLUMN_TITLE_NAME"}:</td>
 	<td>
 	{if $hideLevel == 0}
-		<input id="field_name_id" maxlength={if isset($package->name) && $package->name != "studio"}30{else}28{/if} type="text" name="name" value="{$vardef.name}" 
+		<input id="field_name_id" maxlength={if isset($package->name) && $package->name != "studio"}30{else}28{/if} type="text" name="name" value="{$vardef.name}"
 		  onchange="
 		document.getElementById('label_key_id').value = 'LBL_'+document.getElementById('field_name_id').value.toUpperCase();
-		document.getElementById('label_value_id').value = document.getElementById('field_name_id').value.replace(/_/,' ');
+		document.getElementById('label_value_id').value = document.getElementById('field_name_id').value.replace(/\_+/g,' ').replace(/^\s\s*/, '').replace(/\s\s*$/, '');
 		document.getElementById('field_name_id').value = document.getElementById('field_name_id').value.toLowerCase();" />
 	{else}
-		<input id= "field_name_id" type="hidden" name="name" value="{$vardef.name}" 
+		<input id= "field_name_id" type="hidden" name="name" value="{$vardef.name}"
 		  onchange="
 		document.getElementById('label_key_id').value = 'LBL_'+document.getElementById('field_name_id').value.toUpperCase();
-		document.getElementById('label_value_id').value = document.getElementById('field_name_id').value.replace(/_/,' ');
+		document.getElementById('label_value_id').value = document.getElementById('field_name_id').value.replace(/\_+/g,' ').replace(/^\s\s*/, '').replace(/\s\s*$/, '');
 		document.getElementById('field_name_id').value = document.getElementById('field_name_id').value.toLowerCase();"/>
 		{$vardef.name}
 	{/if}

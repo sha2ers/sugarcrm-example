@@ -3,7 +3,7 @@ if(!defined('sugarEntry') || !sugarEntry) die('Not A Valid Entry Point');
 
 /*********************************************************************************
  * SugarCRM Community Edition is a customer relationship management program developed by
- * SugarCRM, Inc. Copyright (C) 2004-2011 SugarCRM Inc.
+ * SugarCRM, Inc. Copyright (C) 2004-2012 SugarCRM Inc.
  * 
  * This program is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Affero General Public License version 3 as published by the
@@ -39,22 +39,22 @@ if(!defined('sugarEntry') || !sugarEntry) die('Not A Valid Entry Point');
 
 class DocumentsViewEdit extends ViewEdit
 {
+
+    /**
+     * @see SugarView::ViewEdit()
+     */
+     function DocumentsViewEdit(){
+         parent::ViewEdit();
+         $this->useForSubpanel = true;
+     }
+
  	/**
 	 * @see SugarView::display()
 	 */
 	public function display()
  	{
 		global $app_list_strings, $mod_strings;
-		/*
-		$this->bean->category_name = $app_list_strings['document_category_dom'][$this->bean->category_id];
-	    $this->bean->subcategory_name = $app_list_strings['document_subcategory_dom'][$this->bean->subcategory_id];
-	    if(isset($this->bean->status_id)) {
-	    $this->bean->status = $app_list_strings['document_status_dom'][$this->bean->status_id];
-	    }
-        $this->bean->related_doc_name = Document::get_document_name($this->bean->related_doc_id);
-        $this->bean->related_doc_rev_number = DocumentRevision::get_document_revision_name($this->bean->related_doc_rev_id);
-        $this->bean->save_file = basename($this->bean->file_url_noimage);
-        */
+
 		$load_signed=false;
 		if ((isset($_REQUEST['load_signed_id']) && !empty($_REQUEST['load_signed_id']))) {
 
@@ -72,12 +72,14 @@ class DocumentsViewEdit extends ViewEdit
 			$this->bean->is_template=0;
 		} //if
 
-		if (!empty($this->bean->id)) {
+		if (!empty($this->bean->id) ||
+            (empty($this->bean->id) && !empty($_REQUEST['record']) && !empty($_REQUEST['action']) && strtolower($_REQUEST['action'])=='quickedit')
+        ) {
 			$this->ss->assign("FILE_OR_HIDDEN", "hidden");
 			if (!$this->ev->isDuplicate) {
 				$this->ss->assign("DISABLED", "disabled");
 			}
-		} else {	    
+		} else {
 			$this->bean->revision = 1;
 		    $this->ss->assign("FILE_OR_HIDDEN", "file");
 		}
@@ -162,4 +164,5 @@ class DocumentsViewEdit extends ViewEdit
 
 		return $params;
     }
+
 }

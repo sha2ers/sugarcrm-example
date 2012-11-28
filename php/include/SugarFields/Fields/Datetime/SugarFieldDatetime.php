@@ -1,7 +1,7 @@
 <?php
 /*********************************************************************************
  * SugarCRM Community Edition is a customer relationship management program developed by
- * SugarCRM, Inc. Copyright (C) 2004-2011 SugarCRM Inc.
+ * SugarCRM, Inc. Copyright (C) 2004-2012 SugarCRM Inc.
  * 
  * This program is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Affero General Public License version 3 as published by the
@@ -60,14 +60,15 @@ class SugarFieldDatetime extends SugarFieldBase {
         if(!isset($displayParams['hiddeCalendar'])) {
            $displayParams['hiddeCalendar'] = false;
         }
-
-        $this->setup($parentFieldArray, $vardef, $displayParams, $tabindex);
+        
+        // jpereira@dri - #Bug49552 - Datetime field unable to follow parent class methods
         //jchi , bug #24557 , 10/31/2008
         if(isset($vardef['name']) && ($vardef['name'] == 'date_entered' || $vardef['name'] == 'date_modified')){
-        	return $this->fetch($this->findTemplate('DetailView'));
+            return $this->getDetailViewSmarty($parentFieldArray, $vardef, $displayParams, $tabindex);
         }
         //end
-        return $this->fetch($this->findTemplate('EditView'));
+        return parent::getEditViewSmarty($parentFieldArray, $vardef, $displayParams, $tabindex);
+        // ~ jpereira@dri - #Bug49552 - Datetime field unable to follow parent class methods
     }
 
     function getImportViewSmarty($parentFieldArray, $vardef, $displayParams, $tabindex)
@@ -108,11 +109,17 @@ class SugarFieldDatetime extends SugarFieldBase {
             $user = $context['notify_user'];
         } else {
             $user = $GLOBALS['current_user'];
-        }
+        }       
         if($vardef['type'] == 'date') {
+            if(!$timedate->check_matching_format($inputField, TimeDate::DB_DATE_FORMAT)) {
+                return $inputField;
+            }            
             // convert without TZ
             return $timedate->to_display($inputField, $timedate->get_db_date_format(),  $timedate->get_date_format($user));
         } else {
+            if(!$timedate->check_matching_format($inputField, TimeDate::DB_DATETIME_FORMAT)) {
+                return $inputField;
+            }            
             return $timedate->to_display_date_time($inputField, true, true, $user);
         }
     }
@@ -124,7 +131,11 @@ class SugarFieldDatetime extends SugarFieldBase {
         }
 
         $offset = strlen(trim($inputData[$prefix.$field])) < 11 ? false : true;
-	    $bean->$field = $timedate->to_db_date($inputData[$prefix.$field], $offset);
+        if ($timedate->check_matching_format($inputData[$prefix.$field], TimeDate::DB_DATE_FORMAT)) {
+            $bean->$field = $inputData[$prefix.$field];
+        } else {
+            $bean->$field = $timedate->to_db_date($inputData[$prefix.$field], $offset);
+        }
     }
 
     /**
@@ -177,5 +188,25 @@ class SugarFieldDatetime extends SugarFieldBase {
             return false;
         }
         return $date->asDb();
+    }
+
+
+    function getDetailViewSmarty($parentFieldArray, $vardef, $displayParams, $tabindex) {
+        global $timedate,$current_user;
+
+        //check to see if the date is in the proper format
+        $user_dateFormat = $timedate->get_date_format();
+        if(!empty($vardef['value']) && !$timedate->check_matching_format( $vardef['value'],$user_dateFormat)){
+
+            //date is not in proper user format, so get the SugarDateTiemObject and inject the vardef with a new element
+            $sdt = $timedate->fromString($vardef['value'],$current_user);
+
+            if (!empty($sdt)) {
+                //the new 'date_formatted_value' array element will be used in include/SugarFields/Fields/Datetime/DetailView.tpl if it exists
+                $vardef['date_formatted_value'] = $timedate->asUserDate($sdt,$current_user);
+            }
+        }
+
+        return $this->getSmartyView($parentFieldArray, $vardef, $displayParams, $tabindex, 'DetailView');
     }
 }

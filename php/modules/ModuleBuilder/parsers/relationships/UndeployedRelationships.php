@@ -3,7 +3,7 @@ if (! defined ( 'sugarEntry' ) || ! sugarEntry)
     die ( 'Not A Valid Entry Point' ) ;
 /*********************************************************************************
  * SugarCRM Community Edition is a customer relationship management program developed by
- * SugarCRM, Inc. Copyright (C) 2004-2011 SugarCRM Inc.
+ * SugarCRM, Inc. Copyright (C) 2004-2012 SugarCRM Inc.
  * 
  * This program is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Affero General Public License version 3 as published by the
@@ -267,6 +267,17 @@ class UndeployedRelationships extends AbstractRelationships implements Relations
             $module->save () ;
 
         }
+		else
+		{
+			//Bug42170================================
+			$appStrings = $module->getAppListStrings () ;
+            unset($appStrings [ 'parent_type_display' ] [ $module->key_name ]); 
+			unset($appStrings [ 'record_type_display' ] [ $module->key_name ]);
+			unset($appStrings [ 'record_type_display_notes' ] [ $module->key_name ]);
+		    $module->setAppListStrings ( 'en_us', $appStrings ) ;
+            $module->save () ;
+			//Bug42170================================
+		}
         
         // use an installDefPrefix of <basepath>/SugarModules for compatibility with the rest of ModuleBuilder
         $this->installDefs = parent::build ( $basepath, "<basepath>/SugarModules", $relationships ) ;

@@ -1,7 +1,7 @@
 <!--
 /*********************************************************************************
  * SugarCRM Community Edition is a customer relationship management program developed by
- * SugarCRM, Inc. Copyright (C) 2004-2011 SugarCRM Inc.
+ * SugarCRM, Inc. Copyright (C) 2004-2012 SugarCRM Inc.
  * 
  * This program is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Affero General Public License version 3 as published by the
@@ -39,7 +39,7 @@
  ********************************************************************************/
 -->
 
-<script type="text/javascript" src="include/javascript/popup_helper.js"></script>
+<script type="text/javascript" src="{sugar_getjspath file="include/javascript/popup_helper.js"}"></script>
 <script type="text/javascript">
 <!--
 /* initialize the popup request from the parent */
@@ -49,7 +49,7 @@
 -->
 </script>
 <table cellpadding="0" cellspacing="0" width="100%" border="0" class="list view">
-	
+
 	<tr height="20">
 	<td scope="col" width="1%" >{$CHECKALL}&nbsp;</td>
 		<td scope="col" width="20%"  nowrap><slot>{$MOD.LBL_NAME}</slot></td>

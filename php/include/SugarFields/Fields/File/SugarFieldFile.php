@@ -1,7 +1,7 @@
 <?php
 /*********************************************************************************
  * SugarCRM Community Edition is a customer relationship management program developed by
- * SugarCRM, Inc. Copyright (C) 2004-2011 SugarCRM Inc.
+ * SugarCRM, Inc. Copyright (C) 2004-2012 SugarCRM Inc.
  * 
  * This program is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Affero General Public License version 3 as published by the
@@ -48,7 +48,6 @@ class SugarFieldFile extends SugarFieldBase {
             if ( empty($vardef['docUrl']) ) {
                 $vardef['docUrl'] = 'doc_url';
             }
-            $displayParams['max_fileupload_size'] = $this->getMaxFileUploadSize();
         } else {
             $vardef['allowEapm'] = false;
         }
@@ -90,7 +89,11 @@ class SugarFieldFile extends SugarFieldBase {
         return parent::getEditViewSmarty($parentFieldArray, $vardef, $displayParams, $tabindex);
     }
     
-	public function save(&$bean, $params, $field, $vardef, $prefix = ''){
+    function getSearchViewSmarty($parentFieldArray, $vardef, $displayParams, $tabindex) {
+    	return $this->getSmartyView($parentFieldArray, $vardef, $displayParams, $tabindex, 'SearchView');
+    }
+    
+    public function save(&$bean, $params, $field, $vardef, $prefix = ''){
         $fakeDisplayParams = array();
         $this->fillInOptions($vardef,$fakeDisplayParams);
 
@@ -155,7 +158,7 @@ class SugarFieldFile extends SugarFieldBase {
                 $bean->$docType = $params[$prefix . $field . '_old_doctype'];
             }
 		} else if ( !empty($params[$prefix . $field . '_remoteName']) ) {
-            // We ain't moving, we might need to do some remote linking
+            // We aren't moving, we might need to do some remote linking
             $displayParams = array();
             $this->fillInOptions($vardef,$displayParams);
             
@@ -188,66 +191,5 @@ class SugarFieldFile extends SugarFieldBase {
                 $bean->$clearField = '';
             }
         }
-	}
-	
-	/**
-	 * Takes the size from the php.ini and converts it to bytes
-	 *
-	 * @param string $size
-	 * @return int
-	 */
-	protected function convertIniSizeToBytes($size)
-	{		
-		$ret_size = $size;
-		switch (substr (strtolower($size), -1)){
-		case 'k': 
-		    $ret_size = (int)$size * 1024;
-		    break;
-		case 'm': 
-		    $ret_size = (int)$size * 1048576;
-		    break;
-		case 'g': 
-		    $ret_size = (int)$size * 1073741824;
-		    break;
-		}
-		
-		return $ret_size;  
-	}
-	
-	/**
-	 * Converts the size into a more reader friendly format 
-	 *
-	 * @param int $size
-	 * @return string
-	 */
-	protected function getReaderFriendlySize($size) 
-    {
-		if(($size / 1024) < 1024) {
-			$size = number_format(($size / 1024), 2);
-			$size .= ' kb';
-		} 
-		else if(($size / 1048576) < 1024) {
-			$size = number_format(($size / 1048576), 2);
-			$size .= ' mb';
-		} 
-		else if(($size / 1073741824) < 1024) {
-			$size = number_format(($size / 1073741824), 2);
-			$size .= ' gb';
-		}
-		
-		return $size;
-	} 
-
-	/**
-	 * Returns a string that represents the max file size that can be uploaded.
-	 *
-	 * @return string
-	 */
-	protected function getMaxFileUploadSize()
-	{
-		$max_upload_size = min($this->convertIniSizeToBytes(ini_get('post_max_size')), $this->convertIniSizeToBytes(ini_get('upload_max_filesize')));
-		$max_upload_size = min($GLOBALS['sugar_config']['upload_maxsize'],$max_upload_size);
-		
-		return $this->getReaderFriendlySize($max_upload_size);
-	}
+    }
 }

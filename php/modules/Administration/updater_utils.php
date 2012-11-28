@@ -2,7 +2,7 @@
 if(!defined('sugarEntry') || !sugarEntry) die('Not A Valid Entry Point');
 /*********************************************************************************
  * SugarCRM Community Edition is a customer relationship management program developed by
- * SugarCRM, Inc. Copyright (C) 2004-2011 SugarCRM Inc.
+ * SugarCRM, Inc. Copyright (C) 2004-2012 SugarCRM Inc.
  * 
  * This program is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Affero General Public License version 3 as published by the
@@ -42,16 +42,10 @@ require_once('include/utils/encryption_utils.php');
 
 function getSystemInfo($send_usage_info=true){
 	global $sugar_config;
-	global $db, $authLevel, $administration, $timedate;
+	global $db, $administration, $timedate;
 	$info=array();
 	$info = getBaseSystemInfo($send_usage_info);
-    	if($send_usage_info){
-		if($authLevel > 0){
-			if(isset($_SERVER['SERVER_ADDR']))
-				$info['ip_address'] = $_SERVER['SERVER_ADDR'];
-			else
-				$info['ip_address'] = '127.0.0.1';
-		}
+    if($send_usage_info){
 		$info['application_key']=$sugar_config['unique_key'];
 		$info['php_version']=phpversion();
 		if(isset($_SERVER['SERVER_SOFTWARE'])) {
@@ -73,32 +67,22 @@ function getSystemInfo($send_usage_info=true){
 		$info['system_name'] = (!empty($administration->settings['system_name']))?substr($administration->settings['system_name'], 0 ,255):'';
 
 
-		$query="select count(*) count from users where status='Active' and deleted=0 and is_admin='1'";
-		$result=$db->query($query, 'fetching admin count', false);
-		$row = $db->fetchByAssoc($result);
-		if(!empty($row)) {
-			$info['admin_users'] = $row['count'];
+		$result=$db->getOne("select count(*) count from users where status='Active' and deleted=0 and is_admin='1'", false, 'fetching admin count');
+		if($result !== false) {
+			$info['admin_users'] = $result;
 		}
-		if(empty($authLevel)){
-			$authLevel = 0;
-		}
-		$query="select count(*) count from users";
-		$result=$db->query($query, 'fetching all users count', false);
-		$row = $db->fetchByAssoc($result);
 
-		if(!empty($row)) {
-			$info['registered_users'] = $row['count'];
+
+		$result=$db->getOne("select count(*) count from users", false, 'fetching all users count');
+		if($result !== false) {
+			$info['registered_users'] = $result;
 		}
-		$lastMonth = db_convert("'". $timedate->getNow()->modify("-30 days")->asDb(false) . "'", 'datetime');
-		if( !$send_usage_info){
+
+		$lastMonth = $db->convert("'". $timedate->getNow()->modify("-30 days")->asDb(false) . "'", 'datetime');
+		if( !$send_usage_info) {
 			$info['users_active_30_days'] = -1;
-		}
-		else{
-			$query = "SELECT count( DISTINCT users.id ) user_count FROM tracker, users WHERE users.id = tracker.user_id AND  tracker.date_modified >= $lastMonth";
-			$result=$db->query($query, 'fetching last 30 users count', false);
-			$row = $db->fetchByAssoc($result);
-			$info['users_active_30_days'] = $row['user_count'];
-
+		} else {
+			$info['users_active_30_days'] = $db->getOne("SELECT count( DISTINCT users.id ) user_count FROM tracker, users WHERE users.id = tracker.user_id AND  tracker.date_modified >= $lastMonth", false, 'fetching last 30 users count');
 		}
 
 
@@ -107,21 +91,18 @@ function getSystemInfo($send_usage_info=true){
 		if(!$send_usage_info){
 			$info['latest_tracker_id'] = -1;
 		}else{
-			$query="select id from tracker order by date_modified desc";
-			$id=$db->getOne($query,'fetching most recent tracker entry',false);
+			$id=$db->getOne("select id from tracker order by date_modified desc", false, 'fetching most recent tracker entry');
 			if ( $id !== false )
 			    $info['latest_tracker_id'] = $id;
 		}
 
-		$dbManager = &DBManagerFactory::getInstance();
 		$info['db_type']=$sugar_config['dbconfig']['db_type'];
-		$info['db_version']=$dbManager->version();
+		$info['db_version']=$db->version();
 	}
 	if(file_exists('distro.php')){
 		include('distro.php');
 		if(!empty($distro_name))$info['distro_name'] = $distro_name;
 	}
-	$info['auth_level'] = $authLevel;
 	$info['os'] = php_uname('s');
 	$info['os_version'] = php_uname('r');
 	$info['timezone_u'] = $GLOBALS['current_user']->getPreference('timezone');
@@ -134,7 +115,6 @@ function getSystemInfo($send_usage_info=true){
 }
 
 function getBaseSystemInfo($send_usage_info=true){
-    global $authLevel;
     include('sugar_version.php');
     $info=array();
 
@@ -143,7 +123,7 @@ function getBaseSystemInfo($send_usage_info=true){
     }
     $info['sugar_version']=$sugar_version;
     $info['sugar_flavor']=$sugar_flavor;
-    $info['auth_level'] = $authLevel;
+    $info['auth_level'] = 0;
 
 
 
@@ -270,7 +250,8 @@ function check_now($send_usage_info=true, $get_request_data=false, $response_dat
 
 	include('sugar_version.php');
 
-	if(sizeof($resultData) == 1 && !empty($resultData['versions'][0]['version']) &&  $resultData['versions'][0]['version'] < $sugar_version)
+	if(sizeof($resultData) == 1 && !empty($resultData['versions'][0]['version'])
+        && compareVersions($sugar_version, $resultData['versions'][0]['version']))
 	{
 		$resultData['versions'][0]['version'] = $sugar_version;
 		$resultData['versions'][0]['description'] = "You have the latest version.";
@@ -278,6 +259,13 @@ function check_now($send_usage_info=true, $get_request_data=false, $response_dat
 
 
 	return $resultData['versions'];
+}
+/*
+ * returns true if $ver1 > $ver2
+ */
+function compareVersions($ver1, $ver2)
+{
+    return (version_compare($ver1, $ver2) === 1);
 }
 function set_CheckUpdates_config_setting($value) {
 
@@ -384,10 +372,9 @@ function loadLicense($firstLogin=false){
 }
 
 function loginLicense(){
-	global $current_user, $license, $authLevel;
+	global $current_user, $license;
 	loadLicense(true);
 
-	$authLevel = 0;
 
 	if (shouldCheckSugar()) {
 

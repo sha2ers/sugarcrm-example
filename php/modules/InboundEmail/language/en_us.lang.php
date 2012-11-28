@@ -2,7 +2,7 @@
 if(!defined('sugarEntry') || !sugarEntry) die('Not A Valid Entry Point');
 /*********************************************************************************
  * SugarCRM Community Edition is a customer relationship management program developed by
- * SugarCRM, Inc. Copyright (C) 2004-2011 SugarCRM Inc.
+ * SugarCRM, Inc. Copyright (C) 2004-2012 SugarCRM Inc.
  * 
  * This program is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Affero General Public License version 3 as published by the
@@ -90,7 +90,9 @@ $mod_strings = array(
 	'LBL_FOUND_MAILBOXES'	=> 'Found the following usable folders.<br>Click one to choose it:',
 	'LBL_FOUND_OPTIMUM_MSG'	=> '<br>Found optimum settings.  Press the button below to apply them to your mail account.',
 	'LBL_FROM_ADDR'			=> '"From" Address',
-    'LBL_FROM_ADDR_DESC'    => "The email address provided here might not appear in the 'From' address section of the email sent due to restrictions imposed by the mail service provider. In these circumstances, the email address defined in the outgoing mail server will be used.",
+    // as long as XTemplate doesn't support output escaping, transform
+    // quotes to html-entities right here (bug #48913)
+    'LBL_FROM_ADDR_DESC'    => "The email address provided here might not appear in the &quot;From&quot; address section of the email sent due to restrictions imposed by the mail service provider. In these circumstances, the email address defined in the outgoing mail server will be used.",
 	'LBL_FROM_NAME_ADDR'	=> 'From Name/Email',
 	'LBL_FROM_NAME'			=> '"From" Name',
 	'LBL_GROUP_QUEUE'		=> 'Assign To Group',
@@ -163,7 +165,7 @@ $mod_strings = array(
 	'LBL_STATUS'			=> 'Status',
 	'LBL_SYSTEM_DEFAULT'	=> 'System Default',
 	'LBL_TEST_BUTTON_KEY'	=> 't',
-	'LBL_TEST_BUTTON_TITLE'	=> 'Test [Alt+T]',
+	'LBL_TEST_BUTTON_TITLE'	=> 'Test',
 	'LBL_TEST_SETTINGS'		=> 'Test Settings',
 	'LBL_TEST_SUCCESSFUL'	=> 'Connection completed successfully.',
 	'LBL_TEST_WAIT_MESSAGE'	=> 'One moment please...',
@@ -193,7 +195,7 @@ $mod_strings = array(
     'LBL_IS_GROUP' => 'group',
     'LBL_ENABLE_AUTO_IMPORT' => 'Import Emails Automatically',
     'LBL_WARNING_CHANGING_AUTO_IMPORT' => 'Warning: You are modifying your automatic import setting which may result in loss of data.',
-    'LBL_WARNING_CHANGING_AUTO_IMPORT_WITH_CREATE_CASE' => 'Warning: Auto import must be enabled when automatically creating cases.'
+    'LBL_WARNING_CHANGING_AUTO_IMPORT_WITH_CREATE_CASE' => 'Warning: Auto import must be enabled when automatically creating cases.',
+	'LBL_EDIT_LAYOUT' => 'Edit Layout' /*for 508 compliance fix*/,
 );
-
 ?>

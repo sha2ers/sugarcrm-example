@@ -2,7 +2,7 @@
 if(!defined('sugarEntry') || !sugarEntry) die('Not A Valid Entry Point');
 /*********************************************************************************
  * SugarCRM Community Edition is a customer relationship management program developed by
- * SugarCRM, Inc. Copyright (C) 2004-2011 SugarCRM Inc.
+ * SugarCRM, Inc. Copyright (C) 2004-2012 SugarCRM Inc.
  * 
  * This program is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Affero General Public License version 3 as published by the
@@ -62,9 +62,7 @@ if(!$focus->ACLAccess('Delete')){
 if (isset($_REQUEST['object']) && $_REQUEST['object']="documentrevision") {
 	//delete document revision.
 	$focus = new DocumentRevision();
-	
 	UploadFile::unlink_file($_REQUEST['revision_id'],$_REQUEST['filename']);
-	
 } else {
 	//delete document and its revisions.
 	$focus = new Document();
@@ -80,9 +78,10 @@ if (isset($_REQUEST['object']) && $_REQUEST['object']="documentrevision") {
 			$thisversion->mark_deleted($thisversion->id);
 		}				
 	}
+
+
 }
 
 $focus->mark_deleted($_REQUEST['record']);
-
 header("Location: index.php?module=".$_REQUEST['return_module']."&action=".$_REQUEST['return_action']."&record=".$_REQUEST['return_id']);
 ?>

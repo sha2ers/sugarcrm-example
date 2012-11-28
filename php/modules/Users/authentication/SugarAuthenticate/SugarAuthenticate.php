@@ -2,7 +2,7 @@
 if(!defined('sugarEntry') || !sugarEntry) die('Not A Valid Entry Point');
 /*********************************************************************************
  * SugarCRM Community Edition is a customer relationship management program developed by
- * SugarCRM, Inc. Copyright (C) 2004-2011 SugarCRM Inc.
+ * SugarCRM, Inc. Copyright (C) 2004-2012 SugarCRM Inc.
  * 
  * This program is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Affero General Public License version 3 as published by the
@@ -53,10 +53,17 @@ class SugarAuthenticate{
 	 *
 	 * @return SugarAuthenticate
 	 */
-	function SugarAuthenticate(){
-		require_once('modules/Users/authentication/'. $this->authenticationDir . '/'. $this->userAuthenticateClass . '.php');
-		$this->userAuthenticate = new $this->userAuthenticateClass();
+	function SugarAuthenticate()
+	{
+	    // check in custom dir first, in case someone want's to override an auth controller
+		if (file_exists('custom/modules/Users/authentication/'.$this->authenticationDir.'/' . $this->userAuthenticateClass . '.php')) {
+            require_once('custom/modules/Users/authentication/'.$this->authenticationDir.'/' . $this->userAuthenticateClass . '.php');
+        }
+        elseif (file_exists('modules/Users/authentication/'.$this->authenticationDir.'/' . $this->userAuthenticateClass . '.php')) {
+            require_once('modules/Users/authentication/'.$this->authenticationDir.'/' . $this->userAuthenticateClass . '.php');
+        }
 
+        $this->userAuthenticate = new $this->userAuthenticateClass();
 	}
 	/**
 	 * Authenticates a user based on the username and password
@@ -170,14 +177,12 @@ class SugarAuthenticate{
 		$GLOBALS['log']->debug("authenticated_user_language is $authenticated_user_language");
 
 		// Clear all uploaded import files for this user if it exists
-
-		$tmp_file_name = $sugar_config['import_dir']."IMPORT_".$GLOBALS['current_user']->id;
+        require_once('modules/Import/ImportCacheFiles.php');
+        $tmp_file_name = ImportCacheFiles::getImportDir()."/IMPORT_" . $GLOBALS['current_user']->id;
 
 		if (file_exists($tmp_file_name)) {
 			unlink($tmp_file_name);
 		}
-
-
 
 		return true;
 	}
@@ -242,13 +247,9 @@ class SugarAuthenticate{
 		//CHECK IF USER IS CROSSING SITES
 		if (($user_unique_key != $server_unique_key) && (!in_array($action, $allowed_actions)) && (!isset ($_SESSION['login_error']))) {
 
-			session_destroy();
-			$post_login_nav = '';
-			if (!empty ($record) && !empty ($action) && !empty ($module)) {
-				$post_login_nav = "&login_module=".$module."&login_action=".$action."&login_record=".$record;
-			}
 			$GLOBALS['log']->debug('Destroying Session User has crossed Sites');
-			header("Location: index.php?action=Login&module=Users".$post_login_nav);
+		    session_destroy();
+			header("Location: index.php?action=Login&module=Users".$GLOBALS['app']->getLoginRedirect());
 			sugar_cleanup(true);
 		}
 		if (!$this->userAuthenticate->loadUserOnSession($_SESSION['authenticated_user_id'])) {
@@ -346,6 +347,20 @@ class SugarAuthenticate{
 	}
 
 
-
-
+    /**
+     * pre_login
+     *
+     * This function allows the SugarAuthenticate subclasses to perform some pre login initialization as needed
+     */
+    function pre_login()
+    {
+        if (isset($_SESSION['authenticated_user_id']))
+        {
+            ob_clean();
+            // fixing bug #46837: Previosly links/URLs to records in Sugar from MSO Excel/Word were referred to the home screen and not the record
+            // It used to appear when default browser was not MS IE
+            header("Location: ".$GLOBALS['app']->getLoginRedirect());
+            sugar_cleanup(true);
+        }
+    }
 }

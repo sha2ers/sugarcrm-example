@@ -1,6 +1,6 @@
 /*********************************************************************************
  * SugarCRM Community Edition is a customer relationship management program developed by
- * SugarCRM, Inc. Copyright (C) 2004-2011 SugarCRM Inc.
+ * SugarCRM, Inc. Copyright (C) 2004-2012 SugarCRM Inc.
  * 
  * This program is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Affero General Public License version 3 as published by the
@@ -55,7 +55,7 @@
 	
 	SUGAR.EmailAddressWidget.prototype = {
 	    emailTemplate : '<tr id="emailAddressRow">' + 
-		'<td nowrap="NOWRAP"><input type="text" name="emailAddress{$index}" id="emailAddress0" size="30"/></td>' + 
+		'<td nowrap="NOWRAP"><input type="text" title="email address 0" name="emailAddress{$index}" id="emailAddress0" size="30"/></td>' +
 		'<td><span>&nbsp;</span><img id="removeButton0" name="0" src="index.php?entryPoint=getImage&amp;themeName=Sugar&amp;imageName=delete_inline.gif"/></td>' +
 		'<td align="center"><input type="radio" name="emailAddressPrimaryFlag" id="emailAddressPrimaryFlag0" value="emailAddress0" enabled="true" checked="true"/></td>' +
 		'<td align="center"><input type="checkbox" name="emailAddressOptOutFlag[]" id="emailAddressOptOutFlag0" value="emailAddress0" enabled="true"/></td>' + 
@@ -75,7 +75,7 @@
 		prefillEmailAddresses: function(tableId, o){
 			for (i = 0; i < o.length; i++) {
 				o[i].email_address = o[i].email_address.replace('&#039;', "'");
-				this.addEmailAddress(tableId, o[i].email_address, o[i].primary_address, o[i].reply_to_address, o[i].opt_out, o[i].invalid_email);
+				this.addEmailAddress(tableId, o[i].email_address, o[i].primary_address, o[i].reply_to_address, o[i].opt_out, o[i].invalid_email, o[i].email_address_id);
 			}
 		},
 		
@@ -206,7 +206,7 @@
 		    return false;
 		},//freezeEvent
 		
-		addEmailAddress : function (tableId, address, primaryFlag, replyToFlag, optOutFlag, invalidFlag) {
+		addEmailAddress : function (tableId, address, primaryFlag, replyToFlag, optOutFlag, invalidFlag, emailId) {
 			if (this.addInProgress)
 			    return;
 			this.addInProgress = true;
@@ -216,13 +216,16 @@
 		    var parentObj = insertInto.parentNode;
 		    var newContent = document.createElement("input");
 		    var nav = new String(navigator.appVersion);
+
+		    var newContentRecordId = document.createElement("input");
 		    var newContentPrimaryFlag = document.createElement("input");
 		    var newContentReplyToFlag = document.createElement("input");
 		    var newContentOptOutFlag = document.createElement("input");
 		    var newContentInvalidFlag = document.createElement("input");
 		    var newContentVerifiedFlag = document.createElement("input");
 		    var newContentVerifiedValue = document.createElement("input");
-		    var removeButton = document.createElement("img");
+		    var removeButton = document.createElement("button");
+            var removeButtonImg = document.createElement('img');
 		    var tbody = document.createElement("tbody");
 		    var tr = document.createElement("tr");
 		    var td1 = document.createElement("td");
@@ -234,31 +237,54 @@
 		    var td7 = document.createElement("td");
 		    var td8 = document.createElement("td");
 
+            //use the value if the tabindex value for email has been passed in from metadata (defined in include/EditView/EditView.tpl
+            //else default to 0 
+            var tabIndexCount = 0;
+            if(typeof(SUGAR.TabFields) !='undefined' && typeof(SUGAR.TabFields['email1']) != 'undefined'){
+                tabIndexCount = SUGAR.TabFields['email1'];
+            }
 		    // set input field attributes
 		    newContent.setAttribute("type", "text");
 		    newContent.setAttribute("name", this.id + "emailAddress" + this.numberEmailAddresses);
 		    newContent.setAttribute("id", this.id + "emailAddress" + this.numberEmailAddresses);
-		    newContent.setAttribute("tabindex", this.tabIndex);
+		    newContent.setAttribute("tabindex", tabIndexCount);
 		    newContent.setAttribute("size", "30");
+            newContent.setAttribute("title", SUGAR.language.get('app_strings', 'LBL_EMAIL_TITLE'));
 		
 		    if(address != '') {
 		        newContent.setAttribute("value", address);
 		    }
+
+            // inner structure of remove button
+            removeButtonImg.setAttribute('src', "index.php?entryPoint=getImage&themeName="+SUGAR.themes.theme_name+"&imageName=id-ff-remove-nobg.png");
 		    
 		    // remove button
 		    removeButton.setAttribute("id", this.id + "removeButton" + this.numberEmailAddresses);
 			removeButton.setAttribute("class", "id-ff-remove");
 		    removeButton.setAttribute("name", this.numberEmailAddresses);
-			removeButton.eaw = this;
-		    removeButton.setAttribute("src", "index.php?entryPoint=getImage&themeName="+SUGAR.themes.theme_name+"&imageName=id-ff-remove.png");
-		    removeButton.onclick = function(){this.eaw.removeEmailAddress(this.name);};
+		    removeButton.setAttribute("type", "button");
+            removeButton.setAttribute("tabindex", tabIndexCount);
+            removeButton.onclick = (function(eaw) {
+                return function() {
+                    eaw.removeEmailAddress(this.name);
+                }
+            })(this);
+            removeButton.appendChild(removeButtonImg);
 		    
+		    // set record id
+		    newContentRecordId.setAttribute("type", "hidden");
+		    newContentRecordId.setAttribute("name", this.id + "emailAddressId" + this.numberEmailAddresses);
+		    newContentRecordId.setAttribute("id", this.id + "emailAddressId" + this.numberEmailAddresses);
+		    newContentRecordId.setAttribute("value", typeof(emailId) != 'undefined' ? emailId : '');
+		    newContentRecordId.setAttribute("enabled", "true");
+
 		    // set primary flag
 		    newContentPrimaryFlag.setAttribute("type", "radio");
 		    newContentPrimaryFlag.setAttribute("name", this.id + "emailAddressPrimaryFlag");
 		    newContentPrimaryFlag.setAttribute("id", this.id + "emailAddressPrimaryFlag" + this.numberEmailAddresses);
 		    newContentPrimaryFlag.setAttribute("value", this.id + "emailAddress" + this.numberEmailAddresses);
 		    newContentPrimaryFlag.setAttribute("enabled", "true");
+            newContentPrimaryFlag.setAttribute("tabindex", tabIndexCount);
 
 		    // set reply-to flag
 		    newContentReplyToFlag.setAttribute("type", "radio");
@@ -266,6 +292,7 @@
 		    newContentReplyToFlag.setAttribute("id", this.id + "emailAddressReplyToFlag" + this.numberEmailAddresses);
 		    newContentReplyToFlag.setAttribute("value", this.id + "emailAddress" + this.numberEmailAddresses);
 		    newContentReplyToFlag.setAttribute("enabled", "true");
+            newContentReplyToFlag.setAttribute("tabindex", tabIndexCount);
 		    newContentReplyToFlag.eaw = this;
 		    newContentReplyToFlag['onclick']= function() {
 		    	var form = document.forms[this.eaw.emailView];
@@ -304,6 +331,7 @@
 		    newContentOptOutFlag.setAttribute("value", this.id + "emailAddress" + this.numberEmailAddresses);
 		    newContentOptOutFlag.setAttribute("enabled", "true");
 			newContentOptOutFlag.eaw = this;
+            newContentOptOutFlag.setAttribute("tabindex", tabIndexCount);
 		    newContentOptOutFlag['onClick'] = function(){this.eaw.toggleCheckbox(this)};
 	
 		    // set invalid flag
@@ -313,7 +341,8 @@
 		    newContentInvalidFlag.setAttribute("value", this.id + "emailAddress" + this.numberEmailAddresses);
 		    newContentInvalidFlag.setAttribute("enabled", "true");
 			newContentInvalidFlag.eaw = this;
-		    newContentInvalidFlag['onClick']= function(){this.eaw.toggleCheckbox(this)};
+            newContentInvalidFlag.setAttribute("tabindex", tabIndexCount);
+		    newContentInvalidFlag['onClick']= function(){this.eaw.toggleCheckbox(this);};
 		    
 		    // set the verified flag and verified email value
 		    newContentVerifiedFlag.setAttribute("type", "hidden");
@@ -325,6 +354,7 @@
 		    newContentVerifiedValue.setAttribute("name", this.id + "emailAddressVerifiedValue" + this.numberEmailAddresses);
 		    newContentVerifiedValue.setAttribute("id", this.id + "emailAddressVerifiedValue" + this.numberEmailAddresses);
 		    newContentVerifiedValue.setAttribute("value", address);
+            newContentVerifiedValue.setAttribute("tabindex", tabIndexCount);
 
 		    //Add to validation
 		    this.emailView = (this.emailView == '') ? 'EditView' : this.emailView;
@@ -339,6 +369,7 @@
 		    td6.setAttribute("align", "center");
 
 		    td1.appendChild(newContent);
+		    td1.appendChild(newContentRecordId);
 		    td1.appendChild(document.createTextNode(" "));
 		    spanNode = document.createElement('span');
 		    spanNode.innerHTML = '&nbsp;';
@@ -378,6 +409,7 @@
 		    // CL Fix for 17651 (added OR condition check to see if this is the first email added)
 		    if(primaryFlag == '1' || (this.numberEmailAddresses == 0)) {
 		        newContentPrimaryFlag.setAttribute("checked", 'true');
+                newContent.setAttribute("title", SUGAR.language.get('app_strings', 'LBL_EMAIL_PRIM_TITLE'));
 		    }
 		    
 		    if(replyToFlag == '1') {
@@ -392,29 +424,28 @@
 		    
 		    if(optOutFlag == '1') {
 		        newContentOptOutFlag.setAttribute("checked", 'true');
+                newContent.setAttribute("title", SUGAR.language.get('app_strings', 'LBL_EMAIL_OPT_TITLE'));
 		    }
 		    
 		    if(invalidFlag == '1') {
 		        newContentInvalidFlag.setAttribute("checked", "true");
+                newContent.setAttribute("title", SUGAR.language.get('app_strings', 'LBL_EMAIL_INV_TITLE'));
 		    }
 		    newContent.eaw = this;
 		    newContent.onblur = function(e){this.eaw.retrieveEmailAddress(e)};
 		    newContent.onkeydown = function(e){this.eaw.handleKeyDown(e)};
-            if (YAHOO.env.ua.ie) {
-                // IE doesn't bubble up "change" events through the DOM. So we need to find events that are looking at our parent and manually push them down to here
+            if (YAHOO.env.ua.ie > 0) {
+                // IE doesn't bubble up "change" events through the DOM.
+                // So we need to fire onChange events on the parent span when the input changes
                 var emailcontainer = Dom.getAncestorByTagName(insertInto,'span');
-                var listeners = YAHOO.util.Event.getListeners(emailcontainer);
-                if (typeof listeners != 'undefined' && listeners instanceof Array) {
-                    for (var i=0; i<listeners.length; ++i) {
-                        var listener = listeners[i];
-                        YAHOO.util.Event.addListener(newContent, listener.type, listener.fn, listener.obj, listener.adjust);
-                    }
-                }
+                YAHOO.util.Event.addListener(newContent, "change",
+                        function(ev, el){SUGAR.util.callOnChangeListers(el);}, emailcontainer
+                );
             }
 		    
 		    // Add validation to field
             this.EmailAddressValidation(this.emailView, this.id+ 'emailAddress' + this.numberEmailAddresses,this.emailIsRequired, SUGAR.language.get('app_strings', 'LBL_EMAIL_ADDRESS_BOOK_EMAIL_ADDR'));
-		    this.numberEmailAddresses++;
+            this.numberEmailAddresses++;
 			this.addInProgress = false;
 		}, //addEmailAddress
 
@@ -426,8 +457,9 @@
 		removeEmailAddress : function(index) {
 			removeFromValidate(this.emailView, this.id + 'emailAddress' + index);
             var oNodeToRemove = Dom.get(this.id +  'emailAddressRow' + index);
+            var form = Dom.getAncestorByTagName(oNodeToRemove, "form");
             oNodeToRemove.parentNode.removeChild(oNodeToRemove);
-            
+
             var removedIndex = parseInt(index);
             //If we are not deleting the last email address, we need to shift the numbering to fill the gap
             if(this.numberEmailAddresses != removedIndex) {
@@ -436,10 +468,12 @@
                    Dom.get(this.id + 'emailAddress' + x).setAttribute("id", this.id +"emailAddress" + (x-1));
                    
                    if(Dom.get(this.id + 'emailAddressInvalidFlag' + x)) {
+                       Dom.get(this.id + 'emailAddressInvalidFlag' + x).setAttribute("value", this.id + "emailAddress" + (x-1));
                        Dom.get(this.id + 'emailAddressInvalidFlag' + x).setAttribute("id", this.id + "emailAddressInvalidFlag" + (x-1));
                    }
                    
                    if(Dom.get(this.id + 'emailAddressOptOutFlag' + x)){
+                       Dom.get(this.id + 'emailAddressOptOutFlag' + x).setAttribute("value", this.id + "emailAddress" + (x-1));
                        Dom.get(this.id + 'emailAddressOptOutFlag' + x).setAttribute("id", this.id + "emailAddressOptOutFlag" + (x-1));
                    }
                    
@@ -476,6 +510,7 @@
                Dom.get(this.id + 'emailAddressPrimaryFlag0').checked = true;
                Dom.get(this.id + 'emailAddressPrimaryFlag0').value = this.id + 'emailAddress0';
             }
+
         },
 		
 		toggleCheckbox : function (el)

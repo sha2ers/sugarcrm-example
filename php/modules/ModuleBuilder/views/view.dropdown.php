@@ -1,7 +1,7 @@
 <?php
 /*********************************************************************************
  * SugarCRM Community Edition is a customer relationship management program developed by
- * SugarCRM, Inc. Copyright (C) 2004-2011 SugarCRM Inc.
+ * SugarCRM, Inc. Copyright (C) 2004-2012 SugarCRM Inc.
  * 
  * This program is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Affero General Public License version 3 as published by the
@@ -63,12 +63,15 @@ class ViewDropdown extends SugarView
 			$ajax->addSection('west', $mbt->getName(), $mbt->fetchNodes());
 			$smarty->assign('refreshTree',true);
 		}
-        
- 		$smarty->assign('deleteImage', SugarThemeRegistry::current()->getImage( 'delete_inline', ''));
-		$smarty->assign('editImage', SugarThemeRegistry::current()->getImage( 'edit_inline', ''));
+
+        global $mod_strings;
+
+ 		$smarty->assign('deleteImage', SugarThemeRegistry::current()->getImage( 'delete_inline', '',null,null,'.gif',$mod_strings['LBL_MB_DELETE']));
+		$smarty->assign('editImage', SugarThemeRegistry::current()->getImage( 'edit_inline', ''
+,null,null,'.gif',$mod_strings['LBL_EDIT']));
 		$smarty->assign('action', 'savedropdown');
 		$body = $smarty->fetch('modules/ModuleBuilder/tpls/MBModule/dropdown.tpl');
-		$ajax->addSection('east2', $GLOBALS['mod_strings']['LBL_SECTION_DROPDOWNED'], $body );
+		$ajax->addSection('east2', $mod_strings['LBL_SECTION_DROPDOWNED'], $body );
  		echo $ajax->getJavascript();
  	}
  	

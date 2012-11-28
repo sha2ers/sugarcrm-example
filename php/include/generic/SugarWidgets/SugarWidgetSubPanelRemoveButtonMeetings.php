@@ -2,7 +2,7 @@
 if(!defined('sugarEntry') || !sugarEntry) die('Not A Valid Entry Point');
 /*********************************************************************************
  * SugarCRM Community Edition is a customer relationship management program developed by
- * SugarCRM, Inc. Copyright (C) 2004-2011 SugarCRM Inc.
+ * SugarCRM, Inc. Copyright (C) 2004-2012 SugarCRM Inc.
  * 
  * This program is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Affero General Public License version 3 as published by the
@@ -38,7 +38,7 @@ if(!defined('sugarEntry') || !sugarEntry) die('Not A Valid Entry Point');
 
 
 
-require_once('include/generic/SugarWidgets/SugarWidgetField.php');
+
 
 class SugarWidgetSubPanelRemoveButtonMeetings extends SugarWidgetField
 {
@@ -93,9 +93,7 @@ class SugarWidgetSubPanelRemoveButtonMeetings extends SugarWidgetField
 		}
 		$return_url = "index.php?module=$return_module&action=$return_action&subpanel=$subpanel&record=$return_id&sugar_body_only=1";
 
-		$icon_remove_text = $app_strings['LNK_REMOVE'];
-		$icon_remove_html = SugarThemeRegistry::current()->getImage( 'delete_inline',
-			'align="absmiddle" alt="' . $icon_remove_text . '" border="0"');
+		$icon_remove_text = strtolower($app_strings['LBL_ID_FF_REMOVE']);
 		$remove_url = $layout_def['start_link_wrapper']
 			. "index.php?module=$parent_module"
 			. "&action=$action"
@@ -108,11 +106,8 @@ class SugarWidgetSubPanelRemoveButtonMeetings extends SugarWidgetField
 		$remove_confirmation_text = $app_strings['NTC_REMOVE_CONFIRMATION'];
 		//based on listview since that lets you select records
 		if($layout_def['ListView']) {
-            return "<a href=\"javascript:sub_p_rem('$subpanel', '$linked_field'" 
-                    .", '$record', $refresh_page);\"" 
-			. ' class="listViewTdToolsS1"'
-			. " onclick=\"return sp_rem_conf();\""
-			. ">$icon_remove_html&nbsp;$icon_remove_text</a>";
+            return "<a href=\"javascript:sub_p_rem('$subpanel', '$linked_field'" .", '$record', $refresh_page);\""
+			        . ' class="listViewTdToolsS1"' . " onclick=\"return sp_rem_conf();\"" . ">$icon_remove_text</a>";
 		}else{
 			return '';
 		}

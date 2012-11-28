@@ -1,7 +1,7 @@
 <?php
 /*********************************************************************************
  * SugarCRM Community Edition is a customer relationship management program developed by
- * SugarCRM, Inc. Copyright (C) 2004-2011 SugarCRM Inc.
+ * SugarCRM, Inc. Copyright (C) 2004-2012 SugarCRM Inc.
  * 
  * This program is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Affero General Public License version 3 as published by the
@@ -92,6 +92,9 @@ class MBModule
         return $this->package;
     }
 
+    /**
+     * @return UndeployedRelationships
+     */
     function getRelationships()
     {
         return $this->relationships;
@@ -175,7 +178,7 @@ class MBModule
 
     function fieldExists ($name = '' , $type = '')
     {
-        $vardefs = $this->mbvardefs->getVardef () ;
+        $vardefs = $this->getVardefs();
         if (! empty ( $vardefs ))
         {
             if (empty ( $type ) && empty ( $name ))
@@ -826,6 +829,34 @@ class MBModule
 			if ($parser->removeField ( $fieldName ) )
 	            $parser->handleSave(false) ; 
         }
+    }
+
+    /**
+     * Returns an array of fields defs with all the link fields for this module.
+     * @return array
+     */
+    public function getLinkFields(){
+        $list = $this->relationships->getRelationshipList();
+        $field_defs = array();
+        foreach($list as $name){
+            $rel = $this->relationships->get($name);
+            $relFields = $rel->buildVardefs();
+            $relDef = $rel->getDefinition();
+            $relLabels = $rel->getLabels();
+            $relatedModule = $this->key_name == $relDef['rhs_module'] ? $relDef['lhs_module'] : $relDef['rhs_module'];
+            if (!empty($relFields[$this->key_name]))
+            {
+                //Massage the result of getVardefs to look like field_defs
+                foreach($relFields[$this->key_name] as $def) {
+                    $def['module'] = $relatedModule;
+                    $def['translated_label'] = empty($relLabels[$this->key_name][$def['vname']]) ?
+                        $name : $relLabels[$this->key_name][$def['vname']];
+                    $field_defs[$def['name']] = $def;
+                }
+            }
+        }
+
+        return $field_defs;
     }
 
 }

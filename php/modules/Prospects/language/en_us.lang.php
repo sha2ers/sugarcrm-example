@@ -2,7 +2,7 @@
 if(!defined('sugarEntry') || !sugarEntry) die('Not A Valid Entry Point');
 /*********************************************************************************
  * SugarCRM Community Edition is a customer relationship management program developed by
- * SugarCRM, Inc. Copyright (C) 2004-2011 SugarCRM Inc.
+ * SugarCRM, Inc. Copyright (C) 2004-2012 SugarCRM Inc.
  * 
  * This program is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Affero General Public License version 3 as published by the
@@ -141,7 +141,7 @@ $mod_strings = array (
   'LNK_NEW_MEETING' => 'Schedule Meeting',
   'LNK_NEW_TASK' => 'Create Task',
   'LNK_NEW_APPOINTMENT' => 'Create Appointment',
-  'LNK_IMPORT_PROSPECTS' => 'Import Prospects',
+  'LNK_IMPORT_PROSPECTS' => 'Import Targets',
   'NTC_DELETE_CONFIRMATION' => 'Are you sure you want to delete this record?',
   'NTC_REMOVE_CONFIRMATION' => 'Are you sure you want to remove this contact from the case?',
   'NTC_REMOVE_DIRECT_REPORT_CONFIRMATION' => 'Are you sure you want to remove this record as a direct report?',

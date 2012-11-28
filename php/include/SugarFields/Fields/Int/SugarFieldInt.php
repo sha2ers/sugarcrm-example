@@ -2,7 +2,7 @@
 
 /*********************************************************************************
  * SugarCRM Community Edition is a customer relationship management program developed by
- * SugarCRM, Inc. Copyright (C) 2004-2011 SugarCRM Inc.
+ * SugarCRM, Inc. Copyright (C) 2004-2012 SugarCRM Inc.
  * 
  * This program is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Affero General Public License version 3 as published by the
@@ -57,6 +57,37 @@ class SugarFieldInt extends SugarFieldBase
             return '';
         }
         return (int)unformat_number($formattedField);
+    }
+
+    /**
+     * getSearchWhereValue
+     *
+     * Checks and returns a sane value based on the field type that can be used when building the where clause in a
+     * search form.
+     *
+     * @param $value Mixed value being searched on
+     * @return Int the value for the where clause used in search
+     */
+    function getSearchWhereValue($value) {
+        $newVal = parent::getSearchWhereValue($value);
+        if (!is_numeric($newVal)){
+            if(strpos($newVal, ',') > 0) {
+                $multiVals = explode(',', $newVal);
+                 $newVal = '';
+                 foreach($multiVals as $key => $val) {
+                     if (!empty($newVal))
+                         $newVal .= ',';
+                     if(!empty($val) && !(is_numeric($val)))
+                         $newVal .= -1;
+                     else
+                         $newVal .= $val;
+                 }
+                 return $newVal;
+            } else {
+                return -1;
+            }
+        }
+        return $newVal;
     }
 
     public function unformatSearchRequest(&$inputData, &$field) {

@@ -2,7 +2,7 @@
 if(!defined('sugarEntry') || !sugarEntry) die('Not A Valid Entry Point');
 /*********************************************************************************
  * SugarCRM Community Edition is a customer relationship management program developed by
- * SugarCRM, Inc. Copyright (C) 2004-2011 SugarCRM Inc.
+ * SugarCRM, Inc. Copyright (C) 2004-2012 SugarCRM Inc.
  * 
  * This program is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Affero General Public License version 3 as published by the
@@ -43,8 +43,9 @@ if(!defined('sugarEntry') || !sugarEntry) die('Not A Valid Entry Point');
  * Contributor(s): ______________________________________..
  ********************************************************************************/
 
+require_once('include/SugarObjects/forms/FormBase.php');
 
-class MeetingFormBase{
+class MeetingFormBase extends FormBase {
 
 	function getFormBody($prefix, $mod='', $formname=''){
 		if(!ACLController::checkAccess('Meetings', 'edit', true)){
@@ -95,7 +96,7 @@ $jsCalendarImage = SugarThemeRegistry::current()->getImageURL('jscalendar.gif');
 					<p>$lbl_subject<span class="required">$lbl_required_symbol</span><br>
 					<input name='${prefix}name' size='25' maxlength='255' type="text"><br>
 					$lbl_date&nbsp;<span class="required">$lbl_required_symbol</span>&nbsp;<span class="dateFormat">$ntc_date_format</span><br>
-					<input name='${prefix}date_start' id='jscal_field' onblur="parseDate(this, '$cal_dateformat');" type="text" maxlength="10" value="${default_date_start}"> <img src="{$jscalendarImage}" alt="{$app_strings['LBL_ENTER_DATE']}"  id="jscal_trigger" align="absmiddle"><br>
+					<input name='${prefix}date_start' id='jscal_field' onblur="parseDate(this, '$cal_dateformat');" type="text" maxlength="10" value="${default_date_start}"> <!--not_in_theme!--><img src="{$jscalendarImage}" alt="{$app_strings['LBL_ENTER_DATE']}"  id="jscal_trigger" align="absmiddle"><br>
 					$lbl_time&nbsp;<span class="required">$lbl_required_symbol</span>&nbsp;<span class="dateFormat">$ntc_time_format</span><br>
 					<input name='${prefix}time_start' type="text" maxlength='5' value="${default_time_start}">{$time_ampm}</p>
 					<script type="text/javascript">
@@ -187,6 +188,18 @@ function handleSave($prefix,$redirect=true, $useRequired=false) {
 		$_POST['reminder_time'] = $current_user->getPreference('reminder_time');
 		$_POST['reminder_checked']=1;
 	}
+	
+	if(!isset($_POST['email_reminder_checked']) || (isset($_POST['email_reminder_checked']) && $_POST['email_reminder_checked'] == '0')) {
+		$_POST['email_reminder_time'] = -1;
+	}
+	if(!isset($_POST['email_reminder_time'])){
+		$_POST['email_reminder_time'] = $current_user->getPreference('email_reminder_time');
+		$_POST['email_reminder_checked'] = 1;
+	}
+	
+	// don't allow to set recurring_source from a form
+	unset($_POST['recurring_source']);
+	
 	$time_format = $timedate->get_user_time_format();
     $time_separator = ":";
     if(preg_match('/\d+([^\d])\d+([^\d]*)/s', $time_format, $match)) {
@@ -224,10 +237,15 @@ function handleSave($prefix,$redirect=true, $useRequired=false) {
   	}elseif (empty($focus->id) ){
 	  	//this is not from long form so add assigned and current user automatically as there is no invitee list UI.
 	  	//This call could be through an ajax call from subpanels or shortcut bar
+        if(!isset($_POST['user_invitees']))
+        {
+           $_POST['user_invitees'] = '';
+        }
+
 	  	$_POST['user_invitees'] .= ','.$_POST['assigned_user_id'].', ';
 
 	  	//add current user if the assigned to user is different than current user.
-	  	if($current_user->id != $_POST['assigned_user_id']){
+	  	if($current_user->id != $_POST['assigned_user_id'] && $_REQUEST['module'] != "Calendar"){
 	  		$_POST['user_invitees'] .= ','.$current_user->id.', ';
 	  	}
 
@@ -236,14 +254,18 @@ function handleSave($prefix,$redirect=true, $useRequired=false) {
   	}
 
 
-	if(isset($_POST['isSaveFromDetailView']) && $_POST['isSaveFromDetailView'] == 'true'){
+	if( (isset($_POST['isSaveFromDetailView']) && $_POST['isSaveFromDetailView'] == 'true') ||
+        (isset($_POST['is_ajax_call']) && !empty($_POST['is_ajax_call']) && !empty($focus->id) ||
+        (isset($_POST['return_action']) && $_POST['return_action'] == 'SubPanelViewer') && !empty($focus->id))||
+         !isset($_POST['user_invitees']) // we need to check that user_invitees exists before processing, it is ok to be empty
+    ){
         $focus->save(true);
         $return_id = $focus->id;
 	}else{
-		if(empty($_REQUEST['return_module']) && empty($_REQUEST['return_action']) && $focus->status == 'Held'){
-    		//if we are closing the meeting, and the request does not have a return module AND return action set, then
-    		//the request is coming from a dashlet or subpanel close icon and there is no need to process user invitees,
-    		//just save the current values.
+		if($focus->status == 'Held' && $this->isEmptyReturnModuleAndAction() && !$this->isSaveFromDCMenu()){
+    		//if we are closing the meeting, and the request does not have a return module AND return action set and it is not a save
+            //being triggered by the DCMenu (shortcut bar) then the request is coming from a dashlet or subpanel close icon and there is no
+            //need to process user invitees, just save the current values.
     		$focus->save(true);
 	    }else{
 	    	///////////////////////////////////////////////////////////////////////////
@@ -360,6 +382,7 @@ function handleSave($prefix,$redirect=true, $useRequired=false) {
 	    	}
 	    	// Call the Meeting module's save function to handle saving other fields besides
 	    	// the users and contacts relationships
+            $focus->update_vcal = false;    // Bug #49195 : don't update vcal b/s related users aren't saved yet, create vcal cache below
 	    	$focus->save(true);
 	    	$return_id = $focus->id;
 	    	if(empty($return_id)){
@@ -434,6 +457,9 @@ function handleSave($prefix,$redirect=true, $useRequired=false) {
 	    		}
 	    	}
 
+            // Bug #49195 : update vcal
+            vCal::cache_sugar_vcal($current_user);
+            
 	    	// CCL - Comment out call to set $current_user as invitee
 	    	// set organizer to auto-accept
 	    	//$focus->set_accept_status($current_user, 'accept');

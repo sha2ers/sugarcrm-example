@@ -1,7 +1,7 @@
 <?php
 /*********************************************************************************
  * SugarCRM Community Edition is a customer relationship management program developed by
- * SugarCRM, Inc. Copyright (C) 2004-2011 SugarCRM Inc.
+ * SugarCRM, Inc. Copyright (C) 2004-2012 SugarCRM Inc.
  * 
  * This program is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Affero General Public License version 3 as published by the
@@ -62,6 +62,7 @@ class PackageManagerDisplay{
         global $sugar_version, $sugar_config;
         $app_strings = return_application_language($current_language);
         $ss = new Sugar_Smarty();
+        $ss->assign('APP_STRINGS', $app_strings);
         $ss->assign('FORM_1_PLACE_HOLDER', $form1);
         $ss->assign('form_action', $form_action);
         $ss->assign('hidden_fields', $hidden_fields);
@@ -100,7 +101,8 @@ class PackageManagerDisplay{
         }else{
             $form2 .= "<input type='button' id='modifCredentialsBtn' class='button' onClick='PackageManager.showLoginDialog(true);' value='".$mod_strings['LBL_MODIFY_CREDENTIALS']."'style='display:none;'>";
         }
-        $form2 .= "</td><td align='left'><div id='workingStatusDiv' style='display:none;'>".SugarThemeRegistry::current()->getImage("sqsWait","border='0' align='bottom'")."</div></td><td align='right'>";
+        $form2 .= "</td><td align='left'><div id='workingStatusDiv' style='display:none;'>".SugarThemeRegistry::current()->getImage("sqsWait","border='0' align='bottom'",null,null,'.gif',"Loading")."</div></td><td align='right'>";
+
         if($isAlive){
             $form2 .= "<slot><a class=\"listViewTdToolsS1\" id='href_animate' onClick=\"PackageManager.toggleDiv('span_animate_server_div', 'catview');\"><span id='span_animate_server_div'><img src='".SugarThemeRegistry::current()->getImageURL('basic_search.gif')."' width='8' height='8' border='0'>&nbsp;Collapse</span></a></slot>";
         }else{
@@ -115,7 +117,14 @@ class PackageManagerDisplay{
 
         $ss->assign('MOD', $mod_strings);
 		$ss->assign('module_load', 'true');
-        $ss->assign('scripts', PackageManagerDisplay::getDisplayScript($install));
+        if (UploadStream::getSuhosinStatus() == false)
+        {
+            $ss->assign('ERR_SUHOSIN', true);
+        }
+        else
+        {
+            $ss->assign('scripts', PackageManagerDisplay::getDisplayScript($install));
+        }
         $show_login = false; //hiding install from sugar
 		$ss->assign('MODULE_SELECTOR', PackageManagerDisplay::buildGridOutput($tree, $mod_strings, $isAlive, $show_login));
        $ss->assign('FORM_2_PLACE_HOLDER', $form2);
@@ -163,7 +172,8 @@ class PackageManagerDisplay{
         if($show_login){
         	$form2 .= "<input type='button' class='button' onClick='PackageManager.showLoginDialog(true);' value='".$mod_strings['LBL_MODIFY_CREDENTIALS']."'>";
         }
-        $form2 .= "</td><td align='right'><div id='workingStatusDiv' style='display:none;'>".SugarThemeRegistry::current()->getImage("sqsWait","border='0' align='bottom'")."</div></td></tr><tr><td colspan='2'>";
+        $form2 .= "</td><td align='right'><div id='workingStatusDiv' style='display:none;'>".SugarThemeRegistry::current()->getImage("sqsWait","border='0' align='bottom'",null,null,'.gif',"Loading")."</div></td></tr><tr><td colspan='2'>";
+
         $loginViewStyle = ($isAlive ? 'none' : 'block');
 		$selectViewStyle = ($isAlive ? 'block' : 'none');
 		$form2 .= "<div id='selectView' style='display:".$selectViewStyle."'>";
@@ -375,7 +385,8 @@ class PackageManagerDisplay{
             $install = 0;
         }
 		$ss->assign('INSTALLATION', $install);
-        $ss->assign('WAIT_IMAGE', SugarThemeRegistry::current()->getImage("loading","border='0' align='bottom'"));
+        $ss->assign('WAIT_IMAGE', SugarThemeRegistry::current()->getImage("loading","border='0' align='bottom'",null,null,'.gif',"Loading"));
+
         $ss->assign('sugar_version', $sugar_version);
         $ss->assign('js_custom_version', $sugar_config['js_custom_version']);
          $ss->assign('IS_ALIVE', $isAlive);
@@ -437,6 +448,8 @@ class PackageManagerDisplay{
 		$ss->assign('ML_FILEGRIDINSTALLED_COLUMN',$filegridinstalled_column_ary);
 		//end
 
+		$ss->assign('SHOW_IMG', SugarThemeRegistry::current()->getImage('advanced_search', 'border="0"', 8, 8, '.gif', 'Show'));
+		$ss->assign('HIDE_IMG', SugarThemeRegistry::current()->getImage('basic_search', 'border="0"', 8, 8, '.gif', 'Hide'));
         $str = $ss->fetch('ModuleInstall/PackageManager/tpls/PackageManagerScripts.tpl');
         return $str;
     }
@@ -603,4 +616,3 @@ class PackageManagerDisplay{
 		}
     }
  }
-?>

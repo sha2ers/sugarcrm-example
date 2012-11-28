@@ -2,7 +2,7 @@
 if(!defined('sugarEntry') || !sugarEntry) die('Not A Valid Entry Point');
 /*********************************************************************************
  * SugarCRM Community Edition is a customer relationship management program developed by
- * SugarCRM, Inc. Copyright (C) 2004-2011 SugarCRM Inc.
+ * SugarCRM, Inc. Copyright (C) 2004-2012 SugarCRM Inc.
  * 
  * This program is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Affero General Public License version 3 as published by the
@@ -40,32 +40,51 @@ require_once('include/Smarty/Smarty.class.php');
 
 if(!defined('SUGAR_SMARTY_DIR'))
 {
-	define('SUGAR_SMARTY_DIR', $GLOBALS['sugar_config']['cache_dir'].'smarty/');
+	define('SUGAR_SMARTY_DIR', sugar_cached('smarty/'));
 }
 
+/**
+ * Smarty wrapper for Sugar
+ * @api
+ */
 class Sugar_Smarty extends Smarty
 {
-	
 	function Sugar_Smarty()
 	{
 		if(!file_exists(SUGAR_SMARTY_DIR))mkdir_recursive(SUGAR_SMARTY_DIR, true);
 		if(!file_exists(SUGAR_SMARTY_DIR . 'templates_c'))mkdir_recursive(SUGAR_SMARTY_DIR . 'templates_c', true);
 		if(!file_exists(SUGAR_SMARTY_DIR . 'configs'))mkdir_recursive(SUGAR_SMARTY_DIR . 'configs', true);
 		if(!file_exists(SUGAR_SMARTY_DIR . 'cache'))mkdir_recursive(SUGAR_SMARTY_DIR . 'cache', true);
-		
+
 		$this->template_dir = '.';
 		$this->compile_dir = SUGAR_SMARTY_DIR . 'templates_c';
 		$this->config_dir = SUGAR_SMARTY_DIR . 'configs';
 		$this->cache_dir = SUGAR_SMARTY_DIR . 'cache';
 		$this->request_use_auto_globals = true; // to disable Smarty from using long arrays
 
-		$plugins_dir = array('include/Smarty/plugins');
 		if(file_exists('custom/include/Smarty/plugins'))
+        {
 			$plugins_dir[] = 'custom/include/Smarty/plugins';
+        }
+		$plugins_dir[] = 'include/Smarty/plugins';
 		$this->plugins_dir = $plugins_dir;
-		
-	}
-	
-}
 
-?>
+		$this->assign("VERSION_MARK", getVersionedPath(''));
+	}
+
+	/**
+	 * Override default _unlink method call to fix Bug 53010
+	 *
+	 * @param string $resource
+     * @param integer $exp_time
+     */
+    function _unlink($resource, $exp_time = null)
+    {
+        if(file_exists($resource)) {
+            return parent::_unlink($resource, $exp_time);
+        }
+        
+        // file wasn't found, so it must be gone.
+        return true;
+    }
+}

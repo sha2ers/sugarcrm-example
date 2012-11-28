@@ -2,7 +2,7 @@
 
 /*********************************************************************************
  * SugarCRM Community Edition is a customer relationship management program developed by
- * SugarCRM, Inc. Copyright (C) 2004-2011 SugarCRM Inc.
+ * SugarCRM, Inc. Copyright (C) 2004-2012 SugarCRM Inc.
  * 
  * This program is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Affero General Public License version 3 as published by the
@@ -61,14 +61,14 @@
     <td valign='top' nowrap class='dataLabel'>{$LBL_DATE_START} <br><i>{$user_date_format}</i></td>
     <td valign='top' class='dataField'>
     	<input onblur="parseDate(this, '{$cal_dateformat}');" class="text" name="pbss_date_start" size='12' maxlength='10' id='date_start' value='{$date_start}'>
-    	<img src="{sugar_getimagepath file='jscalendar.gif'}" alt="{$LBL_ENTER_DATE}" id="date_start_trigger" align="absmiddle">
+    	{sugar_getimage name="jscalendar" ext=".gif" alt=$LBL_ENTER_DATE other_attributes='align="absmiddle" id="date_start_trigger" '}
     </td>
 </tr>
 <tr>
     <td valign='top' nowrap class='dataLabel'>{$LBL_DATE_END}<br><i>{$user_date_format}</i></td>
     <td valign='top' class='dataField'>
     	<input onblur="parseDate(this, '{$cal_dateformat}');" class="text" name="pbss_date_end" size='12' maxlength='10' id='date_end' value='{$date_end}'>
-    	<img src="{sugar_getimagepath file='jscalendar.gif'}" alt="{$LBL_ENTER_DATE}" id="date_end_trigger" align="absmiddle">
+    	{sugar_getimage name="jscalendar" ext=".gif" alt=$LBL_ENTER_DATE other_attributes='align="absmiddle" id="date_end_trigger" '}
     </td>
 </tr>
 

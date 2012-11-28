@@ -2,7 +2,7 @@
 if(!defined('sugarEntry') || !sugarEntry) die('Not A Valid Entry Point');
 /*********************************************************************************
  * SugarCRM Community Edition is a customer relationship management program developed by
- * SugarCRM, Inc. Copyright (C) 2004-2011 SugarCRM Inc.
+ * SugarCRM, Inc. Copyright (C) 2004-2012 SugarCRM Inc.
  * 
  * This program is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Affero General Public License version 3 as published by the
@@ -35,14 +35,10 @@ if(!defined('sugarEntry') || !sugarEntry) die('Not A Valid Entry Point');
  * "Powered by SugarCRM".
  ********************************************************************************/
 
-/*********************************************************************************
-
- * Description:
- * Portions created by SugarCRM are Copyright (C) SugarCRM, Inc. All Rights
- * Reserved. Contributor(s): ______________________________________..
- * *******************************************************************************/
-
-
+/**
+ * Localization manager
+ * @api
+ */
 class Localization {
 	var $availableCharsets = array(
 		'BIG-5',        //Taiwan and Hong Kong
@@ -79,7 +75,12 @@ class Localization {
 	var $default_export_charset = 'UTF-8';
 	var $default_email_charset = 'UTF-8';
 	var $currencies = array(); // array loaded with current currencies
-
+    var $invalidNameFormatUpgradeFilename = 'upgradeInvalidLocaleNameFormat.php';
+    /* Charset mappings for iconv */
+    var $iconvCharsetMap = array(
+        'KS_C_5601-1987' => 'CP949',
+        'ISO-8859-8-I' => 'ISO-8859-8'            
+        );
 
 	/**
 	 * sole constructor
@@ -103,6 +104,8 @@ class Localization {
 			'default_currency_symbol'				=> '$',
 			'default_export_charset'				=> $this->default_export_charset,
 			'default_locale_name_format'			=> 's f l',
+            'name_formats'                          => array('s f l' => 's f l', 'f l' => 'f l', 's l' => 's l', 'l, s f' => 'l, s f',
+                                                            'l, f' => 'l, f', 's l, f' => 's l, f', 'l s f' => 'l s f', 'l f s' => 'l f s'),
 			'default_number_grouping_seperator'		=> ',',
 			'default_decimal_seperator'				=> '.',
 			'export_delimiter'						=> ',',
@@ -196,7 +199,7 @@ class Localization {
             $this->currencies = $load;
         }
 
-		
+
 	}
 
 	/**
@@ -309,9 +312,18 @@ class Localization {
 	 * @param bean object A SugarBean
 	 * @return bean object The bean with translated strings
 	 */
-    function prepBeanForExport($bean) {
-        foreach($bean->field_defs as $k => $field) {
-			$bean->$k = $this->translateCharset($bean->$k, 'UTF-8', $this->getExportCharset());
+    function prepBeanForExport($bean)
+    {
+        foreach($bean->field_defs as $k => $field)
+        {
+            if (is_string($bean->$k))
+            {
+			   // $bean->$k = $this->translateCharset($bean->$k, 'UTF-8', $this->getExportCharset());
+            }
+            else
+            {
+                $bean->$k = '';
+            }
         }
 
         return $bean;
@@ -322,18 +334,55 @@ class Localization {
 	 * @param string string the string to be translated
 	 * @param string fromCharset the charset the string is currently in
 	 * @param string toCharset the charset to translate into (defaults to UTF-8)
+	 * @param bool   forceIconv force using the iconv library instead of mb_string
 	 * @return string the translated string
 	 */
-	function translateCharset($string, $fromCharset, $toCharset='UTF-8') {
-		$GLOBALS['log']->debug("Localization: translating [ {$string} ] into {$toCharset}");
-		if(function_exists('mb_convert_encoding')) {
-			return mb_convert_encoding($string, $toCharset, $fromCharset);
-		} elseif(function_exists('iconv')) { // iconv is flakey
-			return iconv($fromCharset, $toCharset, $string);
-		} else {
-			return $string;
-		} // end else clause
-	}
+    function translateCharset($string, $fromCharset, $toCharset='UTF-8', $forceIconv = false)
+    {
+        $GLOBALS['log']->debug("Localization: translating [{$string}] from {$fromCharset} into {$toCharset}");
+
+        // Bug #35413 Function has to use iconv if $fromCharset is not in mb_list_encodings
+        $isMb = function_exists('mb_convert_encoding') && !$forceIconv;
+        $isIconv = function_exists('iconv');
+        if ($isMb == true)
+        {
+            $fromCharset = strtoupper($fromCharset);
+            $listEncodings = mb_list_encodings();
+            $isFound = false;
+            foreach ($listEncodings as $encoding)
+            {
+                if (strtoupper($encoding) == $fromCharset)
+                {
+                    $isFound = true;
+                    break;
+                }
+            }
+            $isMb = $isFound;
+        }
+
+        if($isMb)
+        {
+            return mb_convert_encoding($string, $toCharset, $fromCharset);
+        }
+        elseif($isIconv)
+        {
+            $newFromCharset = $fromCharset;
+            if (isset($this->iconvCharsetMap[$fromCharset])) {
+                $newFromCharset = $this->iconvCharsetMap[$fromCharset];
+                $GLOBALS['log']->debug("Localization: iconv using charset {$newFromCharset} instead of {$fromCharset}");
+            }
+            $newToCharset = $toCharset;
+            if (isset($this->iconvCharsetMap[$toCharset])) {
+                $newToCharset = $this->iconvCharsetMap[$toCharset];
+                $GLOBALS['log']->debug("Localization: iconv using charset {$newToCharset} instead of {$toCharset}");
+            }
+            return iconv($newFromCharset, $newToCharset, $string);
+        }
+        else
+        {
+            return $string;
+        } // end else clause
+    }
 
 	/**
 	 * translates a character set from one to another, and the into MIME-header friendly format
@@ -392,7 +441,8 @@ class Localization {
 	///////////////////////////////////////////////////////////////////////////
 	////	NUMBER DISPLAY FORMATTING CODE
 	function getDecimalSeparator($user=null) {
-		$dec = $this->getPrecedentPreference('default_decimal_separator', $user);
+        // Bug50887 this is purposefully misspelled as ..._seperator to match the way it's defined throughout the app.
+		$dec = $this->getPrecedentPreference('default_decimal_seperator', $user);
 		return $dec;
 	}
 
@@ -661,17 +711,87 @@ eoq;
                     name += stuff[format.substr(i,1)];
 				} else {
                     name += format.substr(i,1);
-				}
+		}
 			}
 
 			//alert(name);
 			field.value = name;
 		}
 
-		setPreview();";
+        ";
 
 		return $ret;
 	}
+
+    /**
+     * Checks to see that the characters in $name_format are allowed:  s, f, l, space/tab or punctuation
+     * @param $name_format
+     * @return bool
+     */
+    public function isAllowedNameFormat($name_format) {
+        // will result in a match as soon as a disallowed char is hit in $name_format
+        $match = preg_match('/[^sfl[:punct:][:^alnum:]\s]/', $name_format);
+        if ($match !== false && $match === 0) {
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * Checks to see if there was an invalid Name Format encountered during the upgrade
+     * @return bool true if there was an invalid name, false if all went well.
+     */
+    public function invalidLocaleNameFormatUpgrade() {
+        return file_exists($this->invalidNameFormatUpgradeFilename);
+    }
+
+    /**
+     * Creates the file that is created when there is an invalid name format during an upgrade
+     */
+    public function createInvalidLocaleNameFormatUpgradeNotice() {
+        $fh = fopen($this->invalidNameFormatUpgradeFilename,'w');
+        fclose($fh);
+    }
+
+    /**
+     * Removes the file that is created when there is an invalid name format during an upgrade
+     */
+    public function removeInvalidLocaleNameFormatUpgradeNotice() {
+        if ($this->invalidLocaleNameFormatUpgrade()) {
+            unlink($this->invalidNameFormatUpgradeFilename);
+        }
+    }
+
+
+    /**
+     * Creates dropdown items that have localized example names while filtering out invalid formats
+     *
+     * @param array un-prettied dropdown list
+     * @return array array of dropdown options
+     */
+    public function getUsableLocaleNameOptions($options) {
+        global $app_strings;
+
+        $examples = array('s' => $app_strings['LBL_LOCALE_NAME_EXAMPLE_SALUTATION'],
+                        'f' => $app_strings['LBL_LOCALE_NAME_EXAMPLE_FIRST'],
+                        'l' => $app_strings['LBL_LOCALE_NAME_EXAMPLE_LAST']);
+        $newOpts = array();
+        foreach ($options as $key => $val) {
+            if ($this->isAllowedNameFormat($key) && $this->isAllowedNameFormat($val)) {
+                $newVal = '';
+                $pieces = str_split($val);
+                foreach ($pieces as $piece) {
+                    if (isset($examples[$piece])) {
+                        $newVal .= $examples[$piece];
+                    } else {
+                        $newVal .= $piece;
+                    }
+                }
+                $newOpts[$key] = $newVal;
+            }
+        }
+        return $newOpts;
+    }
 	////	END NAME DISPLAY FORMATTING CODE
 	///////////////////////////////////////////////////////////////////////////
 
@@ -679,14 +799,13 @@ eoq;
      * Attempts to detect the charset used in the string
      *
      * @param  $str string
+     * @param $strict bool default false (use strict encoding?)
      * @return string
      */
-    public function detectCharset(
-        $str
-        )
+    public function detectCharset($str, $strict=false)
     {
         if ( function_exists('mb_convert_encoding') )
-            return mb_detect_encoding($str,'ASCII,JIS,UTF-8,EUC-JP,SJIS,ISO-8859-1');
+            return mb_detect_encoding($str,'ASCII,JIS,UTF-8,EUC-JP,SJIS,ISO-8859-1',$strict);
 
         return false;
     }

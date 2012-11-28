@@ -2,7 +2,7 @@
 if(!defined('sugarEntry') || !sugarEntry) die('Not A Valid Entry Point');
 /*********************************************************************************
  * SugarCRM Community Edition is a customer relationship management program developed by
- * SugarCRM, Inc. Copyright (C) 2004-2011 SugarCRM Inc.
+ * SugarCRM, Inc. Copyright (C) 2004-2012 SugarCRM Inc.
  * 
  * This program is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Affero General Public License version 3 as published by the
@@ -85,14 +85,14 @@ $emailman = new EmailMan();
         //find all the message that meet the following criteria.
         //1. scheduled send date time is now
         //2. campaign matches the current campaign
-        //3. recipient belongs to a propsect list of type test, attached to this campaign
+        //3. recipient belongs to a prospect list of type test, attached to this campaign
 
         $select_query =" SELECT em.* FROM emailman em";
         $select_query.=" join prospect_list_campaigns plc on em.campaign_id = plc.campaign_id";
         $select_query.=" join prospect_lists pl on pl.id = plc.prospect_list_id ";
         $select_query.=" WHERE em.list_id = pl.id and pl.list_type = 'test'";
-        $select_query.=" AND em.send_date_time <= ". db_convert("'".$timedate->nowDb()."'" ,"datetime");
-        $select_query.=" AND (em.in_queue ='0' OR em.in_queue IS NULL OR ( em.in_queue ='1' AND em.in_queue_date <= " .db_convert("'". $timedate->fromString("-1 day")->asDb() ."'" ,"datetime")."))";
+        $select_query.=" AND em.send_date_time <= ". $db->now();
+        $select_query.=" AND (em.in_queue ='0' OR em.in_queue IS NULL OR (em.in_queue ='1' AND em.in_queue_date <= " .$db->convert($db->quoted($timedate->fromString("-1 day")->asDb()),"datetime")."))";
         $select_query.=" AND em.campaign_id='{$campaign_id}'";
         $select_query.=" ORDER BY em.send_date_time ASC, em.user_id, em.list_id";
     }else{
@@ -102,8 +102,8 @@ $emailman = new EmailMan();
         //2. were never processed or last attempt was 24 hours ago
         $select_query =" SELECT *";
         $select_query.=" FROM $emailman->table_name";
-        $select_query.=" WHERE send_date_time <= ". db_convert("'".TimeDate::getInstance()->nowDb()."'" ,"datetime");
-        $select_query.=" AND (in_queue ='0' OR in_queue IS NULL OR ( in_queue ='1' AND in_queue_date <= " .db_convert("'". $timedate->fromString("-1 day")->asDb() ."'" ,"datetime")."))";
+        $select_query.=" WHERE send_date_time <= ". $db->now();
+        $select_query.=" AND (in_queue ='0' OR in_queue IS NULL OR ( in_queue ='1' AND in_queue_date <= " .$db->convert($db->quoted($timedate->fromString("-1 day")->asDb()),"datetime")."))";
 
         if (!empty($campaign_id)) {
             $select_query.=" AND campaign_id='{$campaign_id}'";
@@ -174,15 +174,13 @@ do {
 		//if the database does not support repeatable read isolation by default, we might get data that does not meet
         //the criteria in the original query, and we care most about the in_queue_date and process_date_time,
         //if they are null or in past(older than 24 horus) then we are okay.
-		$lock_query="UPDATE emailman SET in_queue=1, in_queue_date='". $timedate->nowDb() ."' WHERE id = '${row['id']}'";
-		$lock_query.=" AND (in_queue ='0' OR in_queue IS NULL OR ( in_queue ='1' AND in_queue_date <= " .db_convert("'". $timedate->fromString("-1 day")->asDb() ."'" ,"datetime")."))";
+
+		$lock_query="UPDATE emailman SET in_queue=1, in_queue_date=". $db->now()." WHERE id = ".intval($row['id']);
+		$lock_query.=" AND (in_queue ='0' OR in_queue IS NULL OR ( in_queue ='1' AND in_queue_date <= " .$db->convert($db->quoted($timedate->fromString("-1 day")->asDb()),"datetime")."))";
 
  		//if the query fails to execute.. terminate campaign email process.
  		$lock_result=$db->query($lock_query,true,'Error acquiring a lock for emailman entry.');
-		if ($db->dbType=='oci8') {
-		} else {
-			$lock_count=$db->getAffectedRowCount();
-		}
+		$lock_count=$db->getAffectedRowCount($lock_result);
 
 		//do not process the message if unable to acquire lock.
 		if ($lock_count!= 1) {
@@ -197,7 +195,7 @@ do {
 			$emailman->$name = $value;
 		}
 
-		//for the campaign process the supression lists.
+		//for the campaign process the suppression lists.
 		if (!isset($current_campaign_id) or empty($current_campaign_id) or $current_campaign_id != $row['campaign_id']) {
 			$current_campaign_id= $row['campaign_id'];
 

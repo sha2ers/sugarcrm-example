@@ -1,7 +1,7 @@
 <?php
 /*********************************************************************************
  * SugarCRM Community Edition is a customer relationship management program developed by
- * SugarCRM, Inc. Copyright (C) 2004-2011 SugarCRM Inc.
+ * SugarCRM, Inc. Copyright (C) 2004-2012 SugarCRM Inc.
  * 
  * This program is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Affero General Public License version 3 as published by the
@@ -56,18 +56,41 @@
                 'include/javascript/quickCompose.js'    => 'include/javascript/sugar_grp1.js',
                 'include/javascript/yui/build/yuiloader/yuiloader-min.js' => 'include/javascript/sugar_grp1.js',
                 //HTML decode
-                'include/javascript/phpjs/license.js' => 'include/javascript/sugar_grp1.js',
                 'include/javascript/phpjs/get_html_translation_table.js' => 'include/javascript/sugar_grp1.js',
                 'include/javascript/phpjs/html_entity_decode.js' => 'include/javascript/sugar_grp1.js',
+                'include/javascript/phpjs/htmlentities.js' => 'include/javascript/sugar_grp1.js',
+               'include/EditView/Panels.js'   => 'include/javascript/sugar_grp1.js',
             ),
-
+			//jquery libraries
+			$sugar_grp_jquery = array(
+			'include/javascript/jquery/jquery-min.js'              => 'include/javascript/sugar_grp1_jquery.js',
+			'include/javascript/jquery/jquery-ui-min.js'          => 'include/javascript/sugar_grp1_jquery.js',
+			'include/javascript/jquery/jquery.json-2.3.js'        => 'include/javascript/sugar_grp1_jquery.js',
+			//bootstrap
+            //'include/javascript/jquery/bootstrap/bootstrap.min.js'              => 'include/javascript/sugar_grp1_jquery.js',			
+            //jquery for moddule menus
+            'include/javascript/jquery/jquery.hoverIntent.js'              => 'include/javascript/sugar_grp1_jquery.js',
+            'include/javascript/jquery/jquery.hoverscroll.js'              => 'include/javascript/sugar_grp1_jquery.js',
+            'include/javascript/jquery/jquery.hotkeys.js'              => 'include/javascript/sugar_grp1_jquery.js',
+            'include/javascript/jquery/jquery.superfish.js'              => 'include/javascript/sugar_grp1_jquery.js',
+            'include/javascript/jquery/jquery.tipTip.js'              => 'include/javascript/sugar_grp1_jquery.js',
+            'include/javascript/jquery/jquery.sugarMenu.js'              => 'include/javascript/sugar_grp1_jquery.js',
+            'include/javascript/jquery/jquery.highLight.js'              => 'include/javascript/sugar_grp1_jquery.js',
+            'include/javascript/jquery/jquery.showLoading.js'              => 'include/javascript/sugar_grp1_jquery.js',
+            
+            
+			),
+           $sugar_field_grp = array(
+               'include/SugarFields/Fields/Collection/SugarFieldCollection.js' => 'include/javascript/sugar_field_grp.js',
+               'include/SugarFields/Fields/Datetimecombo/Datetimecombo.js' => 'include/javascript/sugar_field_grp.js',
+           ),
             $sugar_grp1_yui = array(
 			//YUI scripts loaded on first page
             'include/javascript/yui3/build/yui/yui-min.js'              => 'include/javascript/sugar_grp1_yui.js',
             'include/javascript/yui3/build/loader/loader-min.js'        => 'include/javascript/sugar_grp1_yui.js',
 			'include/javascript/yui/build/yahoo/yahoo-min.js'           => 'include/javascript/sugar_grp1_yui.js',
             'include/javascript/yui/build/dom/dom-min.js'               => 'include/javascript/sugar_grp1_yui.js',
-			'include/javascript/yui/build/yahoo-dom-event/yahoo-dom-event-min.js'
+			'include/javascript/yui/build/yahoo-dom-event/yahoo-dom-event.js'
 			    => 'include/javascript/sugar_grp1_yui.js',
 			'include/javascript/yui/build/event/event-min.js'           => 'include/javascript/sugar_grp1_yui.js',
 			'include/javascript/yui/build/logger/logger-min.js'         => 'include/javascript/sugar_grp1_yui.js',
@@ -90,7 +113,7 @@
 			'include/javascript/sugar_connection_event_listener.js'     => 'include/javascript/sugar_grp1_yui.js',
 			'include/javascript/yui/build/calendar/calendar.js'     => 'include/javascript/sugar_grp1_yui.js',
             'include/javascript/yui/build/history/history.js'     => 'include/javascript/sugar_grp1_yui.js',
-			    
+            'include/javascript/yui/build/resize/resize-min.js'     => 'include/javascript/sugar_grp1_yui.js',
             ),
 
             $sugar_grp_yui_widgets = array(
@@ -115,19 +138,13 @@
                 "include/javascript/yui/build/button/assets/skins/sam/button.css"
 					=> 'include/javascript/sugar_grp_yui_widgets.css',
 				"include/javascript/yui/build/calendar/assets/skins/sam/calendar.css"
-					=> 'include/javascript/sugar_grp_yui_widgets.css',					
+					=> 'include/javascript/sugar_grp_yui_widgets.css',
 			),
 
             $sugar_grp_yui2 = array(
             //YUI combination 2
             'include/javascript/yui/build/dragdrop/dragdrop-min.js'    => 'include/javascript/sugar_grp_yui2.js',
             'include/javascript/yui/build/container/container-min.js'  => 'include/javascript/sugar_grp_yui2.js',
-            ),
-
-            $sugar_grp_overlib = array(
-            //overlib combination
-            'include/javascript/overlibmws.js'              => 'include/javascript/sugar_grp_overlib.js',
-            'include/javascript/overlibmws_iframe.js'       => 'include/javascript/sugar_grp_overlib.js',
             ),
 
             //Grouping for emails module.
@@ -139,7 +156,7 @@
             'modules/Emails/javascript/EmailUIShared.js' => 'include/javascript/sugar_grp_emails.js',
             'modules/Emails/javascript/EmailUI.js' => 'include/javascript/sugar_grp_emails.js',
             'modules/Emails/javascript/EmailUICompose.js' => 'include/javascript/sugar_grp_emails.js',
-             'modules/Emails/javascript/ajax.js' => 'include/javascript/sugar_grp_emails.js',
+            'modules/Emails/javascript/ajax.js' => 'include/javascript/sugar_grp_emails.js',
             'modules/Emails/javascript/grid.js' => 'include/javascript/sugar_grp_emails.js',
             'modules/Emails/javascript/init.js' => 'include/javascript/sugar_grp_emails.js',
             'modules/Emails/javascript/complexLayout.js' => 'include/javascript/sugar_grp_emails.js',
@@ -152,6 +169,8 @@
 
             //Grouping for the quick compose functionality.
             $sugar_grp_quick_compose = array(
+            'include/javascript/jsclass_base.js' => 'include/javascript/sugar_grp_quickcomp.js',
+            'include/javascript/jsclass_async.js' => 'include/javascript/sugar_grp_quickcomp.js',
             'modules/Emails/javascript/vars.js' => 'include/javascript/sugar_grp_quickcomp.js',
             'include/SugarFields/Fields/Collection/SugarFieldCollection.js' => 'include/javascript/sugar_grp_quickcomp.js', //For team selection
             'modules/Emails/javascript/EmailUIShared.js' => 'include/javascript/sugar_grp_quickcomp.js',
@@ -169,4 +188,9 @@
             ),
         );
 
-?>
+    /**
+     * Check for custom additions to this code
+     */
+    if(file_exists("custom/application/Ext/JSGroupings/jsgroups.ext.php")) {
+        require("custom/application/Ext/JSGroupings/jsgroups.ext.php");
+    }

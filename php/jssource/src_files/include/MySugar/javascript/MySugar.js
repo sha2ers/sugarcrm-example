@@ -1,6 +1,6 @@
 /*********************************************************************************
  * SugarCRM Community Edition is a customer relationship management program developed by
- * SugarCRM, Inc. Copyright (C) 2004-2011 SugarCRM Inc.
+ * SugarCRM, Inc. Copyright (C) 2004-2012 SugarCRM Inc.
  * 
  * This program is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Affero General Public License version 3 as published by the
@@ -213,7 +213,20 @@ SUGAR.mySugar = function() {
 		 	var fillInDashlet = function(data) {
 
 		 		ajaxStatus.hideStatus();
-				if(data) {		
+				if(data) {
+                    
+                    // before we refresh, lets make sure that the returned data is for the current dashlet in focus
+                    // AND that it is not the initial 'please reload' verbage, start by grabbing the current dashlet id
+                    current_dashlet_id = SUGAR.mySugar.currentDashlet.getAttribute('id');
+
+                    //lets extract the guid portion of the id, to use as a reference
+                    dashlet_guid =  current_dashlet_id.substr('dashlet_entire'.length);
+
+                    //now that we have the guid portion, let's search the returned text for it.  There should be many references to it.
+                    if(data.responseText.indexOf(dashlet_guid)<0 &&  data.responseText != SUGAR.language.get('app_strings', 'LBL_RELOAD_PAGE') ){
+                        //guid id was not found in the returned html, that means we have stale dashlet info due to an auto refresh, do not update
+                        return false;
+                    }
 					SUGAR.mySugar.currentDashlet.innerHTML = data.responseText;			
 				}
 
@@ -327,6 +340,9 @@ SUGAR.mySugar = function() {
 					dashletEntire = document.getElementById('dashlet_entire_' + data.responseText);
 					dd = new ygDDList('dashlet_' + data.responseText); // make it draggable
 					dd.setHandleElId('dashlet_header_' + data.responseText);
+                    // Bug #47097 : Dashlets not displayed after moving them
+                    // add new property to save real id of dashlet, it needs to have ability reload dashlet by id
+                    dd.dashletID = data.responseText;
 					dd.onMouseDown = SUGAR.mySugar.onDrag;  
 					dd.onDragDrop = SUGAR.mySugar.onDrop;
 
@@ -363,7 +379,7 @@ SUGAR.mySugar = function() {
 				SUGAR.mySugar.retrieveDashlet(data.responseText, url, finishRetrieve, true); // retrieve it from the server
 			}
 
-			var cObj = YAHOO.util.Connect.asyncRequest('GET','index.php?to_pdf=1&module='+module+'&action=DynamicAction&DynamicAction=addDashlet&activeTab=' + activeTab + '&id=' + id+'&type=' + type + '&type_module=' + escape(type_module), 
+			var cObj = YAHOO.util.Connect.asyncRequest('GET','index.php?to_pdf=1&module='+module+'&action=DynamicAction&DynamicAction=addDashlet&activeTab=' + activeTab + '&id=' + id+'&type=' + type + '&type_module=' + encodeURIComponent(type_module), 
 													  {success: success, failure: success}, null);						  
 
 			return false;
@@ -598,9 +614,18 @@ SUGAR.mySugar = function() {
 		
 		
 		renderDashletsDialog: function(){	
+            var minHeight = 120;
+            var maxHeight = 520;
+            var minMargin = 16;
+
+            // adjust dialog height according to current page height
+            var pageHeight = document.documentElement.clientHeight;
+            var height = Math.min(maxHeight, pageHeight - minMargin * 2);
+            height = Math.max(height, minHeight);
+
 			SUGAR.mySugar.dashletsDialog = new YAHOO.widget.Dialog("dashletsDialog", 
 			{ width : "480px",
-			  height: "520px",
+			  height: height + "px",
 			  fixedcenter : true,
 			  draggable:false,
 			  visible : false, 

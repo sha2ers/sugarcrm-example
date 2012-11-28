@@ -2,7 +2,7 @@
 if(!defined('sugarEntry') || !sugarEntry) die('Not A Valid Entry Point');
 /*********************************************************************************
  * SugarCRM Community Edition is a customer relationship management program developed by
- * SugarCRM, Inc. Copyright (C) 2004-2011 SugarCRM Inc.
+ * SugarCRM, Inc. Copyright (C) 2004-2012 SugarCRM Inc.
  * 
  * This program is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Affero General Public License version 3 as published by the
@@ -166,11 +166,11 @@ $xtpl->assign('encoded_assigned_users_popup_request_data', $json->encode($popup_
 if(!empty($focus->assigned_user_name))
     $xtpl->assign("ASSIGNED_USER_NAME", $focus->assigned_user_name);
 
-$xtpl->assign("assign_user_select", SugarThemeRegistry::current()->getImage('id-ff-select'));
-$xtpl->assign("assign_user_clear", SugarThemeRegistry::current()->getImage('id-ff-clear'));
+$xtpl->assign("assign_user_select", SugarThemeRegistry::current()->getImage('id-ff-select','',null,null,'.png',$mod_strings['LBL_SELECT']));
+$xtpl->assign("assign_user_clear", SugarThemeRegistry::current()->getImage('id-ff-clear','',null,null,'.gif',$mod_strings['LBL_ID_FF_CLEAR']));
 //Assign qsd script
 require_once('include/QuickSearchDefaults.php');
-$qsd = new QuickSearchDefaults();
+$qsd = QuickSearchDefaults::getQuickSearchDefaults();
 $sqs_objects = array( 'EditView_assigned_user_name' => $qsd->getQSUser());
 $quicksearch_js = '<script type="text/javascript" language="javascript">sqs_objects = ' . $json->encode($sqs_objects) . '; enableQS();</script>';
 
@@ -178,15 +178,20 @@ $xtpl->assign("CANCEL_SCRIPT", $cancel_script);
 $xtpl->assign("PRINT_URL", "index.php?".$GLOBALS['request_string']);
 $xtpl->assign("JAVASCRIPT", get_set_focus_js() . $quicksearch_js);
 
-if(!is_file($GLOBALS['sugar_config']['cache_dir'] . 'jsLanguage/' . $GLOBALS['current_language'] . '.js')) {
+if(!is_file(sugar_cached('jsLanguage/') . $GLOBALS['current_language'] . '.js')) {
     require_once('include/language/jsLanguage.php');
     jsLanguage::createAppStringsCache($GLOBALS['current_language']);
 }
-$jsLang = '<script type="text/javascript" src="' . $GLOBALS['sugar_config']['cache_dir'] . 'jsLanguage/' . $GLOBALS['current_language'] . '.js?s=' . $GLOBALS['sugar_version'] . '&c=' . $GLOBALS['sugar_config']['js_custom_version'] . '&j=' . $GLOBALS['sugar_config']['js_lang_version'] . '"></script>';
+$jsLang = getVersionedScript("cache/jsLanguage/{$GLOBALS['current_language']}.js",  $GLOBALS['sugar_config']['js_lang_version']);
 $xtpl->assign("JSLANG", $jsLang);
 
 $xtpl->assign("ID", $focus->id);
 if(isset($focus->name)) $xtpl->assign("NAME", $focus->name); else $xtpl->assign("NAME", "");
+
+//Bug45632
+if(isset($focus->assigned_user_id)) $xtpl->assign("ASSIGNED_USER_ID", $focus->assigned_user_id); else $xtpl->assign("ASSIGNED_USER_ID", "");
+//Bug45632
+
 if(isset($focus->description)) $xtpl->assign("DESCRIPTION", $focus->description); else $xtpl->assign("DESCRIPTION", "");
 if(isset($focus->subject)) $xtpl->assign("SUBJECT", $focus->subject); else $xtpl->assign("SUBJECT", "");
 if( $focus->published == 'on')
@@ -212,11 +217,12 @@ if(is_admin($current_user) && $_REQUEST['module'] != 'DynamicLayout' && !empty($
     if(!empty($_REQUEST['record'])) {
         $record =   $_REQUEST['record'];
     }
-    $xtpl->assign("ADMIN_EDIT","<a href='index.php?action=index&module=DynamicLayout&from_action=" . $_REQUEST['action']
-	."&from_module=".$_REQUEST['module'] ."&record=".$record. "'>".SugarThemeRegistry::current()->getImage("EditLayout","border='0' alt='Edit Layout' align='bottom'")."</a>");
+
+    $xtpl->assign("ADMIN_EDIT","<a href='index.php?action=index&module=DynamicLayout&from_action=" . $_REQUEST['action'] ."&from_module=".$_REQUEST['module'] ."&record=".$record. "'>".SugarThemeRegistry::current()->getImage("EditLayout","border='0' align='bottom'",null,null,'.gif',$mod_strings['LBL_EDIT_LAYOUT'])."</a>");
+
 }
 if(isset($focus->parent_type) && $focus->parent_type != "") {
-    $change_parent_button = "<input title='".$app_strings['LBL_SELECT_BUTTON_TITLE']."' accessKey='".$app_strings['LBL_SELECT_BUTTON_KEY']."'
+    $change_parent_button = "<input title='".$app_strings['LBL_SELECT_BUTTON_TITLE']."' 
 tabindex='3' type='button' class='button' value='".$app_strings['LBL_SELECT_BUTTON_LABEL']."' name='button' LANGUAGE=javascript onclick='return
 window.open(\"index.php?module=\"+ document.EditView.parent_type.value +
 \"&action=Popup&html=Popup_picker&form=TasksEditView\",\"test\",\"width=600,height=400,resizable=1,scrollbars=1\");'>";
@@ -240,6 +246,7 @@ if(true) {
         $tiny = new SugarTinyMCE();
         $tiny->defaultConfig['cleanup_on_startup']=true;
         $tiny->defaultConfig['height']=600;
+        $tiny->defaultConfig['plugins'].=",fullpage";
         $tinyHtml = $tiny->getInstance();
         $xtpl->assign("tiny", $tinyHtml);
 	}
@@ -267,24 +274,32 @@ if(true) {
 	    }
 	}
 
+    // create option of "Contact/Lead/Task" from corresponding module
+    // translations
+    $lblContactAndOthers = implode('/', array(
+        isset($app_list_strings['moduleListSingular']['Contacts']) ? $app_list_strings['moduleListSingular']['Contacts'] : 'Contact',
+        isset($app_list_strings['moduleListSingular']['Leads']) ? $app_list_strings['moduleListSingular']['Leads'] : 'Lead',
+        isset($app_list_strings['moduleListSingular']['Prospects']) ? $app_list_strings['moduleListSingular']['Prospects'] : 'Target',
+    ));
+
 	// The insert variable drodown should be conditionally displayed.
 	// If it's campaign then hide the Account.
 	if($has_campaign) {
 	    $dropdown="<option value='Contacts'>
-						".$mod_strings['LBL_CONTACT_AND_OTHERS']."
+						".$lblContactAndOthers."
 			       </option>";
 	     $xtpl->assign("DROPDOWN",$dropdown);
 	     $xtpl->assign("DEFAULT_MODULE",'Contacts');
          //$xtpl->assign("CAMPAIGN_POPUP_JS", '<script type="text/javascript" src="include/javascript/sugar_3.js"></script>');
 	} else {
 	     $dropdown="<option value='Accounts'>
-						".$mod_strings['LBL_ACCOUNT']."
+						".$app_list_strings['moduleListSingular']['Accounts']."
 		  	       </option>
 			       <option value='Contacts'>
-						".$mod_strings['LBL_CONTACT_AND_OTHERS']."
+						".$lblContactAndOthers."
 			       </option>
 			       <option value='Users'>
-						".$mod_strings['LBL_USERS']."
+						".$app_list_strings['moduleListSingular']['Users']."
 			       </option>";
 		$xtpl->assign("DROPDOWN",$dropdown);
 		$xtpl->assign("DEFAULT_MODULE",'Accounts');
@@ -320,7 +335,6 @@ if(true) {
 	    }
 	}
 	$attJs  = '<script type="text/javascript">';
-	$attJs .= 'var file_path = "'.$sugar_config['site_url'].'/'.$sugar_config['upload_dir'].'";';
 	$attJs .= 'var lnk_remove = "'.$app_strings['LNK_REMOVE'].'";';
 	$attJs .= '</script>';
 	$xtpl->assign('ATTACHMENTS', $attachments);
@@ -328,7 +342,32 @@ if(true) {
 
 	////    END ATTACHMENTS
 	///////////////////////////////////////
-
+    $templateType = !empty($focus->type) ? $focus->type : '';
+    if($has_campaign) {
+        if (empty($_REQUEST['record']))
+        {
+            // new record, default to campaign
+            $xtpl->assign("TYPEDROPDOWN", get_select_options_with_id($app_list_strings['emailTemplates_type_list_campaigns'],'campaign'));
+        }
+        else
+        {
+            $xtpl->assign("TYPEDROPDOWN", get_select_options_with_id($app_list_strings['emailTemplates_type_list_campaigns'],$templateType));
+        }
+    }
+    else
+    {
+        // if the type is workflow, we will show it
+        // otherwise we don't allow user to select workflow type because workflow type email template
+        // should be created from within workflow module because it requires more fields (such as base module, etc)
+        if ($templateType == 'workflow')
+        {
+            $xtpl->assign("TYPEDROPDOWN", get_select_options_with_id($app_list_strings['emailTemplates_type_list'],$templateType));
+        }
+        else
+        {
+            $xtpl->assign("TYPEDROPDOWN", get_select_options_with_id($app_list_strings['emailTemplates_type_list_no_workflow'],$templateType));
+        }
+    }
 	// done and parse
 	$xtpl->parse("main.textarea");
 }

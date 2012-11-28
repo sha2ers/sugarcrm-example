@@ -2,7 +2,7 @@
 if(!defined('sugarEntry') || !sugarEntry) die('Not A Valid Entry Point');
 /*********************************************************************************
  * SugarCRM Community Edition is a customer relationship management program developed by
- * SugarCRM, Inc. Copyright (C) 2004-2011 SugarCRM Inc.
+ * SugarCRM, Inc. Copyright (C) 2004-2012 SugarCRM Inc.
  * 
  * This program is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Affero General Public License version 3 as published by the
@@ -35,7 +35,7 @@ if(!defined('sugarEntry') || !sugarEntry) die('Not A Valid Entry Point');
  * "Powered by SugarCRM".
  ********************************************************************************/
 
-$dictionary['Lead'] = array('table' => 'leads','audited'=>true, 'unified_search' => true, 'unified_search_default_enabled' => true, 'duplicate_merge'=>true,
+$dictionary['Lead'] = array('table' => 'leads','audited'=>true, 'unified_search' => true, 'full_text_search' => true, 'unified_search_default_enabled' => true, 'duplicate_merge'=>true,
 		'comment' => 'Leads are persons of interest early in a sales cycle', 'fields' => array (
 
 
@@ -118,7 +118,6 @@ $dictionary['Lead'] = array('table' => 'leads','audited'=>true, 'unified_search'
     'id_name' => 'reports_to_id',
     'vname' => 'LBL_REPORTS_TO',
     'type' => 'relate',
-   // 'link'=>'reports_to_link',
     'table' => 'contacts',
     'isnull' => 'true',
     'module' => 'Contacts',
@@ -136,6 +135,7 @@ $dictionary['Lead'] = array('table' => 'leads','audited'=>true, 'unified_search'
 		'side'=>'right',
         'source'=>'non-db',
 		'vname'=>'LBL_REPORTS_TO',
+        'reportable'=>false
   ),
     'reportees' => array (
   	    'name' => 'reportees',
@@ -145,15 +145,16 @@ $dictionary['Lead'] = array('table' => 'leads','audited'=>true, 'unified_search'
 		'side'=>'left',
         'source'=>'non-db',
 		'vname'=>'LBL_REPORTS_TO',
+        'reportable'=>false
   ),
-  'contacts'=>
-    array (
+    'contacts'=> array(
         'name' => 'contacts',
         'type' => 'link',
         'relationship' => 'contact_leads',
         'module' => "Contacts",
         'source' => 'non-db',
-        'vname' => 'LBL_LEADS',
+        'vname' => 'LBL_CONTACTS',
+        'reportable'=>false
     ),
   /*'acc_name_from_accounts' =>
   array (
@@ -182,6 +183,7 @@ $dictionary['Lead'] = array('table' => 'leads','audited'=>true, 'unified_search'
 	'type' => 'varchar',
 	'len' => '255',
 	'unified_search' => true,
+	'full_text_search' => 1,
 	'comment' => 'Account name for lead',
   ),
 
@@ -204,6 +206,7 @@ $dictionary['Lead'] = array('table' => 'leads','audited'=>true, 'unified_search'
     'type' => 'text',
     'group'=>'account_name',
     'unified_search' => true,
+    'full_text_search' => 1,
     'comment' => 'Description of lead account'
   ),
   'contact_id' =>
@@ -214,13 +217,14 @@ $dictionary['Lead'] = array('table' => 'leads','audited'=>true, 'unified_search'
     'vname'=>'LBL_CONTACT_ID',
 	'comment' => 'If converted, Contact ID resulting from the conversion'
   ),
-    'contact'=> array (
+    'contact' => array(
         'name' => 'contact',
         'type' => 'link',
         'link_type' => 'one',
         'relationship' => 'contact_leads',
         'source' => 'non-db',
         'vname' => 'LBL_LEADS',
+        'reportable' => false,
     ),
   'account_id' =>
   array (
@@ -244,7 +248,7 @@ $dictionary['Lead'] = array('table' => 'leads','audited'=>true, 'unified_search'
     'link_type' => 'one',
     'relationship' => 'opportunity_leads',
     'source'=>'non-db',
-    'vname'=>'LBL_LEADS',
+    'vname'=>'LBL_OPPORTUNITIES',
   ),
   'opportunity_name' =>
   array (
@@ -284,6 +288,7 @@ $dictionary['Lead'] = array('table' => 'leads','audited'=>true, 'unified_search'
       'isnull' => 'true',
       'module' => 'Campaigns',
       'source' => 'non-db',
+      'additionalFields' => array('id' => 'campaign_id')
     ),
     'campaign_leads' =>
     array (
@@ -305,7 +310,7 @@ $dictionary['Lead'] = array('table' => 'leads','audited'=>true, 'unified_search'
 			'source' => 'non-db',
 			'importable' => 'false',
             'duplicate_merge'=> 'disabled',
-			'studio' => array('listview' => false),
+			'studio' => false,
 		),
 	'm_accept_status_fields' =>
 		array (
@@ -320,7 +325,7 @@ $dictionary['Lead'] = array('table' => 'leads','audited'=>true, 'unified_search'
 			'importable' => 'false',
 			'hideacl'=>true,
             'duplicate_merge'=> 'disabled',
-			'studio' => array('listview' => false),
+			'studio' => false,
 		),
 	'accept_status_id' =>
 		array(
@@ -339,6 +344,20 @@ $dictionary['Lead'] = array('table' => 'leads','audited'=>true, 'unified_search'
 			'vname' => 'LBL_LIST_ACCEPT_STATUS',
 			'options' => 'dom_meeting_accept_status',
 			'importable' => 'false',
+		),
+		//bug 42902
+		'email'=> array(
+			'name' => 'email',
+			'type' => 'email',
+			'query_type' => 'default',
+			'source' => 'non-db',
+			'operator' => 'subquery',
+			'subquery' => 'SELECT eabr.bean_id FROM email_addr_bean_rel eabr JOIN email_addresses ea ON (ea.id = eabr.email_address_id) WHERE eabr.deleted=0 AND ea.email_address LIKE',
+			'db_field' => array(
+				'id',
+			),
+			'vname' =>'LBL_ANY_EMAIL',
+			'studio' => array('visible'=>false, 'searchview'=>true),
 		),
   'webtolead_email1' =>
   array (
@@ -423,6 +442,7 @@ $dictionary['Lead'] = array('table' => 'leads','audited'=>true, 'unified_search'
     'type' => 'url',
     'dbType' => 'varchar',
     'len' => 255,
+    'link_target' => '_blank',
     'comment' => 'URL of website for the company',
   ),
 
@@ -454,7 +474,7 @@ $dictionary['Lead'] = array('table' => 'leads','audited'=>true, 'unified_search'
   array (
   	'name' => 'calls',
     'type' => 'link',
-    'relationship' => 'calls_leads',
+   'relationship' => 'calls_leads',
     'source'=>'non-db',
 		'vname'=>'LBL_CALLS',
   ),
@@ -582,5 +602,3 @@ $dictionary['Lead'] = array('table' => 'leads','audited'=>true, 'unified_search'
 VardefManager::createVardef('Leads','Lead', array('default', 'assignable',
 'person'));
 
-
-?>

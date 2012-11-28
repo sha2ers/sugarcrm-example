@@ -1,7 +1,7 @@
 {*
 /*********************************************************************************
  * SugarCRM Community Edition is a customer relationship management program developed by
- * SugarCRM, Inc. Copyright (C) 2004-2011 SugarCRM Inc.
+ * SugarCRM, Inc. Copyright (C) 2004-2012 SugarCRM Inc.
  * 
  * This program is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Affero General Public License version 3 as published by the
@@ -51,7 +51,7 @@ function change_state(radiobutton)
 	} 
 	else {
 		radiobutton.form['massemailer_tracking_entities_location'].disabled=false;
-		radiobutton.form['massemailer_tracking_entities_location'].value=null;
+		radiobutton.form['massemailer_tracking_entities_location'].value='{/literal}{$SITEURL}{literal}';
 	}
 }
 {/literal}
@@ -96,14 +96,14 @@ function change_state(radiobutton)
 					<td scope="row">
 					</td>
 					<td >
-						<input name='massemailer_tracking_entities_location' {$tracking_entries_location_state} maxlength='128' type="text" value="{$TRACKING_ENTRIES_LOCATION}">
+						<input name='massemailer_tracking_entities_location' {$TRACKING_ENTRIES_LOCATION_STATE} maxlength='128' type="text" value="{$TRACKING_ENTRIES_LOCATION}">
 					</td>
 				</tr>
 				<tr>
 					<td scope="row">
 					<div id="rollover">
 						{$MOD.LBL_CAMP_MESSAGE_COPY}&nbsp;<span class="required">{$APP.LBL_REQUIRED_SYMBOL}</span>
-                        <a href="#" class="rollover"><span>{$MOD.LBL_CAMP_MESSAGE_COPY_DESC}</span><img border="0" src="index.php?entryPoint=getImage&themeName={$THEME}&imageName=helpInline.gif"></a>
+                        <a href="#" class="rollover"><span>{$MOD.LBL_CAMP_MESSAGE_COPY_DESC}</span><img border="0" alt=$mod_strings.LBL_HELP src="index.php?entryPoint=getImage&themeName={$THEME}&imageName=helpInline.gif"></a>
                     </div>
 					</td>
 					<td >

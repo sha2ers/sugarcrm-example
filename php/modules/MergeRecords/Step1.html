@@ -1,7 +1,7 @@
 <!--
 /*********************************************************************************
  * SugarCRM Community Edition is a customer relationship management program developed by
- * SugarCRM, Inc. Copyright (C) 2004-2011 SugarCRM Inc.
+ * SugarCRM, Inc. Copyright (C) 2004-2012 SugarCRM Inc.
  * 
  * This program is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Affero General Public License version 3 as published by the
@@ -47,7 +47,7 @@
 	var delete_inline_image="{DELETE_INLINE_IMAGE}";
 	var operator_options={OPERATOR_OPTIONS};
 </script>
-<script src="include/javascript/quicksearch.js" type="text/javascript"></script>
+<script src="include/javascript/quicksearch.js?v={VERSION_MARK}" type="text/javascript"></script>
 <form name="DedupSetup" id="DedupSetup" method="POST" action="index.php">
 	<input type="hidden" name="module" value="MergeRecords"/>
 	<input type="hidden" name="merge_module" value="{MERGE_MODULE}"/>
@@ -61,7 +61,7 @@
 
 	<table cellpadding="0" cellspacing="0" border="0" width="100%">
 		<tr>
-			<td><input title="{MOD.LBL_NEXT_STEP_TITLE}" accessKey="{MOD.LBL_NEXT_STEP_BUTTON_KEY}" class="button" onclick="this.form.action.value='Step2';" type="submit" name="button" value="  {MOD.LBL_NEXT_STEP_BUTTON_LABEL}  " > <input title="{APP.LBL_CANCEL_BUTTON_TITLE}" accessKey="{APP.LBL_CANCEL_BUTTON_KEY}" class="button" onclick="this.form.action.value='{RETURN_ACTION}'; this.form.module.value='{RETURN_MODULE}'; this.form.record.value='{RETURN_ID}';" type="submit" name="button" value="  {APP.LBL_CANCEL_BUTTON_LABEL}  "></td>
+			<td><input title="{MOD.LBL_NEXT_STEP_TITLE}" class="button" onclick="this.form.action.value='Step2';" type="submit" name="button" value="  {MOD.LBL_NEXT_STEP_BUTTON_LABEL}  " id="next_step_button"> <input title="{APP.LBL_CANCEL_BUTTON_TITLE}" accessKey="{APP.LBL_CANCEL_BUTTON_KEY}" class="button" onclick="this.form.action.value='{RETURN_ACTION}'; this.form.module.value='{RETURN_MODULE}'; this.form.record.value='{RETURN_ID}';" type="submit" name="button" value="  {APP.LBL_CANCEL_BUTTON_LABEL}  " id="cancel_merge_button"></td>
 			<td align='right'>{ADMIN_EDIT}</td>
 		</tr>
 	</table>
@@ -126,5 +126,5 @@ function grab_fields()
 {
 }
 </script>
-<script type="text/javascript" src="modules/MergeRecords/Merge.js"></script>
+<script type="text/javascript" src="modules/MergeRecords/Merge.js?v={VERSION_MARK}"></script>
 <!-- END: main -->

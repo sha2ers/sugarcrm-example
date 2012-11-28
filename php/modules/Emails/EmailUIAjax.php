@@ -2,7 +2,7 @@
 if(!defined('sugarEntry') || !sugarEntry) die('Not A Valid Entry Point');
 /*********************************************************************************
  * SugarCRM Community Edition is a customer relationship management program developed by
- * SugarCRM, Inc. Copyright (C) 2004-2011 SugarCRM Inc.
+ * SugarCRM, Inc. Copyright (C) 2004-2012 SugarCRM Inc.
  * 
  * This program is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Affero General Public License version 3 as published by the
@@ -59,6 +59,7 @@ if(!defined('sugarEntry') || !sugarEntry) die('Not A Valid Entry Point');
 
   $showFolders = unserialize(base64_decode($current_user->getPreference('showFolders', 'Emails')));
 
+ if (isset($_REQUEST['emailUIAction'])) {
   switch($_REQUEST['emailUIAction']) {
 
 
@@ -154,6 +155,8 @@ if(!defined('sugarEntry') || !sugarEntry) die('Not A Valid Entry Point');
         $GLOBALS['log']->debug("********** EMAIL 2.0 - Asynchronous - at: removeUploadedAttachment");
         $fileFromRequest = from_html($_REQUEST['file']);
         $fileGUID = substr($fileFromRequest, 0, 36);
+        // Bug52727: sanitize fileGUID to remove path components: /\.
+        $fileGUID = cleanDirName($fileGUID);
         $fileName = $email->et->userCacheDir . "/" . $fileGUID;
         $filePath = clean_path($fileName);
         unlink($filePath);
@@ -381,7 +384,7 @@ if(!defined('sugarEntry') || !sugarEntry) die('Not A Valid Entry Point');
             }
             if ($controller->bean->module_dir == 'Cases') {
 	            if($controller->bean->load_relationship('contacts')) {
-	            	$emailAddressWithName = $ie->email->from_addr_name;
+	            	$emailAddressWithName = $ie->email->from_addr;
 	            	if (!empty($ie->email->reply_to_addr)) {
 	            		$emailAddressWithName = $ie->email->reply_to_addr;
 	            	} // if
@@ -443,7 +446,21 @@ if(!defined('sugarEntry') || !sugarEntry) die('Not A Valid Entry Point');
     	        $email->parent_id = $modId;
                 $email->parent_type = $_REQUEST['parent_type'];
                 $email->status = 'read';
+
+                // BUG FIX BEGIN
+                // Bug 50979 - relating a message in group inbox removes message
+                if (empty($email->assigned_user_id))
+                {
+                    $email->setFieldNullable('assigned_user_id');
+                }
                 $email->save();
+                // Bug 50979 - reset assigned_user_id field defs
+                if (empty($email->assigned_user_id))
+                {
+                    $email->revertFieldNullable('assigned_user_id');
+                }
+                // BUG FIX END
+
                 $email->load_relationship($mod);
                 $email->$mod->add($modId);
     	    }
@@ -474,8 +491,9 @@ if(!defined('sugarEntry') || !sugarEntry) die('Not A Valid Entry Point');
         $GLOBALS['log']->debug("********** EMAIL 2.0 - Asynchronous - at: markEmail");
         if(isset($_REQUEST['uids']) && !empty($_REQUEST['uids']) &&
         isset($_REQUEST['type']) && !empty($_REQUEST['type']) &&
-        isset($_REQUEST['ieId']) && !empty($_REQUEST['ieId']) &&
-        isset($_REQUEST['folder']) && !empty($_REQUEST['folder'])) {
+        isset($_REQUEST['folder']) && !empty($_REQUEST['folder']) &&
+		isset($_REQUEST['ieId']) && (!empty($_REQUEST['ieId']) || (empty($_REQUEST['ieId']) && strpos($_REQUEST['folder'], 'sugar::') !== false))
+        ) {
         	$uid = $json->decode(from_html($_REQUEST['uids']));
         	$uids = array();
         	if(is_array($uid)) {
@@ -553,7 +571,11 @@ if(!defined('sugarEntry') || !sugarEntry) die('Not A Valid Entry Point');
                     if(!empty($ieId)) {
                         $GLOBALS['log']->info("[EMAIL] - Start checking email for GUID [{$ieId}] for user [{$current_user->user_name}]");
                         $ie->disconnectMailserver();
-                        $ie->retrieve($ieId);
+                        // If I-E not exist - skip check
+                        if (is_null($ie->retrieve($ieId))) {
+                            $GLOBALS['log']->info("[EMAIL] - Inbound with GUID [{$ieId}] not exist");
+                            continue;
+                        }
                         $ie->checkEmail(false);
                         $GLOBALS['log']->info("[EMAIL] - Done checking email for GUID [{$ieId}] for user [{$current_user->user_name}]");
                     }
@@ -686,7 +708,10 @@ if(!defined('sugarEntry') || !sugarEntry) die('Not A Valid Entry Point');
     case "getSingleMessage":
         $GLOBALS['log']->debug("********** EMAIL 2.0 - Asynchronous - at: getSingleMessage");
         if(isset($_REQUEST['uid']) && !empty($_REQUEST['uid']) && isset($_REQUEST['ieId']) && !empty($_REQUEST['ieId'])) {
+            // this method needs to guarantee UTF-8 charset - encoding detection
+            // and conversion is unreliable, and can break valid UTF-8 text
             $out = $email->et->getSingleMessage($ie);
+
             echo $json->encode($out);
         } else {
             echo "error: no UID";
@@ -1191,7 +1216,7 @@ eoq;
         $out = $email->sendEmailTest($_REQUEST['mail_smtpserver'], $_REQUEST['mail_smtpport'], $_REQUEST['mail_smtpssl'],
         							(isset($_REQUEST['mail_smtpauth_req']) ? 1 : 0), $_REQUEST['mail_smtpuser'],
         							$pass, $_REQUEST['outboundtest_from_address'], $_REQUEST['outboundtest_from_address']);
-        							
+
         $out = $json->encode($out);
         echo $out;
         break;
@@ -1548,8 +1573,8 @@ eoq;
         if(isset($_REQUEST['person']) && !empty($_REQUEST['person'])) {
             $person = $_REQUEST['person'];
         }
-        if(isset($_REQUEST['start']) && !empty($_REQUEST['start'])) {
-            $start = $_REQUEST['start'];
+        if(!empty($_REQUEST['start'])) {
+            $start = intval($_REQUEST['start']);
         } else {
         	$start = 0;
         }
@@ -1568,11 +1593,11 @@ eoq;
 	        $time = microtime(true);
 
 	        //Handle sort and order requests
-	        $sort = !empty($_REQUEST['sort']) ? $_REQUEST['sort'] : "id";
+	        $sort = !empty($_REQUEST['sort']) ? $ie->db->getValidDBName($_REQUEST['sort']) : "id";
 	        $sort = ($sort == 'bean_id') ? 'id' : $sort;
 	        $sort = ($sort == 'email') ? 'email_address' : $sort;
 	        $sort = ($sort == 'name') ? 'last_name' : $sort;
-	        $direction = !empty($_REQUEST['dir']) ? $_REQUEST['dir'] : "asc";
+	        $direction = !empty($_REQUEST['dir']) && in_array(strtolower($_REQUEST['dir']), array("asc", "desc")) ? $_REQUEST['dir'] : "asc";
 	        $order = ( !empty($sort) && !empty($direction) ) ? " ORDER BY {$sort} {$direction}" : "";
 
 	        $r = $ie->db->limitQuery($qArray['query'] . " $order ", $start, 25, true);
@@ -1608,18 +1633,5 @@ eoq;
         $GLOBALS['log']->debug("********** EMAIL 2.0 - Asynchronous - at: default");
         echo "NOOP";
         break;
-  }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+  } // switch
+ } // if

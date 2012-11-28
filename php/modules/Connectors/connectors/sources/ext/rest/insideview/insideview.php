@@ -3,7 +3,7 @@ if(!defined('sugarEntry') || !sugarEntry) die('Not A Valid Entry Point');
 
 /*********************************************************************************
  * SugarCRM Community Edition is a customer relationship management program developed by
- * SugarCRM, Inc. Copyright (C) 2004-2011 SugarCRM Inc.
+ * SugarCRM, Inc. Copyright (C) 2004-2012 SugarCRM Inc.
  * 
  * This program is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Affero General Public License version 3 as published by the
@@ -41,6 +41,9 @@ require_once('include/connectors/sources/ext/rest/rest.php');
 class ext_rest_insideview extends ext_rest {
 	protected $_enable_in_wizard = false;
 	protected $_enable_in_hover = false;
+    protected $_enable_in_admin_properties = false;
+    protected $_enable_in_admin_mapping = false;
+    protected $_enable_in_admin_search = false;
 	protected $_has_testing_enabled = false;
 
     protected $orgId;
@@ -70,11 +73,6 @@ class ext_rest_insideview extends ext_rest {
             }
         }
         return $outModuleList;
-    }
-
-    // InsideView currently has no web service to control field mappings
-    public function getMapping() {
-        return;
     }
 
     public function saveMappingHook($mapping) {

@@ -1,7 +1,7 @@
 <!--
 /*********************************************************************************
  * SugarCRM Community Edition is a customer relationship management program developed by
- * SugarCRM, Inc. Copyright (C) 2004-2011 SugarCRM Inc.
+ * SugarCRM, Inc. Copyright (C) 2004-2012 SugarCRM Inc.
  * 
  * This program is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Affero General Public License version 3 as published by the
@@ -43,11 +43,10 @@
 
 <P/>
 
-<script type="text/javascript" src="modules/Emails/javascript/Email.js?s={$SUGAR_VERSION}&c={$JS_CUSTOM_VERSION}"></script>
+<script type="text/javascript" src="{sugar_getjspath file="modules/Emails/javascript/Email.js"}"></script>
 <script type="text/javascript" language="Javascript">
 {$JS_VARS}
 </script>
-<script type="text/javascript" language="Javascript" src="modules/Emails/javascript/Email.js"></script>
 <form action="index.php" method="POST" name="DetailView" id="emailDetailView">
     <input type="hidden" name="inbound_email_id" value="{$ID}">
     <input type="hidden" name="type" value="out">
@@ -123,6 +122,13 @@
 		<td colspan="3"><slot>{$ATTACHMENTS}</slot></td>
 	</tr>
 </table>
+{literal}
+<script>
+$(document).ready(function(){
+	SUGAR.themes.actionMenu();
+});
+</script>
+{/literal}
 
 {$SUBPANEL}
 <!-- END: main -->

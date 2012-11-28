@@ -2,7 +2,7 @@
 if(!defined('sugarEntry') || !sugarEntry) die('Not A Valid Entry Point');
 /*********************************************************************************
  * SugarCRM Community Edition is a customer relationship management program developed by
- * SugarCRM, Inc. Copyright (C) 2004-2011 SugarCRM Inc.
+ * SugarCRM, Inc. Copyright (C) 2004-2012 SugarCRM Inc.
  * 
  * This program is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Affero General Public License version 3 as published by the
@@ -36,7 +36,7 @@ if(!defined('sugarEntry') || !sugarEntry) die('Not A Valid Entry Point');
  ********************************************************************************/
 
 
-$dictionary['Opportunity'] = array('table' => 'opportunities','audited'=>true, 'unified_search' => true, 'unified_search_default_enabled' => true, 'duplicate_merge'=>true,
+$dictionary['Opportunity'] = array('table' => 'opportunities','audited'=>true, 'unified_search' => true, 'full_text_search' => true, 'unified_search_default_enabled' => true, 'duplicate_merge'=>true,
 		'comment' => 'An opportunity is the target of selling activities',
 		'fields' => array (
   'name' =>
@@ -47,6 +47,7 @@ $dictionary['Opportunity'] = array('table' => 'opportunities','audited'=>true, '
     'dbType' => 'varchar',
     'len' => '50',
     'unified_search' => true,
+    'full_text_search' => array('boost' => 3),
     'comment' => 'Name of the opportunity',
     'merge_filter' => 'selected',
     'importable' => 'required',
@@ -164,6 +165,11 @@ $dictionary['Opportunity'] = array('table' => 'opportunities','audited'=>true, '
     'duplicate_merge'=>'0',
     'audited'=>true,
     'comment' => 'Formatted amount of the opportunity',
+    'studio' => array(
+        'editview'=>false,
+        'detailview'=>false,
+        'quickcreate'=>false,
+    ),
   ),
   'currency_id' =>
   array (
@@ -338,28 +344,28 @@ $dictionary['Opportunity'] = array('table' => 'opportunities','audited'=>true, '
 		'vname'=>'LBL_LEADS',
   ),
 
-  'campaigns' =>
-		array (
-  			'name' => 'campaigns',
-    		'type' => 'link',
-    		'relationship' => 'opportunities_campaign',
-    		'module'=>'CampaignLog',
-    		'bean_name'=>'CampaignLog',
-    		'source'=>'non-db',
-			'vname'=>'LBL_CAMPAIGNS',
-	  	),
+    'campaigns' => array(
+        'name' => 'campaigns',
+        'type' => 'link',
+        'relationship' => 'opportunities_campaign',
+        'module' => 'CampaignLog',
+        'bean_name' => 'CampaignLog',
+        'source' => 'non-db',
+        'vname' => 'LBL_CAMPAIGNS',
+        'reportable' => false
+    ),
 
-  'campaign_link' =>
-  array (
-    'name' => 'campaign_link',
-    'type' => 'link',
-    'relationship' => 'opportunities_campaign',
-    'vname' => 'LBL_CAMPAIGNS',
-    'link_type' => 'one',
-    'module'=>'Campaigns',
-    'bean_name'=>'Campaign',
-    'source'=>'non-db',
-  ),
+    'campaign_link' => array(
+        'name' => 'campaign_link',
+        'type' => 'link',
+        'relationship' => 'opportunities_campaign',
+        'vname' => 'LBL_CAMPAIGNS',
+        'link_type' => 'one',
+        'module' => 'Campaigns',
+        'bean_name' => 'Campaign',
+        'source' => 'non-db',
+        'reportable' => false
+    ),
   'currencies' =>
   array (
     'name' => 'currencies',

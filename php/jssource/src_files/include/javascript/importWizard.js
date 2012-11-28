@@ -1,6 +1,6 @@
 /*********************************************************************************
  * SugarCRM Community Edition is a customer relationship management program developed by
- * SugarCRM, Inc. Copyright (C) 2004-2011 SugarCRM Inc.
+ * SugarCRM, Inc. Copyright (C) 2004-2012 SugarCRM Inc.
  * 
  * This program is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Affero General Public License version 3 as published by the
@@ -76,27 +76,10 @@ SUGAR.importWizard = function() {
 						var oScript= document.createElement("script");
 						oScript.type = "text/javascript";
 						oScript.id = "sugar_grp_yui_widgets";
-						oScript.src="include/javascript/sugar_grp_yui_widgets.js";
+						oScript.src="cache/include/javascript/sugar_grp_yui_widgets.js";
 						oHead.appendChild( oScript);
 				}
 				
-				if ( !document.getElementById( "sugar_grp_overlib" )) {
-						var oScriptOverLib= document.createElement("script");
-						oScriptOverLib.type = "text/javascript";
-						oScriptOverLib.id = "sugar_grp_overlib";
-						oScriptOverLib.src="include/javascript/sugar_grp_overlib.js";
-						oHead.appendChild( oScriptOverLib);
-						
-						var overDiv= document.createElement("div");
-						overDiv.id = "overDiv";
-						overDiv.style.position = "absolute"
-						overDiv.style.visibility = "hidden";
-						overDiv.style.zIndex = "1000";
-						overDiv.style.maxWidth = "400px";
-						var parentEl = oBody.firstChild;
-						parentEl.parentNode.insertBefore(overDiv, parentEl);
-	
-				}
 				
 				
 				var success = function(data) {		

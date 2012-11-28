@@ -1,7 +1,7 @@
 {*
 /*********************************************************************************
  * SugarCRM Community Edition is a customer relationship management program developed by
- * SugarCRM, Inc. Copyright (C) 2004-2011 SugarCRM Inc.
+ * SugarCRM, Inc. Copyright (C) 2004-2012 SugarCRM Inc.
  * 
  * This program is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Affero General Public License version 3 as published by the
@@ -54,6 +54,11 @@ require_once("'".$externalJSFile."'");
 SUGAR.calls = {};
 var callsLoader = new YAHOO.util.YUILoader({
     require : ["sugar_grp_jsolait"],
+    // Bug #48940 Skin always must be blank
+    skin: {
+        base: 'blank',
+        defaultSkin: ''
+    },
     onSuccess: function(){
 		SUGAR.calls.fill_invitees = function() {
 			if (typeof(GLOBAL_REGISTRY) != 'undefined')  {
@@ -75,19 +80,32 @@ var callsLoader = new YAHOO.util.YUILoader({
 callsLoader.addModule({
     name :"sugar_grp_jsolait",
     type : "js",
-    fullpath: "include/javascript/sugar_grp_jsolait.js",
+    fullpath: "cache/include/javascript/sugar_grp_jsolait.js",
     varName: "global_rpcClient",
     requires: []
 });
 callsLoader.insert();
+YAHOO.util.Event.onContentReady("{/literal}{{$form_name}}{literal}",function() {
+    var durationHours = document.getElementById('duration_hours');
+    if (durationHours) {
+        document.getElementById('duration_minutes').tabIndex = durationHours.tabIndex;
+    }
+
+    var reminderChecked = document.getElementsByName('reminder_checked');
+    for(i=0;i<reminderChecked.length;i++) {
+        if (reminderChecked[i].type == 'checkbox' && document.getElementById('reminder_list')) {
+            YAHOO.util.Dom.getFirstChild('reminder_list').tabIndex = reminderChecked[i].tabIndex;
+        }
+    }
+});
 {/literal}
 </script>
 </form>
 <form >
 	<div class="buttons">
-		{{if !empty($form) && !empty($form.buttons)}}
-		   {{foreach from=$form.buttons key=val item=button}}
-		      {{sugar_button module="$module" id="$button" view="$view"}}
+		{{if !empty($form) && !empty($form.buttons_footer)}}
+		   {{foreach from=$form.buttons_footer key=val item=button}}
+		      {{sugar_button module="$module" id="$button" location="FOOTER" view="$view"}}
 		   {{/foreach}}
 		{{else}}
 				{{sugar_button module="$module" id="SAVE" view="$view"}}

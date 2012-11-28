@@ -2,7 +2,7 @@
 if(!defined('sugarEntry') || !sugarEntry) die('Not A Valid Entry Point');
 /*********************************************************************************
  * SugarCRM Community Edition is a customer relationship management program developed by
- * SugarCRM, Inc. Copyright (C) 2004-2011 SugarCRM Inc.
+ * SugarCRM, Inc. Copyright (C) 2004-2012 SugarCRM Inc.
  * 
  * This program is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Affero General Public License version 3 as published by the
@@ -83,7 +83,7 @@ function sugar_mkdir($pathname, $mode=null, $recursive=false, $context='') {
 	else {
 	    $GLOBALS['log']->error("Cannot create directory $pathname cannot be touched");
 	}
-	
+
 	return $result;
 }
 
@@ -138,7 +138,7 @@ function sugar_file_put_contents($filename, $data, $flags=null, $context=null){
 	    $GLOBALS['log']->error("File $filename cannot be written to");
 	    return false;
 	}
-	
+
 	if(empty($flags)) {
 		return file_put_contents($filename, $data);
 	} elseif(empty($context)) {
@@ -147,6 +147,56 @@ function sugar_file_put_contents($filename, $data, $flags=null, $context=null){
 		return file_put_contents($filename, $data, $flags, $context);
 	}
 }
+
+
+/**
+ * sugar_file_put_contents_atomic
+ * This is an atomic version of sugar_file_put_contents.  It attempts to circumvent the shortcomings of file_put_contents
+ * by creating a temporary unique file and then doing an atomic rename operation.
+ *
+ * @param $filename - String value of the file to create
+ * @param $data - The data to be written to the file
+ * @param string $mode String value of the parameter to specify the type of access you require to the file stream
+ * @param boolean $use_include_path set to '1' or TRUE if you want to search for the file in the include_path too
+ * @param context $context Context to pass into fopen operation
+ * @return boolean - Returns true if $filename was created, false otherwise.
+ */
+function sugar_file_put_contents_atomic($filename, $data, $mode='wb', $use_include_path=false, $context=null){
+
+    $dir = dirname($filename);
+    $temp = tempnam($dir, 'temp');
+
+    if (!($f = @fopen($temp, $mode))) {
+        $temp =  $dir . DIRECTORY_SEPARATOR . uniqid('temp');
+        if (!($f = @fopen($temp, $mode))) {
+            trigger_error("sugar_file_put_contents_atomic() : error writing temporary file '$temp'", E_USER_WARNING);
+            return false;
+        }
+    }
+
+    fwrite($f, $data);
+    fclose($f);
+
+    if (!@rename($temp, $filename))
+    {
+        @unlink($filename);
+        if (!@rename($temp, $filename))
+        {
+            // cleaning up temp file to avoid filling up temp dir
+            @unlink($temp);
+            trigger_error("sugar_file_put_contents_atomic() : fatal rename failure '$temp' -> '$filename'", E_USER_ERROR);
+        }
+    }
+
+    if(file_exists($filename))
+    {
+       return sugar_chmod($filename, 0655);
+    }
+
+    return false;
+}
+
+
 
 /**
  * sugar_file_get_contents
@@ -166,7 +216,7 @@ function sugar_file_get_contents($filename, $use_include_path=false, $context=nu
 	    $GLOBALS['log']->error("File $filename cannot be read");
 	    return false;
 	}
-	
+
 	if(empty($context)) {
 		return file_get_contents($filename, $use_include_path);
 	} else {
@@ -325,4 +375,19 @@ function sugar_is_file($path, $mode='r'){
 		return is_file($path);
 }
 
-?>
+/**
+ * Get filename in cache directory
+ * @api
+ * @param string $file
+ */
+function sugar_cached($file)
+{
+    static $cdir = null;
+    if(empty($cdir) && !empty($GLOBALS['sugar_config']['cache_dir'])) {
+        $cdir = rtrim($GLOBALS['sugar_config']['cache_dir'], '/\\');
+    }
+    if(empty($cdir)) {
+        $cdir = "cache";
+    }
+    return "$cdir/$file";
+}

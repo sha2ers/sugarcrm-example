@@ -2,7 +2,7 @@
 if(!defined('sugarEntry') || !sugarEntry) die('Not A Valid Entry Point');
 /*********************************************************************************
  * SugarCRM Community Edition is a customer relationship management program developed by
- * SugarCRM, Inc. Copyright (C) 2004-2011 SugarCRM Inc.
+ * SugarCRM, Inc. Copyright (C) 2004-2012 SugarCRM Inc.
  * 
  * This program is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Affero General Public License version 3 as published by the
@@ -60,6 +60,7 @@ $mod_strings = array(
 	'ERR_UW_LOG_FILE_UNWRITABLE'				=> './upgradeWizard.log could not be created/written to.  Please fix permissions on your SugarCRM directory.',
 	'ERR_UW_MBSTRING_FUNC_OVERLOAD'				=> 'mbstring.func_overload set to a value higher than 1.  Please change this in your php.ini and restart the web server.',
 	'ERR_UW_MYSQL_VERSION'						=> 'SugarCRM requires MySQL version 4.1.2 or newer.  Found: ',
+	'ERR_UW_OCI8_VERSION'				        => 'Your version of Oracle is not supported by Sugar.  You will need to install a version that is compatible with the Sugar application.  Please consult the Compatibility Matrix in the Release Notes for supported Oracle Versions. Current version: ',
 	'ERR_UW_NO_FILE_UPLOADED'					=> 'Please specify a file and try again!',
 	'ERR_UW_NO_FILES'							=> 'An error occurred, no files were found to check.',
 	'ERR_UW_NO_MANIFEST'						=> 'The zip file is missing a manifest.php file.  Cannot proceed.',
@@ -81,7 +82,7 @@ $mod_strings = array(
 													6 => 'Missing a temporary folder.',
 													7 => 'Failed to write file to disk.',
 													8 => 'File upload stopped by extension.',
-												),
+),
 	'LBL_BUTTON_BACK'							=> '< Back',
 	'LBL_BUTTON_CANCEL'							=> 'Cancel',
 	'LBL_BUTTON_DELETE'							=> 'Delete Package',
@@ -91,7 +92,7 @@ $mod_strings = array(
 	'LBL_BUTTON_NEXT'							=> 'Next >',
 	'LBL_BUTTON_RECHECK'						=> 'Recheck',
 	'LBL_BUTTON_RESTART'						=> 'Restart',
-												
+
 	'LBL_UPLOAD_UPGRADE'						=> 'Upload Upgrade Package ',
 	'LBL_UPLOAD_FILE_NOT_FOUND'					=> 'Upload file not found',
 	'LBL_UW_BACKUP_FILES_EXIST_TITLE'			=> 'File Backup',
@@ -114,14 +115,17 @@ $mod_strings = array(
 	'LBL_UW_COMPLIANCE_MBSTRING'				=> 'MBStrings Module',
 	'LBL_UW_COMPLIANCE_MBSTRING_FUNC_OVERLOAD'	=> 'MBStrings mbstring.func_overload Parameter',
 	'LBL_UW_COMPLIANCE_MEMORY'					=> 'PHP Setting: Memory Limit',
+    'LBL_UW_COMPLIANCE_STREAM'                  => 'PHP Setting: Stream',
 	'LBL_UW_COMPLIANCE_MSSQL_MAGIC_QUOTES'		=> 'MS SQL Server & PHP Magic Quotes GPC',
 	'LBL_UW_COMPLIANCE_MYSQL'					=> 'Minimum MySQL Version',
+    'LBL_UW_COMPLIANCE_DB'                      => 'Minimum Database Version',
 	'LBL_UW_COMPLIANCE_PHP_INI'					=> 'Location of php.ini',
 	'LBL_UW_COMPLIANCE_PHP_VERSION'				=> 'Minimum PHP Version',
 	'LBL_UW_COMPLIANCE_SAFEMODE'				=> 'PHP Setting: Safe Mode',
 	'LBL_UW_COMPLIANCE_TITLE'					=> 'Server Settings Check',
 	'LBL_UW_COMPLIANCE_TITLE2'					=> 'Detected Settings',
 	'LBL_UW_COMPLIANCE_XML'						=> 'XML Parsing',
+    'LBL_UW_COMPLIANCE_ZIPARCHIVE'				=> 'Zip Support',
 
 	'LBL_UW_COPIED_FILES_TITLE'					=> 'Files Copied Successfully',
 	'LBL_UW_CUSTOM_TABLE_SCHEMA_CHANGE'			=> 'Custom Table Schema Changes',
@@ -195,7 +199,7 @@ $mod_strings = array(
 	'LBL_UW_PREFLIGHT_PRESERVE_FILES'			=> 'Auto-preserved Files:',
 	'LBL_UW_PREFLIGHT_TESTS_PASSED'				=> 'All preflight tests have passed.',
 	'LBL_UW_PREFLIGHT_TESTS_PASSED2'			=> 'Click Next to copy the upgraded files to the system.',
-	'LBL_UW_PREFLIGHT_TESTS_PASSED3'			=> '<b>Note: </b> The rest of the upgrade process is mandatory, and clicking Next will require you to complete the process. If you do not wish to proceed, click the Cancel button.',	
+	'LBL_UW_PREFLIGHT_TESTS_PASSED3'			=> '<b>Note: </b> The rest of the upgrade process is mandatory, and clicking Next will require you to complete the process. If you do not wish to proceed, click the Cancel button.',
 	'LBL_UW_PREFLIGHT_TOGGLE_ALL'				=> 'Toggle All Files',
 
 	'LBL_UW_REBUILD_TITLE'						=> 'Rebuild Result',
@@ -294,5 +298,13 @@ $mod_strings = array(
     'LBL_UW_CONFIRM_LAYOUT_RESULTS' => 'Confirm Layout Results',
     'LBL_UW_CONFIRM_LAYOUT_RESULTS_DESC' => 'The following layouts were merged successfully:',
 	'LBL_SELECT_FILE' => 'Select File:',
+    'ERROR_VERSION_INCOMPATIBLE' => 'The uploaded file is not compatible with this version of Sugar: ',
+    'ERROR_FLAVOR_INCOMPATIBLE'  => 'The uploaded file is not compatible with this flavor (Community Edition, Professional, or Enterprise) of Sugar: ',
+	'LBL_LANGPACKS' => 'Language Packs' /*for 508 compliance fix*/,
+	'LBL_MODULELOADER' => 'Module Loader' /*for 508 compliance fix*/,
+	'LBL_PATCHUPGRADES' => 'Patch Upgrades' /*for 508 compliance fix*/,
+	'LBL_THEMES' => 'Themes' /*for 508 compliance fix*/,
+	'LBL_WORKFLOW' => 'Workflow' /*for 508 compliance fix*/,
+	'LBL_UPGRADE' => 'Upgrade' /*for 508 compliance fix*/,
+	'LBL_PROCESSING' => 'Processing' /*for 508 compliance fix*/,
 );
-?>

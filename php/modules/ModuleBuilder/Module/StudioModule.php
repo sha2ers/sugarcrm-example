@@ -1,7 +1,7 @@
 <?php
 /*********************************************************************************
  * SugarCRM Community Edition is a customer relationship management program developed by
- * SugarCRM, Inc. Copyright (C) 2004-2011 SugarCRM Inc.
+ * SugarCRM, Inc. Copyright (C) 2004-2012 SugarCRM Inc.
  * 
  * This program is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Affero General Public License version 3 as published by the
@@ -35,6 +35,7 @@
  ********************************************************************************/
 
 
+require_once 'data/BeanFactory.php';
 require_once 'modules/ModuleBuilder/parsers/relationships/DeployedRelationships.php' ;
 require_once 'modules/ModuleBuilder/parsers/constants.php' ;
 
@@ -48,17 +49,19 @@ class StudioModule
 
     function __construct ($module)
     {
-	   	$this->sources = array (	'editviewdefs.php' => array ( 'name' => translate ('LBL_EDITVIEW') , 'type' => MB_EDITVIEW , 'image' => 'EditView' ) ,
+	   	//Sources can be used to override the file name mapping for a specific view or the parser for a view.
+        //The
+        $this->sources = array (	'editviewdefs.php' => array ( 'name' => translate ('LBL_EDITVIEW') , 'type' => MB_EDITVIEW , 'image' => 'EditView' ) ,
         							'detailviewdefs.php' => array ( 'name' => translate('LBL_DETAILVIEW') , 'type' => MB_DETAILVIEW , 'image' => 'DetailView' ) ,
         							'listviewdefs.php' => array ( 'name' => translate('LBL_LISTVIEW') , 'type' => MB_LISTVIEW , 'image' => 'ListView' ) ) ;
 
         $moduleNames = array_change_key_case ( $GLOBALS [ 'app_list_strings' ] [ 'moduleList' ] ) ;
         $this->name = isset ( $moduleNames [ strtolower ( $module ) ] ) ? $moduleNames [ strtolower ( $module ) ] : strtolower ( $module ) ;
         $this->module = $module ;
-        $class = $GLOBALS [ 'beanList' ] [ $this->module ] ;
-        require_once $GLOBALS [ 'beanFiles' ] [ $class ] ;
-        $this->seed = new $class ( ) ;
-        $this->fields = $this->seed->field_defs ;
+        $this->seed = BeanFactory::getBean($this->module);
+        if($this->seed) {
+            $this->fields = $this->seed->field_defs;
+        }
         //$GLOBALS['log']->debug ( get_class($this)."->__construct($module): ".print_r($this->fields,true) ) ;
     }
 
@@ -175,7 +178,8 @@ class StudioModule
         $views = array () ;
         foreach ( $this->sources as $file => $def )
         {
-            if (file_exists ( "modules/{$this->module}/metadata/$file" ))
+            if (file_exists ( "modules/{$this->module}/metadata/$file" )
+                || file_exists ( "custom/modules/{$this->module}/metadata/$file" ))
             {
                 $views [ str_replace ( '.php', '' , $file) ] = $def ;
             }
@@ -199,7 +203,8 @@ class StudioModule
         $layouts = array ( ) ;
         foreach ( $views as $def )
         {
-            $layouts [ $def['name'] ] = array ( 'name' => $def['name'] , 'action' => "module=ModuleBuilder&action=editLayout&view={$def['type']}&view_module={$this->module}" , 'imageTitle' => $def['image'] , 'help' => "viewBtn{$def['type']}" , 'size' => '48' ) ;
+            $view = !empty($def['view']) ? $def['view'] : $def['type'];
+            $layouts [ $def['name'] ] = array ( 'name' => $def['name'] , 'action' => "module=ModuleBuilder&action=editLayout&view={$view}&view_module={$this->module}" , 'imageTitle' => $def['image'] , 'help' => "viewBtn{$def['type']}" , 'size' => '48' ) ;
         }
 
         if($this->isValidDashletModule($this->module)){
@@ -213,12 +218,12 @@ class StudioModule
         $popups = array( );
         $popups [] = array('name' => translate('LBL_POPUPLISTVIEW') , 'type' => 'popuplistview' , 'action' => 'module=ModuleBuilder&action=editLayout&view=popuplist&view_module=' . $this->module );
 		$popups [] = array('name' => translate('LBL_POPUPSEARCH') , 'type' => 'popupsearch' , 'action' => 'module=ModuleBuilder&action=editLayout&view=popupsearch&view_module=' . $this->module );
-		$layouts [ translate('LBL_POPUP') ] = array ( 'name' => translate('LBL_POPUP') , 'type' => 'Folder', 'children' => $popups, 'imageTitle' => 'Popup',  'imageName' => 'icon_Popup.gif', 'action' => 'module=ModuleBuilder&action=wizard&view=popup&view_module=' . $this->module);  
+		$layouts [ translate('LBL_POPUP') ] = array ( 'name' => translate('LBL_POPUP') , 'type' => 'Folder', 'children' => $popups, 'imageTitle' => 'Popup', 'action' => 'module=ModuleBuilder&action=wizard&view=popup&view_module=' . $this->module);  
 			
         $nodes = $this->getSearch () ;
         if ( !empty ( $nodes ) )
         {
-        	$layouts [ translate('LBL_SEARCH') ] = array ( 'name' => translate('LBL_SEARCH') , 'type' => 'Folder' , 'children' => $nodes , 'action' => "module=ModuleBuilder&action=wizard&view=search&view_module={$this->module}" , 'imageTitle' => 'SearchForm' , 'help' => 'searchBtn' , 'size' => '48') ;
+        	$layouts [ translate('LBL_SEARCH') ] = array ( 'name' => translate('LBL_SEARCH') , 'type' => 'Folder' , 'children' => $nodes , 'action' => "module=ModuleBuilder&action=wizard&view=search&view_module={$this->module}" , 'imageTitle' => 'BasicSearch' , 'help' => 'searchBtn' , 'size' => '48') ;
         }
 
     	return $layouts ;
@@ -292,15 +297,21 @@ class StudioModule
 
             $GLOBALS [ 'log' ]->debug ( "StudioModule->getSubpanels(): getting subpanels for " . $this->module ) ;
 
+            // counter to add a unique key to assoc array below
+            $ct=0;
             foreach ( SubPanel::getModuleSubpanels ( $this->module ) as $name => $label )
             {
                 if ($name == 'users')
                     continue ;
                 $subname = sugar_ucfirst ( (! empty ( $label )) ? translate ( $label, $this->module ) : $name ) ;
-                $nodes [ $subname ] = array ( 
+                $action = "module=ModuleBuilder&action=editLayout&view=ListView&view_module={$this->module}&subpanel={$name}&subpanelLabel=" . urlencode($subname);
+
+                //  bug47452 - adding a unique number to the $nodes[ key ] so if you have 2+ panels
+                //  with the same subname they will not cancel each other out
+                $nodes [ $subname . $ct++ ] = array (
                 	'name' => $name , 
                 	'label' => $subname , 
-                	'action' => "module=ModuleBuilder&action=editLayout&view=ListView&view_module={$this->module}&subpanel={$name}&subpanelLabel={$subname}" , 
+                	'action' =>  $action,
                 	'imageTitle' => $subname , 
                 	'imageName' => 'icon_' . ucfirst($name) . '_32', 
                 	'altImageName' => 'Subpanels', 
@@ -386,6 +397,7 @@ class StudioModule
         $sources = $this->getViewMetadataSources();
         $sources[] = array('type'  => MB_BASICSEARCH);
         $sources[] = array('type'  => MB_ADVANCEDSEARCH);
+        $sources[] = array('type'  => MB_POPUPSEARCH);        
         
         $GLOBALS [ 'log' ]->debug ( print_r( $sources,true) ) ;
         foreach ( $sources as $name => $defs )
@@ -423,7 +435,18 @@ class StudioModule
 		
 		return $sources;
 	}
-	
+
+    public function getViewType($view)
+    {
+        foreach($this->sources as $file => $def)
+        {
+            if (!empty($def['view']) && $def['view'] == $view && !empty($def['type']))
+            {
+                return $def['type'];
+            }
+        }
+        return $view;
+    }
 	
 	
 }

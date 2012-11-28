@@ -2,7 +2,7 @@
 if(!defined('sugarEntry') || !sugarEntry) die('Not A Valid Entry Point');
 /*********************************************************************************
  * SugarCRM Community Edition is a customer relationship management program developed by
- * SugarCRM, Inc. Copyright (C) 2004-2011 SugarCRM Inc.
+ * SugarCRM, Inc. Copyright (C) 2004-2012 SugarCRM Inc.
  * 
  * This program is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Affero General Public License version 3 as published by the
@@ -83,34 +83,16 @@ class EmailMan extends SugarBean{
 
 
 
-		if ( ( $this->db->dbType == 'mysql' ) or ( $this->db->dbType == 'oci8' ) )
-		{
-
 		$query['select'] = "SELECT $this->table_name.* ,
 					campaigns.name as campaign_name,
 					email_marketing.name as message_name,
 					(CASE related_type
-						WHEN 'Contacts' THEN CONCAT(CONCAT(contacts.first_name, '&nbsp;' ), contacts.last_name)
-						WHEN 'Leads' THEN CONCAT(CONCAT(leads.first_name, '&nbsp;' ), leads.last_name)
+						WHEN 'Contacts' THEN ".$this->db->concat('contacts', array('first_name', 'last_name'), '&nbsp;')."
+						WHEN 'Leads' THEN ".$this->db->concat('leads', array('first_name', 'last_name'), '&nbsp;')."
 						WHEN 'Accounts' THEN accounts.name
-						WHEN 'Users' THEN CONCAT(CONCAT(users.first_name, ' ' ), users.last_name)
-						WHEN 'Prospects' THEN CONCAT(CONCAT(prospects.first_name, '&nbsp;' ), prospects.last_name)
+						WHEN 'Users' THEN ".$this->db->concat('users', array('first_name', 'last_name'), '&nbsp;')."
+						WHEN 'Prospects' THEN ".$this->db->concat('prospects', array('first_name', 'last_name'), '&nbsp;')."
 					END) recipient_name";
-		}
-	    if($this->db->dbType == 'mssql')
-		{
-				$query['select'] = "SELECT $this->table_name.* ,
-					campaigns.name as campaign_name,
-					email_marketing.name as message_name,
-					(CASE related_type
-						WHEN 'Contacts' THEN contacts.first_name + '&nbsp;' + contacts.last_name
-						WHEN 'Leads' THEN  leads.first_name + '&nbsp;' + leads.last_name
-						WHEN 'Accounts' THEN  accounts.name
-						WHEN 'Users' THEN  users.first_name + ' ' + users.last_name
-						WHEN 'Prospects' THEN prospects.first_name + '&nbsp;' + prospects.last_name
-					END) recipient_name";
-		}
-
 		$query['from'] = "	FROM $this->table_name
 					LEFT JOIN users ON users.id = $this->table_name.related_id and $this->table_name.related_type ='Users'
 					LEFT JOIN contacts ON contacts.id = $this->table_name.related_id and $this->table_name.related_type ='Contacts'
@@ -118,7 +100,7 @@ class EmailMan extends SugarBean{
 					LEFT JOIN accounts ON accounts.id = $this->table_name.related_id and $this->table_name.related_type ='Accounts'
 					LEFT JOIN prospects ON prospects.id = $this->table_name.related_id and $this->table_name.related_type ='Prospects'
 					LEFT JOIN prospect_lists ON prospect_lists.id = $this->table_name.list_id
-                    LEFT JOIN email_addr_bean_rel ON email_addr_bean_rel.bean_id = $this->table_name.related_id and $this->table_name.related_type = email_addr_bean_rel.bean_module and email_addr_bean_rel.deleted=0
+                    LEFT JOIN email_addr_bean_rel ON email_addr_bean_rel.bean_id = $this->table_name.related_id and $this->table_name.related_type = email_addr_bean_rel.bean_module and email_addr_bean_rel.primary_address = 1 and email_addr_bean_rel.deleted=0
 					LEFT JOIN campaigns ON campaigns.id = $this->table_name.campaign_id
 					LEFT JOIN email_marketing ON email_marketing.id = $this->table_name.marketing_id ";
 
@@ -152,33 +134,16 @@ class EmailMan extends SugarBean{
 			return parent::create_new_list_query($order_by, $where,$filter,$params, $show_deleted,$join_type, $return_array,$parentbean, $singleSelect);
 		}
 
-		if ( ( $this->db->dbType == 'mysql' ) or ( $this->db->dbType == 'oci8' ) )
-		{
-
 		$query = "SELECT $this->table_name.* ,
 					campaigns.name as campaign_name,
 					email_marketing.name as message_name,
 					(CASE related_type
-						WHEN 'Contacts' THEN CONCAT(CONCAT(contacts.first_name, '&nbsp;' ), contacts.last_name)
-						WHEN 'Leads' THEN CONCAT(CONCAT(leads.first_name, '&nbsp;' ), leads.last_name)
+						WHEN 'Contacts' THEN ".$this->db->concat('contacts', array('first_name', 'last_name'), '&nbsp;')."
+						WHEN 'Leads' THEN ".$this->db->concat('leads', array('first_name', 'last_name'), '&nbsp;')."
 						WHEN 'Accounts' THEN accounts.name
-						WHEN 'Users' THEN CONCAT(CONCAT(users.first_name, ' ' ), users.last_name)
-						WHEN 'Prospects' THEN CONCAT(CONCAT(prospects.first_name, '&nbsp;' ), prospects.last_name)
+						WHEN 'Users' THEN ".$this->db->concat('users', array('first_name', 'last_name'), '&nbsp;')."
+						WHEN 'Prospects' THEN ".$this->db->concat('prospects', array('first_name', 'last_name'), '&nbsp;')."
 					END) recipient_name";
-		}
-	    if($this->db->dbType == 'mssql')
-		{
-				$query = "SELECT $this->table_name.* ,
-					campaigns.name as campaign_name,
-					email_marketing.name as message_name,
-					(CASE related_type
-						WHEN 'Contacts' THEN contacts.first_name + '&nbsp;' + contacts.last_name
-						WHEN 'Leads' THEN  leads.first_name + '&nbsp;' + leads.last_name
-						WHEN 'Accounts' THEN  accounts.name
-						WHEN 'Users' THEN  users.first_name + ' ' + users.last_name
-						WHEN 'Prospects' THEN prospects.first_name + '&nbsp;' + prospects.last_name
-					END) recipient_name";
-		}
 
 		 $query .= " FROM $this->table_name
 		            LEFT JOIN users ON users.id = $this->table_name.related_id and $this->table_name.related_type ='Users'
@@ -187,7 +152,7 @@ class EmailMan extends SugarBean{
 					LEFT JOIN accounts ON accounts.id = $this->table_name.related_id and $this->table_name.related_type ='Accounts'
 					LEFT JOIN prospects ON prospects.id = $this->table_name.related_id and $this->table_name.related_type ='Prospects'
 					LEFT JOIN prospect_lists ON prospect_lists.id = $this->table_name.list_id
-                    LEFT JOIN email_addr_bean_rel ON email_addr_bean_rel.bean_id = $this->table_name.related_id and $this->table_name.related_type = email_addr_bean_rel.bean_module and email_addr_bean_rel.deleted=0
+                    LEFT JOIN email_addr_bean_rel ON email_addr_bean_rel.bean_id = $this->table_name.related_id and $this->table_name.related_type = email_addr_bean_rel.bean_module and email_addr_bean_rel.primary_address = 1 and email_addr_bean_rel.deleted=0
 					LEFT JOIN campaigns ON campaigns.id = $this->table_name.campaign_id
 					LEFT JOIN email_marketing ON email_marketing.id = $this->table_name.marketing_id ";
 
@@ -207,45 +172,27 @@ class EmailMan extends SugarBean{
 			$query .= "WHERE ".$where_auto;
 
 
-		if($order_by != "") 
+		if($order_by != "")
 		{
 			$query .= ' ORDER BY ' . $this->process_order_by($order_by, null);
 		}
-		
+
 		return $query;
 
     }
 
 	function create_list_query($order_by, $where, $show_deleted = 0){
 
-		if ( ( $this->db->dbType == 'mysql' ) or ( $this->db->dbType == 'oci8' ) )
-		{
-
 		$query = "SELECT $this->table_name.* ,
 					campaigns.name as campaign_name,
 					email_marketing.name as message_name,
 					(CASE related_type
-						WHEN 'Contacts' THEN CONCAT(CONCAT(contacts.first_name, '&nbsp;' ), contacts.last_name)
-						WHEN 'Leads' THEN CONCAT(CONCAT(leads.first_name, '&nbsp;' ), leads.last_name)
+						WHEN 'Contacts' THEN ".$this->db->concat('contacts', array('first_name', 'last_name'), '&nbsp;')."
+						WHEN 'Leads' THEN ".$this->db->concat('leads', array('first_name', 'last_name'), '&nbsp;')."
 						WHEN 'Accounts' THEN accounts.name
-						WHEN 'Users' THEN CONCAT(CONCAT(users.first_name, ' ' ), users.last_name)
-						WHEN 'Prospects' THEN CONCAT(CONCAT(prospects.first_name, '&nbsp;' ), prospects.last_name)
+						WHEN 'Users' THEN ".$this->db->concat('users', array('first_name', 'last_name'), '&nbsp;')."
+						WHEN 'Prospects' THEN ".$this->db->concat('prospects', array('first_name', 'last_name'), '&nbsp;')."
 					END) recipient_name";
-		}
-	    if($this->db->dbType == 'mssql')
-		{
-				$query = "SELECT $this->table_name.* ,
-					campaigns.name as campaign_name,
-					email_marketing.name as message_name,
-					(CASE related_type
-						WHEN 'Contacts' THEN contacts.first_name + '&nbsp;' + contacts.last_name
-						WHEN 'Leads' THEN  leads.first_name + '&nbsp;' + leads.last_name
-						WHEN 'Accounts' THEN  accounts.name
-						WHEN 'Users' THEN  users.first_name + ' ' + users.last_name
-						WHEN 'Prospects' THEN prospects.first_name + '&nbsp;' + prospects.last_name
-					END) recipient_name";
-		}
-
 		$query .= "	FROM $this->table_name
 					LEFT JOIN users ON users.id = $this->table_name.related_id and $this->table_name.related_type ='Users'
 					LEFT JOIN contacts ON contacts.id = $this->table_name.related_id and $this->table_name.related_type ='Contacts'
@@ -253,7 +200,7 @@ class EmailMan extends SugarBean{
 					LEFT JOIN accounts ON accounts.id = $this->table_name.related_id and $this->table_name.related_type ='Accounts'
 					LEFT JOIN prospects ON prospects.id = $this->table_name.related_id and $this->table_name.related_type ='Prospects'
 					LEFT JOIN prospect_lists ON prospect_lists.id = $this->table_name.list_id
-                    LEFT JOIN email_addr_bean_rel ON email_addr_bean_rel.bean_id = $this->table_name.related_id and $this->table_name.related_type = email_addr_bean_rel.bean_module and email_addr_bean_rel.deleted=0
+                    LEFT JOIN email_addr_bean_rel ON email_addr_bean_rel.bean_id = $this->table_name.related_id and $this->table_name.related_type = email_addr_bean_rel.bean_module and email_addr_bean_rel.primary_address = 1 and email_addr_bean_rel.deleted=0
 					LEFT JOIN campaigns ON campaigns.id = $this->table_name.campaign_id
 					LEFT JOIN email_marketing ON email_marketing.id = $this->table_name.marketing_id ";
 
@@ -272,26 +219,26 @@ class EmailMan extends SugarBean{
 	}
 
     function get_list_view_data()
-    {   
+    {
     	global $locale, $current_user;
         $temp_array = parent::get_list_view_array();
 
         $related_type = $temp_array['RELATED_TYPE'];
         $related_id = $temp_array['RELATED_ID'];
         $is_person = SugarModule::get($related_type)->moduleImplements('Person');
-        
+
         if($is_person)
         {
             $query = "SELECT first_name, last_name FROM ". strtolower($related_type) ." WHERE id ='". $related_id ."'";
         } else {
             $query = "SELECT name FROM ". strtolower($related_type) ." WHERE id ='". $related_id ."'";
         }
-        
+
         $result=$this->db->query($query);
         $row=$this->db->fetchByAssoc($result);
 
-        if($row) 
-        {      
+        if($row)
+        {
         	$temp_array['RECIPIENT_NAME'] = $is_person ? $locale->getLocaleFormattedName($row['first_name'], $row['last_name'], '') : $row['name'];
         }
 
@@ -300,7 +247,7 @@ class EmailMan extends SugarBean{
 
         $result=$this->db->query($query);
         $row=$this->db->fetchByAssoc($result);
-        if ($row) 
+        if ($row)
         {
             $temp_array['RECIPIENT_EMAIL']=$row['email_address'];
         }
@@ -317,6 +264,7 @@ class EmailMan extends SugarBean{
 		global $timedate;
 
 		$this->send_attempts++;
+		$this->id = (int)$this->id;
 		if($delete || $this->send_attempts > 5){
 
 			//create new campaign log record.
@@ -342,7 +290,7 @@ class EmailMan extends SugarBean{
 			$this->db->query($query);
 		}else{
 			//try to send the email again a day later.
-			$query = 'UPDATE ' . $this->table_name . " SET in_queue='1', send_attempts='$this->send_attempts', in_queue_date='". TimeDate::getInstance()->nowDb() ."' WHERE id = '$this->id'";
+			$query = 'UPDATE ' . $this->table_name . " SET in_queue='1', send_attempts='$this->send_attempts', in_queue_date=". $this->db->now() ." WHERE id = $this->id";
 			$this->db->query($query);
 		}
 	}
@@ -361,9 +309,10 @@ class EmailMan extends SugarBean{
      * @param string from_address Email address of the sender, usually email address of the configured inbox.
      * @param string sender_id If of the user sending the campaign.
      * @param array  macro_nv array of name value pair, one row for each replacable macro in email template text.
+     * @param string from_address_name The from address eg markeing <marketing@sugar.net>
      * @return
      */
-    function create_ref_email($marketing_id,$subject,$body_text,$body_html,$campagin_name,$from_address,$sender_id,$notes,$macro_nv,$newmessage) {
+    function create_ref_email($marketing_id,$subject,$body_text,$body_html,$campagin_name,$from_address,$sender_id,$notes,$macro_nv,$newmessage,$from_address_name) {
 
        global $mod_Strings, $timedate;
        $upd_ref_email=false;
@@ -396,6 +345,7 @@ class EmailMan extends SugarBean{
                 $this->ref_email->description_html = $body_html;
                 $this->ref_email->description = $body_text;
                 $this->ref_email->from_addr = $from_address;
+                $this->ref_email->from_addr_name = $from_address_name;
                 $this->ref_email->assigned_user_id = $sender_id;
                 if ($this->test) {
                     $this->ref_email->parent_type = 'test';
@@ -410,12 +360,6 @@ class EmailMan extends SugarBean{
                 $this->ref_email->status='sent';
                 $retId = $this->ref_email->save();
 
-                if (count($notes) > 0 ) {
-                    if (!class_exists('Note'))
-                    if (!class_exists('UploadFile')) require_once('include/upload_file.php');
-
-                }
-
                 foreach($notes as $note) {
                     if($note->object_name == 'Note') {
                         if (! empty($note->file->temp_file_location) && is_file($note->file->temp_file_location)) {
@@ -423,13 +367,13 @@ class EmailMan extends SugarBean{
                             $filename = $note->file->original_file_name;
                             $mime_type = $note->file->mime_type;
                         } else {
-                            $file_location = rawurldecode(UploadFile::get_file_path($note->filename,$note->id));
+                            $file_location = "upload://{$note->id}";
                             $filename = $note->id.$note->filename;
                             $mime_type = $note->file_mime_type;
                         }
                     } elseif($note->object_name == 'DocumentRevision') { // from Documents
                         $filename = $note->id.$note->filename;
-                        $file_location = getcwd().'/'.$GLOBALS['sugar_config']['upload_dir'].$filename;
+                        $file_location = "upload://$filename";
                         $mime_type = $note->file_mime_type;
                     }
 
@@ -807,7 +751,7 @@ class EmailMan extends SugarBean{
             {
                 $focus_name = 'Accounts';
             }
-            
+
 
 			$template_data=  $this->current_emailtemplate->parse_email_template(array('subject'=>$this->current_emailtemplate->subject,
 																					  'body_html'=>$this->current_emailtemplate->body_html,
@@ -852,7 +796,7 @@ class EmailMan extends SugarBean{
                 //will be removed for the next release.
                 if(!isset($btracker)) $btracker=false;
                 if ($btracker) {
-                    $mail->Body .= "<br><br><a href='". $tracker_url ."'>" . $tracker_text . "</a><br><br>";
+                    $mail->Body .= "<br /><br /><a href='". $tracker_url ."'>" . $tracker_text . "</a><br /><br />";
                 } else {
                     if (!empty($tracker_url)) {
                         $mail->Body = str_replace('TRACKER_URL_START', "<a href='" . $tracker_url ."'>", $mail->Body);
@@ -865,10 +809,10 @@ class EmailMan extends SugarBean{
 
                 //do not add the default remove me link if the campaign has a trackerurl of the opotout link
                 if ($this->has_optout_links==false) {
-                    $mail->Body .= "<br><font size='2'>{$mod_strings['TXT_REMOVE_ME']}<a href='". $this->tracking_url . "index.php?entryPoint=removeme&identifier={$this->target_tracker_key}'>{$mod_strings['TXT_REMOVE_ME_CLICK']}</a></font>";
+                    $mail->Body .= "<br /><span style='font-size:0.8em'>{$mod_strings['TXT_REMOVE_ME']} <a href='". $this->tracking_url . "index.php?entryPoint=removeme&identifier={$this->target_tracker_key}'>{$mod_strings['TXT_REMOVE_ME_CLICK']}</a></span>";
                 }
                 // cn: bug 11979 - adding single quote to comform with HTML email RFC
-                $mail->Body .= "<br><IMG HEIGHT='1' WIDTH='1' src='{$this->tracking_url}index.php?entryPoint=image&identifier={$this->target_tracker_key}'>";
+                $mail->Body .= "<br /><img alt='' height='1' width='1' src='{$this->tracking_url}index.php?entryPoint=image&identifier={$this->target_tracker_key}' />";
 
                 $mail->AltBody = $template_data['body'];
                 if ($btracker) {
@@ -894,6 +838,9 @@ class EmailMan extends SugarBean{
                     $email_id=$this->create_indiv_email($module,$mail);
                 } else {
                     //find/create reference email record. all campaign targets reveiving this message will be linked with this message.
+                    $decodedFromName = mb_decode_mimeheader($this->current_emailmarketing->from_name);
+                    $fromAddressName= "{$decodedFromName} <{$this->mailbox_from_addr}>";
+
                     $email_id=$this->create_ref_email($this->marketing_id,
                                             $this->current_emailtemplate->subject,
                                             $this->current_emailtemplate->body,
@@ -903,7 +850,8 @@ class EmailMan extends SugarBean{
                                             $this->user_id,
                                             $this->notes_array,
                                             $macro_nv,
-                                            $this->newmessage
+                                            $this->newmessage,
+                                            $fromAddressName
                      );
                     $this->newmessage = false;
                 }
@@ -1013,8 +961,16 @@ class EmailMan extends SugarBean{
         {
             $query .=  ' ORDER BY '. $this->process_order_by($order_by, null);
         }
-        
+
         return $query;
     }
+
+    /**
+     * Actuall deletes the emailman record
+     * @param int $id
+     */
+    public function mark_deleted($id)
+	{
+	    $this->db->query("DELETE FROM {$this->table_name} WHERE id=".intval($id));
+	}
 }
-?>

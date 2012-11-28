@@ -2,7 +2,7 @@
 if(!defined('sugarEntry') || !sugarEntry) die('Not A Valid Entry Point');
 /*********************************************************************************
  * SugarCRM Community Edition is a customer relationship management program developed by
- * SugarCRM, Inc. Copyright (C) 2004-2011 SugarCRM Inc.
+ * SugarCRM, Inc. Copyright (C) 2004-2012 SugarCRM Inc.
  * 
  * This program is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Affero General Public License version 3 as published by the
@@ -234,8 +234,8 @@ function create_campaign_summary  ($focus){
     $cmpgn_tbl .= "<td align='right'>$cmp_input</td></tr>";
     $colorclass = '';
     foreach($fields as $key){
-    	        
-                if(!empty($focus->$key)){
+
+                if(!empty($focus->$key) && !empty($mod_strings[$focus->field_name_map[$key]['vname']])){
                     $cmpgn_tbl .= "<tr><td scope='row' width='15%'>".$mod_strings[$focus->field_name_map[$key]['vname']]."</td>\n";
                     if($key == 'team_name') {
 					   require_once('modules/Teams/TeamSetManager.php');
@@ -246,7 +246,6 @@ function create_campaign_summary  ($focus){
                 }            
     }
     $cmpgn_tbl .= "</table></p>";
-    
     
     return $cmpgn_tbl ;
 }
@@ -396,9 +395,13 @@ function create_target_summary  ($focus){
                 $pl_tbl  .= "<td scope='row' width='30%'>$type</td>";
                 $pl_tbl  .= "<td scope='row' width='15%'>".$pl_focus->get_entry_count()."</td>";
                 $pl_tbl  .= "<td scope='row' width='5%' align='right'><a href='index.php?action=EditView&module=ProspectLists&return_module=Campaigns&return_action=WizardHome&return_id=" .$focus->id. "&record=".$pl_focus->id."'>";
-                $pl_tbl  .= "<img src='".SugarThemeRegistry::current()->getImageURL("edit_inline.gif")."' border=0></a>&nbsp;";
+                $pl_tbl  .= SugarThemeRegistry::current()->getImage('edit_inline', 'border=0', null, null, ".gif", $mod_strings['LBL_EDIT_INLINE']) . "</a>&nbsp;";
+
+
                 $pl_tbl  .= "<a href='index.php?action=DetailView&module=ProspectLists&return_module=Campaigns&return_action=WizardHome&return_id=" .$focus->id. "&record=".$pl_focus->id."'>";
-                $pl_tbl  .= "<img src='".SugarThemeRegistry::current()->getImageURL("view_inline.gif")."' border=0></a></td>";                  
+                $pl_tbl  .= SugarThemeRegistry::current()->getImage('view_inline', 'border=0', null, null, ".gif", $mod_strings['LBL_VIEW_INLINE'])."</a></td>";
+
+
               }
             }        
     }else{

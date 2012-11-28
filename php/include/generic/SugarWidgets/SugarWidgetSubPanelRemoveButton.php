@@ -2,7 +2,7 @@
 if(!defined('sugarEntry') || !sugarEntry) die('Not A Valid Entry Point');
 /*********************************************************************************
  * SugarCRM Community Edition is a customer relationship management program developed by
- * SugarCRM, Inc. Copyright (C) 2004-2011 SugarCRM Inc.
+ * SugarCRM, Inc. Copyright (C) 2004-2012 SugarCRM Inc.
  * 
  * This program is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Affero General Public License version 3 as published by the
@@ -38,7 +38,7 @@ if(!defined('sugarEntry') || !sugarEntry) die('Not A Valid Entry Point');
 
 
 
-require_once('include/generic/SugarWidgets/SugarWidgetField.php');
+
 
 class SugarWidgetSubPanelRemoveButton extends SugarWidgetField
 {
@@ -51,7 +51,9 @@ class SugarWidgetSubPanelRemoveButton extends SugarWidgetField
 	{
 		
 		global $app_strings;
-		
+        global $subpanel_item_count;
+
+		$unique_id = $layout_def['subpanel_id']."_remove_".$subpanel_item_count; //bug 51512
 		
 		$parent_record_id = $_REQUEST['record'];
 		$parent_module = $_REQUEST['module'];
@@ -99,18 +101,18 @@ class SugarWidgetSubPanelRemoveButton extends SugarWidgetField
 		}
 		$return_url = "index.php?module=$return_module&action=$return_action&subpanel=$subpanel&record=$return_id&sugar_body_only=1&inline=1";
 
-		$icon_remove_text = $app_strings['LNK_REMOVE'];
-		$icon_remove_html = SugarThemeRegistry::current()->getImage( 'delete_inline',
-			'align="absmiddle" alt="' . $icon_remove_text . '" border="0"');
-		if($linked_field == 'get_products_query')
-			$linked_field = 'products';
+		$icon_remove_text = strtolower($app_strings['LBL_ID_FF_REMOVE']);
+		
+         if($linked_field == 'get_emails_by_assign_or_link')
+            $linked_field = 'emails';
 		//based on listview since that lets you select records
 		if($layout_def['ListView'] && !$hideremove) {
             $retStr = "<a href=\"javascript:sub_p_rem('$subpanel', '$linked_field'" 
                     .", '$record', $refresh_page);\"" 
 			. ' class="listViewTdToolsS1"'
+            . "id=$unique_id"
 			. " onclick=\"return sp_rem_conf();\""
-			. ">$icon_remove_html&nbsp;$icon_remove_text</a>";
+			. ">$icon_remove_text</a>";
         return $retStr;
             
 		}else{
@@ -118,4 +120,3 @@ class SugarWidgetSubPanelRemoveButton extends SugarWidgetField
 		}
 	}
 }
-?>

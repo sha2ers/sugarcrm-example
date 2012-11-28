@@ -2,7 +2,7 @@
 if(!defined('sugarEntry') || !sugarEntry) die('Not A Valid Entry Point');
 /*********************************************************************************
  * SugarCRM Community Edition is a customer relationship management program developed by
- * SugarCRM, Inc. Copyright (C) 2004-2011 SugarCRM Inc.
+ * SugarCRM, Inc. Copyright (C) 2004-2012 SugarCRM Inc.
  * 
  * This program is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Affero General Public License version 3 as published by the
@@ -45,14 +45,10 @@ if(!defined('sugarEntry') || !sugarEntry) die('Not A Valid Entry Point');
 require_once('modules/Users/Forms.php');
 require_once('modules/Configurator/Configurator.php');
 
-/**
- * ViewWireless_Login extends SugarWirelessView and is the login view.
- */
 class ViewWizard extends SugarView
 {
 	/**
-	 * Constructor for the view, it runs the constructor of SugarWirelessView and
-	 * sets the footer option to true (it is off in the SugarWirelessView constructor)
+	 * Constructor.
 	 */
 	public function __construct()
 	{
@@ -164,12 +160,9 @@ class ViewWizard extends SugarView
 			$this->ss->assign("CURRENCY", $selectCurrency);
         }
 
-        $currenciesVars = "";
-        $i=0;
-        foreach($locale->currencies as $id => $arrVal) {
-            $currenciesVars .= "currencies[{$i}] = '{$arrVal['symbol']}';\n";
-            $i++;
-        }
+        $currenciesArray = $locale->currencies;
+        $currenciesVars = $this->correctCurrenciesSymbolsSort($currenciesArray);
+
         $currencySymbolsJs = <<<eoq
 var currencies = new Object;
 {$currenciesVars}
@@ -208,6 +201,12 @@ eoq;
 		$this->ss->assign("MAIL_SENDTYPE", get_select_options_with_id($app_list_strings['notifymail_sendtype'], $current_user->getPreference('mail_sendtype')));
 		$this->ss->assign("NEW_EMAIL", $current_user->emailAddress->getEmailAddressWidgetEditView($current_user->id, $current_user->module_dir));
 		$this->ss->assign('EMAIL_LINK_TYPE', get_select_options_with_id($app_list_strings['dom_email_link_type'], $current_user->getPreference('email_link_type')));
+
+        $selectedLocaleNameFormat = $current_user->_userPreferenceFocus->getDefaultPreference('default_locale_name_format');
+        if (array_key_exists($selectedLocaleNameFormat, $sugar_config['name_formats'])) {
+            $selectedLocaleNameFormat = $sugar_config['default_locale_name_format'];
+        }
+        $this->ss->assign('NAMEOPTIONS', get_select_options_with_id($locale->getUsableLocaleNameOptions($sugar_config['name_formats']), $selectedLocaleNameFormat));
 
 		// email smtp
 		$systemOutboundEmail = new OutboundEmail();
@@ -255,7 +254,47 @@ eoq;
         $this->ss->assign('MAIL_SMTPSSL',$mail_smtpssl);
 
         $this->ss->assign('HIDE_IF_CAN_USE_DEFAULT_OUTBOUND',$hide_if_can_use_default);
-
-		$this->ss->display('modules/Users/tpls/wizard.tpl');
+        $this->ss->assign('langHeader', get_language_header());
+		$this->ss->display($this->getCustomFilePathIfExists('modules/Users/tpls/wizard.tpl'));
 	}
+
+    /**
+     * Function to sort currencies in array alphabetically, except for US Dollar which must remain as first element
+     * in the array.
+     *
+     * @param array $currenciesArray Array of currencies to sort
+     * @return array|string Array of sorted currencies with the US Dollar as the first
+     */
+    public function correctCurrenciesSymbolsSort($currenciesArray)
+    {
+        $baseCurrencyId = '-99';
+        $newCurrenciesArray = array ();
+
+        $newCurrenciesArray[] = $currenciesArray[$baseCurrencyId]['symbol'];
+        array_shift($currenciesArray);
+        $currenciesArray = array_csort($currenciesArray);
+        foreach ($currenciesArray as $value)
+        {
+            $newCurrenciesArray[] = $value['symbol'];
+        }
+        return $this->pushCurrencyArrayToString($newCurrenciesArray);
+    }
+
+    /**
+     * Generates javascript array from a php array
+     *
+     * @see correctCurrenciesSymbolsSort
+     * @param $array
+     * @return array|string Javascript code snippet of currencies array
+     */
+    public function pushCurrencyArrayToString($array)
+    {
+        $return = '';
+        foreach($array as $key => $value)
+        {
+            $return .= "currencies[{$key}] = '{$value}';\n";
+        }
+        return $return;
+    }
 }
+

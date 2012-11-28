@@ -2,7 +2,7 @@
 if(!defined('sugarEntry') || !sugarEntry) die('Not A Valid Entry Point');
 /*********************************************************************************
  * SugarCRM Community Edition is a customer relationship management program developed by
- * SugarCRM, Inc. Copyright (C) 2004-2011 SugarCRM Inc.
+ * SugarCRM, Inc. Copyright (C) 2004-2012 SugarCRM Inc.
  * 
  * This program is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Affero General Public License version 3 as published by the
@@ -42,12 +42,9 @@ if(!defined('sugarEntry') || !sugarEntry) die('Not A Valid Entry Point');
  * All Rights Reserved.
  * Contributor(s): ______________________________________..
  ********************************************************************************/
-if(isset($_SESSION['authenticated_user_id'])) {
-	ob_clean();
-   	header("Location: index.php?module=Home&action=index");
-    sugar_cleanup(true);
-   	return;
-}
+/** @var AuthenticationController $authController */
+$authController->authController->pre_login();
+
 global $current_language, $mod_strings, $app_strings;
 if(isset($_REQUEST['login_language'])){
     $lang = $_REQUEST['login_language'];
@@ -87,16 +84,12 @@ if(isset($_REQUEST['loginErrorMessage'])) {
         echo "<p align='center' class='error' > ". $app_strings[$_REQUEST['loginErrorMessage']]. "</p>";
     }
 }
-$query = "SELECT count(id) as total from users WHERE status='Active' AND deleted=0 AND is_group=0 AND portal_only=0";
 
-
-
-if (isset($_GET['login_module']))
-	$sugar_smarty->assign('LOGIN_MODULE', $_GET['login_module']);
-if (isset($_GET['login_action']))
-	$sugar_smarty->assign('LOGIN_ACTION', $_GET['login_action']);
-if (isset($_GET['login_record']))
-	$sugar_smarty->assign('LOGIN_RECORD', $_GET['login_record']);
+$lvars = $GLOBALS['app']->getLoginVars();
+$sugar_smarty->assign("LOGIN_VARS", $lvars);
+foreach($lvars as $k => $v) {
+    $sugar_smarty->assign(strtoupper($k), $v);
+}
 
 // Retrieve username from the session if possible.
 if(isset($_SESSION["login_user_name"])) {
@@ -164,7 +157,7 @@ if ( !empty($logindisplay) )
 
 			$captcha_privatekey = $admin->settings['captcha_private_key'];
 			$captcha_publickey = $admin->settings['captcha_public_key'];
-			$captcha_js .="<script type='text/javascript' src='" . getJSPath('include/javascript/sugar_grp1_yui.js') . "'></script><script type='text/javascript' src='" . getJSPath('include/javascript/sugar_grp_yui2.js') . "'></script>
+			$captcha_js .="<script type='text/javascript' src='" . getJSPath('cache/include/javascript/sugar_grp1_yui.js') . "'></script><script type='text/javascript' src='" . getJSPath('cache/include/javascript/sugar_grp_yui2.js') . "'></script>
 			<script type='text/javascript' src='http://api.recaptcha.net/js/recaptcha_ajax.js'></script>
 			<script>
 			function initCaptcha(){

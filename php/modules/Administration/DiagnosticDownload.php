@@ -2,7 +2,7 @@
 if(!defined('sugarEntry') || !sugarEntry) die('Not A Valid Entry Point');
 /*********************************************************************************
  * SugarCRM Community Edition is a customer relationship management program developed by
- * SugarCRM, Inc. Copyright (C) 2004-2011 SugarCRM Inc.
+ * SugarCRM, Inc. Copyright (C) 2004-2012 SugarCRM Inc.
  * 
  * This program is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Affero General Public License version 3 as published by the
@@ -40,6 +40,10 @@ global $current_user;
 
 
 if (!is_admin($current_user)) sugar_die("Unauthorized access to administration.");
+if (isset($GLOBALS['sugar_config']['hide_admin_diagnostics']) && $GLOBALS['sugar_config']['hide_admin_diagnostics'])
+{
+    sugar_die("Unauthorized access to diagnostic tool.");
+}
 
 if(!isset($_REQUEST['guid']) || !isset($_REQUEST['time']))
 {
@@ -47,7 +51,7 @@ if(!isset($_REQUEST['guid']) || !isset($_REQUEST['time']))
 }
 $time = str_replace(array('.', '/', '\\'), '', $_REQUEST['time']);
 $guid = str_replace(array('.', '/', '\\'), '', $_REQUEST['guid']);
-$path = getcwd()."/{$GLOBALS['sugar_config']['cache_dir']}diagnostic/{$guid}/diagnostic{$time}.zip";
+$path = sugar_cached("diagnostic/{$guid}/diagnostic{$time}.zip");
 $filesize = filesize($path);
 ob_clean();
 header('Content-Description: File Transfer');

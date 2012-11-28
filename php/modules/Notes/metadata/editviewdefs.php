@@ -1,7 +1,7 @@
 <?php
 /*********************************************************************************
  * SugarCRM Community Edition is a customer relationship management program developed by
- * SugarCRM, Inc. Copyright (C) 2004-2011 SugarCRM Inc.
+ * SugarCRM, Inc. Copyright (C) 2004-2012 SugarCRM Inc.
  * 
  * This program is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Affero General Public License version 3 as published by the
@@ -36,14 +36,13 @@
 
 $viewdefs['Notes']['EditView'] = array(
     'templateMeta' => array('form' => array('enctype'=> 'multipart/form-data',
-                                            'headerTpl'=>'modules/Notes/tpls/EditViewHeader.tpl',
                                             ),
 							'maxColumns' => '2',
                             'widths' => array(
                                             array('label' => '10', 'field' => '30'),
                                             array('label' => '10', 'field' => '30')
                                             ),
-'javascript' => '<script type="text/javascript" src="include/javascript/dashlets.js?s={$SUGAR_VERSION}&c={$JS_CUSTOM_VERSION}"></script>
+'javascript' => '{sugar_getscript file="include/javascript/dashlets.js"}
 <script>
 function deleteAttachmentCallBack(text)
 	{literal} { {/literal}

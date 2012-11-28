@@ -2,7 +2,7 @@
 if(!defined('sugarEntry') || !sugarEntry) die('Not A Valid Entry Point');
 /*********************************************************************************
  * SugarCRM Community Edition is a customer relationship management program developed by
- * SugarCRM, Inc. Copyright (C) 2004-2011 SugarCRM Inc.
+ * SugarCRM, Inc. Copyright (C) 2004-2012 SugarCRM Inc.
  * 
  * This program is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Affero General Public License version 3 as published by the
@@ -153,7 +153,9 @@ $from = $current_user->getEmailInfo();
 ///////////////////////////////////////////////////////////////////////////////
 ////	XTEMPLATE ASSIGNMENT
 if($email_type == 'archived') {
-	echo getClassicModuleTitle('Emails', array($mod_strings['LBL_ARCHIVED_MODULE_NAME']), true);
+    if(isset($focus->name)) $params_module_title=array($mod_strings['LBL_ARCHIVED_EMAILS_CREATE'], $focus->name);
+    else $params_module_title=array($mod_strings['LBL_ARCHIVED_EMAILS_CREATE']);
+	echo getClassicModuleTitle('Emails', $params_module_title, true);
 	$xtpl=new XTemplate('modules/Emails/EditViewArchive.html');
 } else {
 
@@ -183,9 +185,6 @@ if($email_type == 'archived') {
 	} // if
 	header("Location: index.php?module=Emails&action=Compose&record=$focus->id&replyForward=true&reply=$replyType");
 	return;
-
-	echo getClassicModuleTitle('Emails', array($mod_strings['LBL_COMPOSE_MODULE_NAME']), true);
-	$xtpl=new XTemplate('modules/Emails/EditView.html');
 }
 echo "\n</p>\n";
 
@@ -396,7 +395,7 @@ $xtpl->assign('PRINT_URL', 'index.php?'.$GLOBALS['request_string']);
 	///////////////////////////////////////////////////////////////////////////////
 	////	QUICKSEARCH CODE
 	require_once('include/QuickSearchDefaults.php');
-	$qsd = new QuickSearchDefaults();
+	$qsd = QuickSearchDefaults::getQuickSearchDefaults();
 	$sqs_objects = array('EditView_parent_name' => $qsd->getQSParent(),
 						'EditView_assigned_user_name' => $qsd->getQSUser(),
 						);
@@ -501,7 +500,7 @@ if(is_admin($current_user) && $_REQUEST['module'] != 'DynamicLayout' && !empty($
 	if(!empty($_REQUEST['record'])){
 		$record = 	$_REQUEST['record'];
 	}
-	$xtpl->assign('ADMIN_EDIT',"<a href='index.php?action=index&module=DynamicLayout&from_action=".$_REQUEST['action'] ."&from_module=".$_REQUEST['module'] ."&record=".$record. "'>".SugarThemeRegistry::current()->getImage("EditLayout","border='0' alt='Edit Layout' align='bottom'")."</a>");
+	$xtpl->assign('ADMIN_EDIT',"<a href='index.php?action=index&module=DynamicLayout&from_action=".$_REQUEST['action'] ."&from_module=".$_REQUEST['module'] ."&record=".$record. "'>".SugarThemeRegistry::current()->getImage("EditLayout","border='0' align='bottom'",null,null,'.gif',$mod_strings['LBL_EDIT_LAYOUT'])."</a>");
 }
 
 ////	END GENERAL TEMPLATE ASSIGNMENTS
@@ -540,7 +539,6 @@ $xtpl->assign('encoded_users_popup_request_data', $json->encode($popup_request_d
 
 $change_parent_button = '<input type="button" name="button" tabindex="2" class="button" '
 	. 'title="' . $app_strings['LBL_SELECT_BUTTON_TITLE'] . '" '
-	. 'accesskey="' . $app_strings['LBL_SELECT_BUTTON_KEY'] . '" '
 	. 'value="'	. $app_strings['LBL_SELECT_BUTTON_LABEL'] . '" '
 	. "onclick='ValidateParentType();' />\n"
 	.'<script>function ValidateParentType() {
@@ -551,7 +549,7 @@ $change_parent_button = '<input type="button" name="button" tabindex="2" class="
     		}
     		open_popup(document.EditView.parent_type.value,600,400,"&tree=ProductsProd",true,false,' .$encoded_popup_request_data.');
 		}</script>';
-	
+
 $xtpl->assign("CHANGE_PARENT_BUTTON", $change_parent_button);
 
 $button_attr = '';
@@ -561,22 +559,19 @@ if(!ACLController::checkAccess('Contacts', 'list', true)){
 
 $change_to_addrs_button = '<input type="button" name="to_button" tabindex="3" class="button" '
 	. 'title="' . $app_strings['LBL_SELECT_BUTTON_TITLE'] . '" '
-	. 'accesskey="' . $app_strings['LBL_SELECT_BUTTON_KEY'] . '" '
-	. 'value="'	. $mod_strings['LBL_EMAIL_SELECTOR'] . '" '
+	. 'value="'	. $mod_strings['LBL_EMAIL_SELECTOR_SELECT'] . '" '
 	. "onclick='button_change_onclick(this);' $button_attr />\n";
 $xtpl->assign("CHANGE_TO_ADDRS_BUTTON", $change_to_addrs_button);
 
 $change_cc_addrs_button = '<input type="button" name="cc_button" tabindex="3" class="button" '
 	. 'title="' . $app_strings['LBL_SELECT_BUTTON_TITLE'] . '" '
-	. 'accesskey="' . $app_strings['LBL_SELECT_BUTTON_KEY'] . '" '
-	. 'value="'	. $mod_strings['LBL_EMAIL_SELECTOR'] . '" '
+	. 'value="'	. $mod_strings['LBL_EMAIL_SELECTOR_SELECT'] . '" '
 	. "onclick='button_change_onclick(this);' $button_attr />\n";
 $xtpl->assign("CHANGE_CC_ADDRS_BUTTON", $change_cc_addrs_button);
 
 $change_bcc_addrs_button = '<input type="button" name="bcc_button" tabindex="3" class="button" '
 	. 'title="' . $app_strings['LBL_SELECT_BUTTON_TITLE'] . '" '
-	. 'accesskey="' . $app_strings['LBL_SELECT_BUTTON_KEY'] . '" '
-	. 'value="'	. $mod_strings['LBL_EMAIL_SELECTOR'] . '" '
+	. 'value="'	. $mod_strings['LBL_EMAIL_SELECTOR_SELECT'] . '" '
 	. "onclick='button_change_onclick(this);' $button_attr />\n";
 $xtpl->assign("CHANGE_BCC_ADDRS_BUTTON", $change_bcc_addrs_button);
 
@@ -589,7 +584,7 @@ if(is_admin($current_user) && $_REQUEST['module'] != 'DynamicLayout' && !empty($
 	if(!empty($_REQUEST['record'])) {
 		$record = $_REQUEST['record'];
 	}
-	$xtpl->assign('ADMIN_EDIT',"<a href='index.php?action=index&module=DynamicLayout&from_action=".$_REQUEST['action'] ."&from_module=".$_REQUEST['module'] ."&record=".$record. "'>".SugarThemeRegistry::current()->getImage("EditLayout","border='0' alt='Edit Layout' align='bottom'")."</a>");
+	$xtpl->assign('ADMIN_EDIT',"<a href='index.php?action=index&module=DynamicLayout&from_action=".$_REQUEST['action'] ."&from_module=".$_REQUEST['module'] ."&record=".$record. "'>".SugarThemeRegistry::current()->getImage("EditLayout","border='0' align='bottom'",null,null,'.gif',$mod_strings['LBL_EDIT_LAYOUT'])."</a>");
 }
 
 if(empty($focus->assigned_user_id) && empty($focus->id))
@@ -644,7 +639,7 @@ if(!empty($focus->id) || (!empty($_REQUEST['record']) && $_REQUEST['type'] == 'f
 
 		$attachments .= "
 			<div id='noteDiv{$the_note->id}'>
-				<img onclick='deletePriorAttachment(\"{$the_note->id}\");' src='".SugarThemeRegistry::current()->getImageURL('delete_inline.gif')." value='{$the_note->id}'>&nbsp;";
+				" . SugarThemeRegistry::current()->getImage('delete_inline', "onclick='deletePriorAttachment(\"{$the_note->id}\");' value='{$the_note->id}'", null, null, ".gif", $mod_strings['LBL_DELETE_INLINE']) . "&nbsp;";
 		$attachments .= "<a href=\"index.php?entryPoint=download&id=".$the_note->id."&type=Notes\">".$the_note->name."</a><div />";
 		//$attachments .= '<a href="'.UploadFile::get_url($the_note->filename,$the_note->id).'&entryPoint=download&type=Notes' . '" target="_blank">'. $the_note->filename .'</a></div>';
 
@@ -658,7 +653,6 @@ if(!empty($focus->id) || (!empty($_REQUEST['record']) && $_REQUEST['type'] == 'f
 }
 
 $attJs  = '<script type="text/javascript">';
-$attJs .= 'var file_path = "'.$sugar_config['site_url'].'/'.$sugar_config['upload_dir'].'";';
 $attJs .= 'var lnk_remove = "'.$app_strings['LNK_REMOVE'].'";';
 $attJs .= '</script>';
 $xtpl->assign('ATTACHMENTS', $attachments);

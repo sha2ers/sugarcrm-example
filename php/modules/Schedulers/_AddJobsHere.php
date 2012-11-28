@@ -2,7 +2,7 @@
 if(!defined('sugarEntry') || !sugarEntry) die('Not A Valid Entry Point');
 /*********************************************************************************
  * SugarCRM Community Edition is a customer relationship management program developed by
- * SugarCRM, Inc. Copyright (C) 2004-2011 SugarCRM Inc.
+ * SugarCRM, Inc. Copyright (C) 2004-2012 SugarCRM Inc.
  * 
  * This program is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Affero General Public License version 3 as published by the
@@ -63,6 +63,8 @@ $job_strings = array (
 	3 => 'pruneDatabase',
 	4 => 'trimTracker',
 	/*4 => 'securityAudit()',*/
+    12 => 'sendEmailReminders',
+    14 => 'cleanJobQueue',
 
 );
 
@@ -80,11 +82,12 @@ function refreshJobs() {
  */
 function pollMonitoredInboxes() {
 
+    $_bck_up = array('team_id' => $GLOBALS['current_user']->team_id, 'team_set_id' => $GLOBALS['current_user']->team_set_id);
 	$GLOBALS['log']->info('----->Scheduler fired job of type pollMonitoredInboxes()');
 	global $dictionary;
 	global $app_strings;
-	
-	
+
+
 	require_once('modules/Emails/EmailUI.php');
 
 	$ie = new InboundEmail();
@@ -96,6 +99,8 @@ function pollMonitoredInboxes() {
 		$GLOBALS['log']->debug('In while loop of Inbound Emails');
 		$ieX = new InboundEmail();
 		$ieX->retrieve($a['id']);
+        $GLOBALS['current_user']->team_id = $ieX->team_id;
+        $GLOBALS['current_user']->team_set_id = $ieX->team_set_id;
 		$mailboxes = $ieX->mailboxarray;
 		foreach($mailboxes as $mbox) {
 			$ieX->mailbox = $mbox;
@@ -238,7 +243,8 @@ function pollMonitoredInboxes() {
 		imap_expunge($ieX->conn);
 		imap_close($ieX->conn, CL_EXPUNGE);
 	} // while
-
+    $GLOBALS['current_user']->team_id = $_bck_up['team_id'];
+    $GLOBALS['current_user']->team_set_id = $_bck_up['team_set_id'];
 	return true;
 }
 
@@ -247,7 +253,7 @@ function pollMonitoredInboxes() {
  */
 function runMassEmailCampaign() {
 	if (!class_exists('LoggerManager')){
-		
+
 	}
 	$GLOBALS['log'] = LoggerManager::getLogger('emailmandelivery');
 	$GLOBALS['log']->debug('Called:runMassEmailCampaign');
@@ -255,7 +261,7 @@ function runMassEmailCampaign() {
 	if (!class_exists('DBManagerFactory')){
 		require('include/database/DBManagerFactory.php');
 	}
-	
+
 	global $beanList;
 	global $beanFiles;
 	require("config.php");
@@ -273,7 +279,7 @@ function runMassEmailCampaign() {
  */
 function pruneDatabase() {
 	$GLOBALS['log']->info('----->Scheduler fired job of type pruneDatabase()');
-	$backupDir	= $GLOBALS['sugar_config']['cache_dir'].'backups';
+	$backupDir	= sugar_cached('backups');
 	$backupFile	= 'backup-pruneDatabase-GMT0_'.gmdate('Y_m_d-H_i_s', strtotime('now')).'.php';
 
 	$db = DBManagerFactory::getInstance();
@@ -283,71 +289,37 @@ function pruneDatabase() {
 	if(!empty($tables)) {
 		foreach($tables as $kTable => $table) {
 			// find tables with deleted=1
-			$qDel = 'SELECT * FROM '.$table.' WHERE deleted = 1';
-			$rDel = $db->query($qDel);// OR continue; // continue if no 'deleted' column
+			$columns = $db->get_columns($table);
+			// no deleted - won't delete
+			if(empty($columns['deleted'])) continue;
 
+			$custom_columns = array();
+			if(array_search($table.'_cstm', $tables)) {
+			    $custom_columns = $db->get_columns($table.'_cstm');
+			    if(empty($custom_columns['id_c'])) {
+			        $custom_columns = array();
+			    }
+			}
+
+			$qDel = "SELECT * FROM $table WHERE deleted = 1";
+			$rDel = $db->query($qDel);
+			$queryString = array();
 			// make a backup INSERT query if we are deleting.
-			while($aDel = $db->fetchByAssoc($rDel)) {
+			while($aDel = $db->fetchByAssoc($rDel, false)) {
 				// build column names
-				$rCols = $db->query('SHOW COLUMNS FROM '.$table);
-				$colName = array();
 
-				while($aCols = $db->fetchByAssoc($rCols)) {
-					$colName[] = $aCols['Field'];
-				}
+				$queryString[] = $db->insertParams($table, $columns, $aDel, null, false);
 
-				$query = 'INSERT INTO '.$table.' (';
-				$values = '';
-				foreach($colName as $kC => $column) {
-					$query .= $column.', ';
-					$values .= '"'.$aDel[$column].'", ';
-				}
-
-				$query  = substr($query, 0, (strlen($query) - 2));
-				$values = substr($values, 0, (strlen($values) - 2));
-				$query .= ') VALUES ('.str_replace("'", "&#039;", $values).');';
-
-				$queryString[] = $query;
-
-				if(empty($colName)) {
-					$GLOBALS['log']->fatal('pruneDatabase() could not get the columns for table ('.$table.')');
-				}
-				
-				if(array_search($table.'_cstm', $tables) !== FALSE && array_search('id', $colName) !== FALSE && array_key_exists('id', $aDel)) {
-                    // build custom column names
-                    $rColsCstm = $db->query('SHOW COLUMNS FROM '.$table.'_cstm');
-                    $colNameCstm = array();
-
-                    while($aColsCstm = $db->fetchByAssoc($rColsCstm)) {
-                        $colNameCstm[] = $aColsCstm['Field'];
-                    }
-
-                    $qDelCstm = 'SELECT * FROM '.$table.'_cstm WHERE id_c = "'.$db->quote($aDel['id']).'"';
-                    $rDelCstm = $db->query($qDelCstm);// OR continue; // continue if no 'deleted' column
+				if(!empty($custom_columns) && !empty($aDel['id'])) {
+                    $qDelCstm = 'SELECT * FROM '.$table.'_cstm WHERE id_c = '.$db->quoted($aDel['id']);
+                    $rDelCstm = $db->query($qDelCstm);
 
                     // make a backup INSERT query if we are deleting.
                     while($aDelCstm = $db->fetchByAssoc($rDelCstm)) {
+                        $queryString[] = $db->insertParams($table, $custom_columns, $aDelCstm, null, false);
+                    } // end aDel while()
 
-                        $query = 'INSERT INTO '.$table.'_cstm (';
-                        $values = '';
-
-                        foreach($colNameCstm as $kC => $column) {
-                            $query .= $column.', ';
-                            $values .= '"'.$aDelCstm[$column].'", ';
-                        }
-
-                        $query  = substr($query, 0, (strlen($query) - 2));
-                        $values = substr($values, 0, (strlen($values) - 2));
-                        $query .= ') VALUES ('.str_replace("'", "&#039;", $values).');';
-
-                        $queryString[] = $query;
-
-                        if(empty($colNameCstm)) {
-                            $GLOBALS['log']->fatal('pruneDatabase() could not get the columns for table ('.$table.'_cstm)');
-                        }
-                    } // end aDel while()                
-
-                    $db->query('DELETE FROM '.$table.'_cstm WHERE id_c = "'.$db->quote($aDel['id']).'"');
+                    $db->query('DELETE FROM '.$table.'_cstm WHERE id_c = '.$db->quoted($aDel['id']));
                 }
 			} // end aDel while()
 			// now do the actual delete
@@ -381,7 +353,7 @@ function trimTracker()
     global $sugar_config, $timedate;
 	$GLOBALS['log']->info('----->Scheduler fired job of type trimTracker()');
 	$db = DBManagerFactory::getInstance();
-	
+
 	$admin = new Administration();
 	$admin->retrieveSettings('tracker');
 	require('modules/Trackers/config.php');
@@ -396,7 +368,7 @@ function trimTracker()
 		   continue;
 		}
 
-	    $timeStamp = db_convert("'". $timedate->asDb($timedate->getNow()->get("+"+$prune_interval+" days")) ."'" ,"datetime");
+	    $timeStamp = db_convert("'". $timedate->asDb($timedate->getNow()->get("-".$prune_interval." days")) ."'" ,"datetime");
 		if($tableName == 'tracker_sessions') {
 		   $query = "DELETE FROM $tableName WHERE date_end < $timeStamp";
 		} else {
@@ -415,7 +387,7 @@ function trimTracker()
 function pollMonitoredInboxesForBouncedCampaignEmails() {
 	$GLOBALS['log']->info('----->Scheduler job of type pollMonitoredInboxesForBouncedCampaignEmails()');
 	global $dictionary;
-	
+
 
 	$ie = new InboundEmail();
 	$r = $ie->db->query('SELECT id FROM inbound_email WHERE deleted=0 AND status=\'Active\' AND mailbox_type=\'bounce\'');
@@ -455,6 +427,37 @@ function pollMonitoredInboxesForBouncedCampaignEmails() {
 
 
 
+/**
+ * Job 12
+ */
+function sendEmailReminders(){
+	$GLOBALS['log']->info('----->Scheduler fired job of type sendEmailReminders()');
+	require_once("modules/Activities/EmailReminder.php");
+	$reminder = new EmailReminder();
+	return $reminder->process();
+}
+
+
+
+function cleanJobQueue($job)
+{
+    $td = TimeDate::getInstance();
+    // soft delete all jobs that are older than cutoff
+    $soft_cutoff = 7;
+    if(isset($GLOBALS['sugar_config']['jobs']['soft_lifetime'])) {
+        $soft_cutoff = $GLOBALS['sugar_config']['jobs']['soft_lifetime'];
+    }
+    $soft_cutoff_date = $job->db->quoted($td->getNow()->modify("- $soft_cutoff days")->asDb());
+    $job->db->query("UPDATE {$job->table_name} SET deleted=1 WHERE status='done' AND date_modified < ".$job->db->convert($soft_cutoff_date, 'datetime'));
+    // hard delete all jobs that are older than hard cutoff
+    $hard_cutoff = 21;
+    if(isset($GLOBALS['sugar_config']['jobs']['hard_lifetime'])) {
+        $hard_cutoff = $GLOBALS['sugar_config']['jobs']['hard_lifetime'];
+    }
+    $hard_cutoff_date = $job->db->quoted($td->getNow()->modify("- $hard_cutoff days")->asDb());
+    $job->db->query("DELETE FROM {$job->table_name} WHERE status='done' AND date_modified < ".$job->db->convert($hard_cutoff_date, 'datetime'));
+    return true;
+}
 
 if (file_exists('custom/modules/Schedulers/_AddJobsHere.php')) {
 	require('custom/modules/Schedulers/_AddJobsHere.php');

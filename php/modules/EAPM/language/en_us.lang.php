@@ -1,7 +1,7 @@
 <?php
 /*********************************************************************************
  * SugarCRM Community Edition is a customer relationship management program developed by
- * SugarCRM, Inc. Copyright (C) 2004-2011 SugarCRM Inc.
+ * SugarCRM, Inc. Copyright (C) 2004-2012 SugarCRM Inc.
  * 
  * This program is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Affero General Public License version 3 as published by the
@@ -94,10 +94,10 @@ $mod_strings = array (
 
   // Various strings used throughout the external account modules
   'LBL_MEET_NOW_BUTTON' => 'Meet Now',
-  'LBL_VIEW_LOTUS_LIVE_MEETINGS' => 'View Upcoming LotusLive&trade; Meetings',
-  'LBL_TITLE_LOTUS_LIVE_MEETINGS' => 'Upcoming LotusLive&trade; Meetings',
-  'LBL_VIEW_LOTUS_LIVE_DOCUMENTS' => 'View LotusLive&trade; Files',
-  'LBL_TITLE_LOTUS_LIVE_DOCUMENTS' => 'LotusLive&trade; Files',
+  'LBL_VIEW_LOTUS_LIVE_MEETINGS' => 'View Upcoming IBM SmartCloud&trade; Meetings',
+  'LBL_TITLE_LOTUS_LIVE_MEETINGS' => 'Upcoming IBM SmartCloud&trade; Meetings',
+  'LBL_VIEW_LOTUS_LIVE_DOCUMENTS' => 'View IBM SmartCloud&trade; Files',
+  'LBL_TITLE_LOTUS_LIVE_DOCUMENTS' => 'IBM SmartCloud&trade; Files',
   'LBL_REAUTHENTICATE_LABEL' => 'Reauthenticate',
   'LBL_REAUTHENTICATE_KEY' => 'a',
   'LBL_APPLICATION_FOUND_NOTICE' => 'An account for this application already exists. We have reinstated the existing account.',

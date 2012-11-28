@@ -1,7 +1,7 @@
 {*
 /*********************************************************************************
  * SugarCRM Community Edition is a customer relationship management program developed by
- * SugarCRM, Inc. Copyright (C) 2004-2011 SugarCRM Inc.
+ * SugarCRM, Inc. Copyright (C) 2004-2012 SugarCRM Inc.
  * 
  * This program is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Affero General Public License version 3 as published by the
@@ -50,7 +50,7 @@
 	<input type='hidden' name='campaign_type' value="{$MOD.LBL_NEWSLETTER_FORENTRY}">
 	<input type="hidden" id="wiz_total_steps" name="totalsteps" value="{$TOTAL_STEPS}">
 	<input type="hidden" id="wiz_current_step" name="currentstep" value='1'>
-	<input type="hidden" id="direction" name="wiz_direction" value='exit'>		
+	<input type="hidden" id="direction" name="wiz_direction" value='exit'>
 
 <p>
 	<div id ='buttons'>
@@ -68,7 +68,7 @@
 					</tr></table>
 				</td>
 				<td  align="right" width='70%'><div id='wiz_location_message'></td>
-				
+
 			</tr>
 		</table>
 	</div>
@@ -95,10 +95,8 @@
 </table>
 </form>
 
-<script type="text/javascript" src="include/javascript/popup_parent_helper.js?s={$SUGAR_VERSION}&c={$JS_CUSTOM_VERSION}"></script>
-<script type="text/javascript" language="javascript" src="modules/Campaigns/wizard.js"></script>
-<script type='text/javascript' src='include/javascript/sugar_grp_overlib.js'></script>
-<div id='overDiv' style='position:absolute; visibility:hidden; z-index:1000;'></div>
+<script type="text/javascript" src="{sugar_getjspath file="include/javascript/popup_parent_helper.js"}"></script>
+<script type="text/javascript" src="{sugar_getjspath file="modules/Campaigns/wizard.js"}"></script>
 
 {$WIZ_JAVASCRIPT}
 {$DIV_JAVASCRIPT}

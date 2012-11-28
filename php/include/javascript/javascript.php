@@ -2,7 +2,7 @@
 if(!defined('sugarEntry') || !sugarEntry) die('Not A Valid Entry Point');
 /*********************************************************************************
  * SugarCRM Community Edition is a customer relationship management program developed by
- * SugarCRM, Inc. Copyright (C) 2004-2011 SugarCRM Inc.
+ * SugarCRM, Inc. Copyright (C) 2004-2012 SugarCRM Inc.
  * 
  * This program is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Affero General Public License version 3 as published by the
@@ -69,7 +69,9 @@ class javascript{
 	}
 
     function addSpecialField($dispField, $realField, $type, $required, $prefix = '') {
+       if (isset($this->sugarbean->field_name_map[$realField]['vname'])) {
     	$this->addFieldGeneric($dispField, 'date', $this->sugarbean->field_name_map[$realField]['vname'], $required, $prefix );
+       }
     }
 
 	function addField($field,$required, $prefix='', $displayField='', $translate = false){
@@ -95,15 +97,16 @@ class javascript{
 			if(isset($this->sugarbean->field_name_map[$field]['validation'])){
 				switch($this->sugarbean->field_name_map[$field]['validation']['type']){
 					case 'range':
-						$min = 0;
-						$max = 100;
+                        $min = false;
+                        $max = false;
 						if(isset($this->sugarbean->field_name_map[$field]['validation']['min'])){
-							$min = $this->sugarbean->field_name_map[$field]['validation']['min'];
+                            $min = filter_var($this->sugarbean->field_name_map[$field]['validation']['min'], FILTER_VALIDATE_INT);
 						}
 						if(isset($this->sugarbean->field_name_map[$field]['validation']['max'])){
-							$max = $this->sugarbean->field_name_map[$field]['validation']['max'];
+                            $max = filter_var($this->sugarbean->field_name_map[$field]['validation']['max'], FILTER_VALIDATE_INT);
 						}
-						if($min > $max){
+                        if ($min !== false && $max !== false && $min > $max)
+                        {
 							$max = $min;
 						}
 						if(!empty($displayField)){
@@ -126,6 +129,11 @@ class javascript{
 						$this->addFieldDateBeforeAllowBlank($dispField,$this->sugarbean->field_name_map[$field]['type'],$vname,$required,$prefix, $compareTo );
 						else $this->addFieldDateBefore($dispField,$this->sugarbean->field_name_map[$field]['type'],$vname,$required,$prefix, $compareTo );
 						break;
+                    // Bug #47961 Adding new type of validation: through callback function
+                    case 'callback' :
+                        $dispField = $displayField ? $displayField : $field;
+                        $this->addFieldCallback($dispField, $this->sugarbean->field_name_map[$field]['type'], $vname, $required, $prefix, $this->sugarbean->field_name_map[$field]['validation']['callback']);
+                        break;
 					default:
 						if(!empty($displayField)){
 							$dispField = $displayField;
@@ -172,9 +180,29 @@ class javascript{
                        . $this->stripEndColon(translate($displayName,$this->sugarbean->module_dir)) . "' );\n";
 	}
 
+    // Bug #47961 Generator of callback validator
+    function addFieldCallback($field, $type, $displayName, $required, $prefix, $callback)
+    {
+        $this->script .= 'addToValidateCallback("'
+            . $this->formname . '", "'
+            . $prefix.$field . '", "'
+            . $type . '", '
+            . $this->getRequiredString($required) . ', "'
+            . $this->stripEndColon(translate($displayName, $this->sugarbean->module_dir)).'", '
+            .$callback
+        .');'."\n";
+    }
+
 	function addFieldRange($field, $type,$displayName, $required, $prefix='',$min, $max){
-		$this->script .= "addToValidateRange('".$this->formname."', '".$prefix.$field."', '".$type . "', {$this->getRequiredString($required)},'"
-                       . $this->stripEndColon(translate($displayName,$this->sugarbean->module_dir)) . "', $min, $max );\n";
+        $this->script .= "addToValidateRange("
+            . "'" . $this->formname . "', "
+            . "'" . $prefix . $field . "', '"
+            . $type . "', "
+            . $this->getRequiredString($required) . ", '"
+            . $this->stripEndColon(translate($displayName, $this->sugarbean->module_dir)) . "', "
+            . ($min === false ? 'false' : $min) . ", "
+            . ($max === false ? 'false' : $max)
+            . ");\n";
 	}
 
 	function addFieldIsValidDate($field, $type, $displayName, $msg, $required, $prefix='') {
@@ -240,6 +268,10 @@ class javascript{
 			}
 		}
 	}
+
+    function addActionMenu() {
+        $this->script .= "$(document).ready(SUGAR.themes.actionMenu);";
+    }
 
 	function getScript($showScriptTag = true, $clearValidateFields = true){
 		$tempScript = $this->script;

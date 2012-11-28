@@ -2,7 +2,7 @@
 if(!defined('sugarEntry') || !sugarEntry) die('Not A Valid Entry Point');
 /*********************************************************************************
  * SugarCRM Community Edition is a customer relationship management program developed by
- * SugarCRM, Inc. Copyright (C) 2004-2011 SugarCRM Inc.
+ * SugarCRM, Inc. Copyright (C) 2004-2012 SugarCRM Inc.
  * 
  * This program is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Affero General Public License version 3 as published by the
@@ -35,13 +35,10 @@ if(!defined('sugarEntry') || !sugarEntry) die('Not A Valid Entry Point');
  * "Powered by SugarCRM".
  ********************************************************************************/
 
-/*********************************************************************************
-
- * Description:
- * Portions created by SugarCRM are Copyright (C) SugarCRM, Inc. All Rights
- * Reserved. Contributor(s): ______________________________________..
- *********************************************************************************/
-
+/**
+ * Outbuound email management
+ * @api
+ */
 class OutboundEmail {
 	/**
 	 * Necessary
@@ -334,7 +331,7 @@ class OutboundEmail {
 	}
 
 	/**
-	 *  Determine if the user is alloweed to use the current system outbound connection.
+	 *  Determine if the user is allowed to use the current system outbound connection.
 	 */
 	function isAllowUserAccessToSystemDefaultOutbound()
 	{
@@ -462,47 +459,44 @@ class OutboundEmail {
 				}else{
 					$values .= "'{$this->$def}'";
 				}
-			
-				
+
+
 			}
 
 			$q  = "INSERT INTO outbound_email ($cols) VALUES ({$values})";
 		} else {
-			$values = "";
+			$values = array();
 			foreach($this->field_defs as $def) {
-				if ($def == 'mail_smtppass') {
-    				if(!empty($this->mail_smtppass)) {
-					    $this->mail_smtppass = blowfishEncode(blowfishGetKey('OutBoundEmail'), $this->mail_smtppass);
-				    } else {
-				        // ignore empty password unless username is empty too
-				        if(!empty($this->mail_smtpuser)) {
-				            continue;
-				        }
-				    }
+				switch($def) {
+					case 'mail_smtpport':
+					case 'mail_smtpauth_req':
+					case 'mail_smtpssl':
+						if(empty($this->$def)){
+							$this->$def = 0;
+						}
+                        $values []= "{$def} = {$this->$def}";
+						break;
+					case 'mail_smtppass':
+						if(!empty($this->mail_smtppass)) {
+							$this->mail_smtppass = blowfishEncode(blowfishGetKey('OutBoundEmail'), $this->mail_smtppass);
+						} else {
+							// ignore empty password unless username is empty too
+							if(!empty($this->mail_smtpuser)) {
+                                continue;
+							}
+						}
+                        $values []= "{$def} = '{$this->$def}'";
+						break;
+					case 'mail_smtpuser':
+						if(strpos($this->$def, '\\' )){ //bug 41766: taking care of '\' in username
+							$temp = explode('\\', $this->$def);
+							$this->$def = $temp[0] . '\\\\' .$temp[1];
+						}
+					default:
+                        $values []= "{$def} = '{$this->$def}'";
 				}
-			    if(!empty($values)) {
-					$values .= ", ";
-				}
-				$pattern = "\\";
-				if($def == 'mail_smtpauth_req' || $def == 'mail_smtpssl'){
-					if(empty($this->$def)){
-						$this->$def = 0;
-					}
-					$values .= "{$def} = {$this->$def}";
-				}elseif($def == 'mail_smtpuser' && strpos($this->$def, '\\' )){ //bug 41766: taking care of '\' in username
-					$temp = explode('\\', $this->$def);
-					$this->$def = $temp[0] . '\\\\' .$temp[1];
-					$values .= "{$def} = '{$this->$def}'";
-				}else{
-					$values .= "{$def} = '{$this->$def}'";
-				}
-				
-			
-				
 			}
-		
-
-			$q = "UPDATE outbound_email SET {$values} WHERE id = '{$this->id}'";
+			$q = "UPDATE outbound_email SET ".implode(', ', $values)." WHERE id = '{$this->id}'";
 		}
 
 		$this->db->query($q, true);
@@ -619,6 +613,9 @@ class OutboundEmail {
 	        if(!empty($oe) && !empty($oe->id)) {
 	            return $oe;
 	        }
+            else  {
+                return $this->getSystemMailerSettings();
+            }
 	    }
 	    $res = $this->db->query("SELECT id FROM outbound_email WHERE user_id = '{$user->id}' AND name='".$this->db->quote($name)."'");
 		$a = $this->db->fetchByAssoc($res);

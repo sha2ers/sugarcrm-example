@@ -2,7 +2,7 @@
 if(!defined('sugarEntry') || !sugarEntry) die('Not A Valid Entry Point');
 /*********************************************************************************
  * SugarCRM Community Edition is a customer relationship management program developed by
- * SugarCRM, Inc. Copyright (C) 2004-2011 SugarCRM Inc.
+ * SugarCRM, Inc. Copyright (C) 2004-2012 SugarCRM Inc.
  * 
  * This program is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Affero General Public License version 3 as published by the
@@ -50,8 +50,10 @@ global $sugar_config, $sugar_version, $sugar_flavor, $server_unique_key, $curren
 if(isset( $sugar_config['disc_client']) && $sugar_config['disc_client']){
 	require_once('modules/Sync/headermenu.php');
 }
+
+
 $global_control_links['employees'] = array(
-'linkinfo' => array($app_strings['LBL_EMPLOYEES']=> 'index.php?module=Employees&action=index'),
+'linkinfo' => array($app_strings['LBL_EMPLOYEES']=> 'index.php?module=Employees&action=index&query=true'),
 'submenu' => ''
 );
 if (
@@ -66,10 +68,13 @@ $global_control_links['training'] = array(
 'linkinfo' => array($app_strings['LBL_TRAINING'] => 'javascript:void(window.open(\'http://support.sugarcrm.com\'))'),
 'submenu' => ''
  );
+
+/* no longer goes in the menubar - now implemented in the bottom bar.
 $global_control_links['help'] = array(
     'linkinfo' => array($app_strings['LNK_HELP'] => ' javascript:void window.open(\'index.php?module=Administration&action=SupportPortal&view=documentation&version='.$sugar_version.'&edition='.$sugar_flavor.'&lang='.$current_language.'&help_module='.$GLOBALS['module'].'&help_action='.$action.'&key='.$server_unique_key.'\')'),
     'submenu' => ''
  );
+*/
 
 $global_control_links['users'] = array(
 'linkinfo' => array($app_strings['LBL_LOGOUT'] => 'index.php?module=Users&action=Logout'),

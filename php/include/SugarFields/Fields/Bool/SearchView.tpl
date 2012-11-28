@@ -1,7 +1,7 @@
 {*
 /*********************************************************************************
  * SugarCRM Community Edition is a customer relationship management program developed by
- * SugarCRM, Inc. Copyright (C) 2004-2011 SugarCRM Inc.
+ * SugarCRM, Inc. Copyright (C) 2004-2012 SugarCRM Inc.
  * 
  * This program is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Affero General Public License version 3 as published by the
@@ -47,7 +47,7 @@
 	{assign var="default" value="SELECTED"}
 {/if}
 
-<select id="{{sugarvar key='name'}}" name="{{sugarvar key='name'}}" tabindex="{{$tabindex}}" {{$displayParams.field}}>
+<select id="{{sugarvar key='name'}}" name="{{sugarvar key='name'}}" {{if !empty($tabindex)}} tabindex="{{$tabindex}}" {{/if}}  {{$displayParams.field}}>
  <option value="" {$default}></option>
  <option value = "0" {$no}> {$APP.LBL_SEARCH_DROPDOWN_NO}</option>
  <option value = "1" {$yes}> {$APP.LBL_SEARCH_DROPDOWN_YES}</option>

@@ -2,7 +2,7 @@
 if(!defined('sugarEntry') || !sugarEntry) die('Not A Valid Entry Point');
 /*********************************************************************************
  * SugarCRM Community Edition is a customer relationship management program developed by
- * SugarCRM, Inc. Copyright (C) 2004-2011 SugarCRM Inc.
+ * SugarCRM, Inc. Copyright (C) 2004-2012 SugarCRM Inc.
  * 
  * This program is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Affero General Public License version 3 as published by the
@@ -95,6 +95,7 @@ $dictionary['EmailMarketing'] = array('table' => 'email_marketing'
 	    'type' => 'varchar',
 	    'len' => '255',
 	    'importable' => 'required',
+  		'required' => true
   	),
   	'from_name' =>  //starting from 4.0 from_name is obsolete..replaced with inbound_email_id
   	array (
@@ -103,6 +104,7 @@ $dictionary['EmailMarketing'] = array('table' => 'email_marketing'
 	    'type' => 'varchar',
 	    'len' => '100',
 	    'importable' => 'required',
+  		'required' => true
   	),
   	'from_addr' =>
   	array (
@@ -111,6 +113,7 @@ $dictionary['EmailMarketing'] = array('table' => 'email_marketing'
     	'type' => 'varchar',
     	'len' => '100',
     	'importable' => 'required',
+  		'required' => true
   	),
   	'reply_to_name' =>
   	array (
@@ -139,6 +142,7 @@ $dictionary['EmailMarketing'] = array('table' => 'email_marketing'
     	'vname' => 'LBL_DATE_START',
     	'type' => 'datetime',
     	'importable' => 'required',
+  		'required' => true
     	),
 
   	'template_id' =>

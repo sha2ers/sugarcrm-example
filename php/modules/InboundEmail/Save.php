@@ -2,7 +2,7 @@
 if(!defined('sugarEntry') || !sugarEntry) die('Not A Valid Entry Point');
 /*********************************************************************************
  * SugarCRM Community Edition is a customer relationship management program developed by
- * SugarCRM, Inc. Copyright (C) 2004-2011 SugarCRM Inc.
+ * SugarCRM, Inc. Copyright (C) 2004-2012 SugarCRM Inc.
  * 
  * This program is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Affero General Public License version 3 as published by the
@@ -45,6 +45,7 @@ if(!empty($_REQUEST['record'])) {
 } elseif(!empty($_REQUEST['origin_id'])) {
     $focus->retrieve($_REQUEST['origin_id']);
     unset($focus->id);
+    unset($focus->groupfolder_id);
 }
 foreach($focus->column_fields as $field) {
     if($field == 'email_password' && empty($_REQUEST['email_password']) && !empty($_REQUEST['email_user'])) {
@@ -158,6 +159,7 @@ if( isset($_REQUEST['is_auto_import']) && $_REQUEST['is_auto_import'] == 'on' )
         $groupFolderId = $focus->createAutoImportSugarFolder();
         $focus->groupfolder_id = $groupFolderId;
     }
+    $stored_options['isAutoImport'] = true;
 }
 else
 {
@@ -172,6 +174,7 @@ else
         $f->retrieve($focus->fetched_row['groupfolder_id']);
         $f->delete();
     }
+    $stored_options['isAutoImport'] = false;
 }
 
 if (!empty($focus->groupfolder_id))

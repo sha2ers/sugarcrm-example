@@ -2,7 +2,7 @@
 if(!defined('sugarEntry') || !sugarEntry) die('Not A Valid Entry Point');
 /*********************************************************************************
  * SugarCRM Community Edition is a customer relationship management program developed by
- * SugarCRM, Inc. Copyright (C) 2004-2011 SugarCRM Inc.
+ * SugarCRM, Inc. Copyright (C) 2004-2012 SugarCRM Inc.
  * 
  * This program is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Affero General Public License version 3 as published by the
@@ -48,12 +48,12 @@ BUGS
 
 
 
-function get_bugs_in_contacts($in, $orderBy = '', $where='')
+function get_bugs_in_contacts($in, $orderBy = '')
     {
         //bail if the in is empty
         if(empty($in)  || $in =='()' || $in =="('')")return;
         // First, get the list of IDs.
-        
+
         $query = "SELECT bug_id as id from contacts_bugs where contact_id IN $in AND deleted=0";
         if(!empty($orderBy)){
             $query .= ' ORDER BY ' . $orderBy;
@@ -63,12 +63,12 @@ function get_bugs_in_contacts($in, $orderBy = '', $where='')
         set_module_in($sugar->build_related_in($query), 'Bugs');
     }
 
-function get_bugs_in_accounts($in, $orderBy = '', $where='')
+function get_bugs_in_accounts($in, $orderBy = '')
     {
         //bail if the in is empty
         if(empty($in)  || $in =='()' || $in =="('')")return;
         // First, get the list of IDs.
-        
+
         $query = "SELECT bug_id as id from accounts_bugs where account_id IN $in AND deleted=0";
         if(!empty($orderBy)){
             $query .= ' ORDER BY ' . $orderBy;
@@ -109,8 +109,8 @@ function get_cases_in_accounts($in, $orderBy = '')
         $query = "SELECT id  from cases where account_id IN $in AND deleted=0";
         if(!empty($orderBy)){
             $query .= ' ORDER BY ' . $orderBy;
-        }       
-        
+        }
+
         $sugar = new Account();
         set_module_in($sugar->build_related_in($query), 'Cases');
     }
@@ -131,7 +131,7 @@ function get_notes_in_contacts($in, $orderBy = '')
         if(!empty($orderBy)){
             $query .= ' ORDER BY ' . $orderBy;
         }
-            
+
         $contact = new Contact();
         $note = new Note();
         return $contact->build_related_list($query, $note);
@@ -159,7 +159,7 @@ function get_notes_in_module($in, $module, $orderBy = '')
         $note = new Note();
         return $sugar->build_related_list($query, $note);
     }
-    
+
     function get_related_in_module($in, $module, $rel_module, $orderBy = '', $row_offset = 0, $limit= -1)
     {
         global $beanList, $beanFiles;
@@ -170,7 +170,7 @@ function get_notes_in_module($in, $module, $orderBy = '')
         }else{
             return array();
         }
-        
+
         //bail if the in is empty
         if(empty($in)  || $in =='()' || $in =="('')")return;
 
@@ -180,11 +180,19 @@ function get_notes_in_module($in, $module, $orderBy = '')
                       inner join kbdocument_revisions kr on kr.document_revision_id = dr.id AND kr.kbdocument_id IN ($in)
                       AND dr.file_mime_type is not null";
         } else {
-            $query = "SELECT id from $rel->table_name where parent_id IN $in AND parent_type='$module' AND deleted=0 AND portal_flag = 1";
+            $query = "SELECT id from $rel->table_name where parent_id IN $in AND parent_type='".$GLOBALS['db']->quote($module)."' AND deleted=0 AND portal_flag = 1";
         }
 
         if(!empty($orderBy)){
-            $query .= ' ORDER BY ' . $orderBy;
+            require_once 'include/SugarSQLValidate.php';
+            $valid = new SugarSQLValidate();
+            $fakeWhere = " 1=1 ";
+            if($valid->validateQueryClauses($fakeWhere,$orderBy)) {
+                $query .= ' ORDER BY '. $orderBy;
+            } else {
+                $GLOBALS['log']->error("Bad order by: $orderBy");
+            }
+
         }
 
         if(!empty($beanList[$module])){
@@ -194,8 +202,8 @@ function get_notes_in_module($in, $module, $orderBy = '')
         }else{
             return array();
         }
-        
-        
+
+
         $count_query = $sugar->create_list_count_query($query);
         if(!empty($count_query))
         {
@@ -215,7 +223,7 @@ function get_notes_in_module($in, $module, $orderBy = '')
 function get_accounts_from_contact($contact_id, $orderBy = '')
     {
                 // First, get the list of IDs.
-        $query = "SELECT account_id as id from accounts_contacts where contact_id='$contact_id' AND deleted=0";
+        $query = "SELECT account_id as id from accounts_contacts where contact_id='".$GLOBALS['db']->quote($contact_id)."' AND deleted=0";
         if(!empty($orderBy)){
             $query .= ' ORDER BY ' . $orderBy;
         }
@@ -226,7 +234,7 @@ function get_accounts_from_contact($contact_id, $orderBy = '')
 function get_contacts_from_account($account_id, $orderBy = '')
     {
         // First, get the list of IDs.
-        $query = "SELECT contact_id as id from accounts_contacts where account_id='$account_id' AND deleted=0";
+        $query = "SELECT contact_id as id from accounts_contacts where account_id='".$GLOBALS['db']->quote($account_id)."' AND deleted=0";
         if(!empty($orderBy)){
             $query .= ' ORDER BY ' . $orderBy;
         }
@@ -244,10 +252,18 @@ function get_related_list($in, $template, $where, $order_by, $row_offset = 0, $l
              $q = 'select id from '.$template->table_name.' where deleted = 0 ';
         	//add where statement if it is not empty
 			if(!empty($where)){
-				$q .= ' and '.$where;
+                require_once 'include/SugarSQLValidate.php';
+                $valid = new SugarSQLValidate();
+                if(!$valid->validateQueryClauses($where)) {
+                    $GLOBALS['log']->error("Bad query: $where");
+                    // No way to directly pass back an error.
+                    return array();
+                }
+
+				$q .= ' and ( '.$where.' ) ';
 			}
         }
-        
+
         return $template->build_related_list_where($q, $template, $where, $in, $order_by, $limit, $row_offset);
 
     }
@@ -258,7 +274,7 @@ function build_relationship_tree($contact){
 
     get_accounts_from_contact($contact->id);
 
-    set_module_in(array('list'=>array($contact->id), 'in'=> "('$contact->id')"), 'Contacts');
+    set_module_in(array('list'=>array($contact->id), 'in'=> "('".$GLOBALS['db']->quote($contact->id)."')"), 'Contacts');
 
     $accounts = $_SESSION['viewable']['Accounts'];
     foreach($accounts as $id){
@@ -281,9 +297,15 @@ function get_module_in($module_name){
         return '()';
     }
 
-    $mod_in = "('" . join("','", array_keys($_SESSION['viewable'][$module_name])) . "')";
+    $module_name_in = array_keys($_SESSION['viewable'][$module_name]);
+    $module_name_list = array();
+    foreach ( $module_name_in as $name ) {
+        $module_name_list[] = $GLOBALS['db']->quote($name);
+    }
+
+    $mod_in = "('" . join("','", $module_name_list) . "')";
     $_SESSION['viewable'][strtolower($module_name).'_in'] = $mod_in;
-    
+
     return $mod_in;
 }
 
@@ -301,8 +323,18 @@ function set_module_in($arrayList, $module_name){
 
         if(!empty($_SESSION['viewable'][strtolower($module_name).'_in'])){
             if($arrayList['in'] != '()') {
-                $_SESSION['viewable'][strtolower($module_name).'_in'] = "('" . implode("', '", $_SESSION['viewable'][strtolower($module_name).'_in']);
-                $_SESSION['viewable'][strtolower($module_name).'_in'] .= implode("', '", $arrayList['list']) . "')";
+                $newList = array();
+                if ( is_array($_SESSION['viewable'][strtolower($module_name).'_in']) ) {
+                    foreach($_SESSION['viewable'][strtolower($module_name).'_in'] as $name ) {
+                        $newList[] = $GLOBALS['db']->quote($name);
+                    }
+                }
+                if ( is_array($arrayList['list']) ) {
+                    foreach ( $arrayList['list'] as $name ) {
+                        $newList[] = $GLOBALS['db']->quote($name);
+                    }
+                }
+                $_SESSION['viewable'][strtolower($module_name).'_in'] = "('" . implode("', '", $newList) . "')";
             }
         }else{
             $_SESSION['viewable'][strtolower($module_name).'_in'] = $arrayList['in'];
@@ -315,17 +347,18 @@ function set_module_in($arrayList, $module_name){
  */
 function login_user($portal_auth){
      $error = new SoapError();
-     $user = new User();
-     $user = $user->retrieve_by_string_fields(array('user_name'=>$portal_auth['user_name'],'user_hash'=>$portal_auth['password'], 'deleted'=>0, 'status'=>'Active', 'portal_only'=>1) );    
-        
-        if($user != null){
+     $user = User::findUserPassword($portal_auth['user_name'], $portal_auth['password'], "portal_only='1' AND status = 'Active'");
+
+     if(!empty($user)) {
             global $current_user;
-            $current_user = $user;
+            $bean = new User();
+            $bean->retrieve($user['id']);
+            $current_user = $bean;
             return 'success';
-        }else{
+    } else {
             $GLOBALS['log']->fatal('SECURITY: User authentication for '. $portal_auth['user_name']. ' failed');
             return 'fail';
-        }
+    }
 }
 
 
@@ -355,7 +388,7 @@ function portal_get_entry_list_limited($session, $module_name,$where, $order_by,
            if(!empty($c)) {get_cases_in_contacts($c);}
            if(!empty($a)) { get_cases_in_accounts($a);}
         }
-         
+
         $sugar = new aCase();
 
         $list = array();
@@ -415,7 +448,7 @@ function portal_get_entry_list_limited($session, $module_name,$where, $order_by,
     return array('result_count'=>sizeof($output_list), 'next_offset'=>0,'field_list'=>$field_list, 'entry_list'=>$output_list, 'error'=>$error->get_soap_array());
 }
 
-$invalid_contact_fields = array('portal_name'=>1, 'portal_password'=>1, 'portal_active'=>1);
+$invalid_contact_fields = array('portal_password'=>1, 'portal_active'=>1);
 $valid_modules_for_contact = array('Contacts'=>1, 'Cases'=>1, 'Notes'=>1, 'Bugs'=>1, 'Accounts'=>1, 'Leads'=>1, 'KBDocuments'=>1);
 
 

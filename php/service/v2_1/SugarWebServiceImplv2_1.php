@@ -2,7 +2,7 @@
 if(!defined('sugarEntry'))define('sugarEntry', true);
 /*********************************************************************************
  * SugarCRM Community Edition is a customer relationship management program developed by
- * SugarCRM, Inc. Copyright (C) 2004-2011 SugarCRM Inc.
+ * SugarCRM, Inc. Copyright (C) 2004-2012 SugarCRM Inc.
  * 
  * This program is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Affero General Public License version 3 as published by the
@@ -41,7 +41,7 @@ if(!defined('sugarEntry'))define('sugarEntry', true);
  */
 require_once('service/core/SugarWebServiceImpl.php');
 
-class SugarWebServiceImplv2_1 extends SugarWebServiceImpl 
+class SugarWebServiceImplv2_1 extends SugarWebServiceImpl
 {
 	/**
 	 * Retrieve a list of beans.  This is the primary method for getting list of SugarBeans from Sugar using the SOAP API.
@@ -64,6 +64,9 @@ class SugarWebServiceImplv2_1 extends SugarWebServiceImpl
 	public function get_entry_list($session, $module_name, $query, $order_by,$offset, $select_fields, $link_name_to_fields_array, $max_results, $deleted )
 	{
 		$result = parent::get_entry_list($session, $module_name, $query, $order_by,$offset, $select_fields, $link_name_to_fields_array, $max_results, $deleted );
+		if(empty($result)) {
+		    return null;
+		}
 		$relationshipList = $result['relationship_list'];
 		$returnRelationshipList = array();
 		foreach($relationshipList as $rel){

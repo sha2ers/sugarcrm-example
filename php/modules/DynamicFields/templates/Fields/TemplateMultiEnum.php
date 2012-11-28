@@ -2,7 +2,7 @@
 if(!defined('sugarEntry') || !sugarEntry) die('Not A Valid Entry Point');
 /*********************************************************************************
  * SugarCRM Community Edition is a customer relationship management program developed by
- * SugarCRM, Inc. Copyright (C) 2004-2011 SugarCRM Inc.
+ * SugarCRM, Inc. Copyright (C) 2004-2012 SugarCRM Inc.
  * 
  * This program is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Affero General Public License version 3 as published by the
@@ -45,14 +45,6 @@ class TemplateMultiEnum extends TemplateEnum{
 		$xtpl_var = strtoupper( $this->name);
 		// MFH BUG#13645
 		return "<input type='hidden' name='". $this->name. "' value='0'><select name='". $this->name . "[]' size='5' title='{" . $xtpl_var ."_HELP}' MULTIPLE=true>{OPTIONS_".$xtpl_var. "}</select>";
-	}
-
-	function get_db_type(){
-		if ($GLOBALS['db']->dbType=='oci8') {
-			return " CLOB ";
-		} else {
-			return " TEXT ";
-		}
 	}
 
 	function get_xtpl_edit(){
@@ -140,7 +132,7 @@ class TemplateMultiEnum extends TemplateEnum{
 			else
 			{
 				// we have a packed representation containing one or both of default and dependency
-                                if ( isset ( $unpacked [ 'default' ] ) && !isset($this->no_default))
+                if ( isset ( $unpacked [ 'default' ] ) && !isset($this->no_default))
 					$def [ 'default' ] = $unpacked [ 'default' ] ;
 				if ( isset ( $unpacked [ 'dependency' ] ) )
 					$def [ 'dependency' ] = $unpacked [ 'dependency' ] ;
@@ -155,20 +147,16 @@ class TemplateMultiEnum extends TemplateEnum{
     	return '';
 	}
 
-    function get_db_modify_alter_table($table){
-        return parent::get_db_modify_alter_table($table);
-	}
-
 	function save($df) {
 		if ( isset ( $this->default ) )
 		{
 			if ( is_array ( $this->default ) )
 				$this->default = encodeMultienumValue($this->default);
-			$this->ext4 = ( isset ( $this->dependency ) ) ? serialize ( array ( 'default' => $this->default , 'dependency' => $this->dependency ) )  : $this->default ;
+			$this->ext4 = ( isset ( $this->dependency ) ) ? serialize ( array ( 'default' => $this->default , 'dependency' => html_entity_decode($this->dependency) ) )  : $this->default ;
 		} else
 		{
 			if ( isset ( $this->dependency ) )
-				$this->ext4 = serialize ( array ( 'dependency' => $this->dependency ) ) ;
+				$this->ext4 = serialize ( array ( 'dependency' => html_entity_decode($this->dependency) ) ) ;
 		}
 		parent::save($df);
 	}

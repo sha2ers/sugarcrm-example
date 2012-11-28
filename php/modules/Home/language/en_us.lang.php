@@ -2,7 +2,7 @@
 if(!defined('sugarEntry') || !sugarEntry) die('Not A Valid Entry Point');
 /*********************************************************************************
  * SugarCRM Community Edition is a customer relationship management program developed by
- * SugarCRM, Inc. Copyright (C) 2004-2011 SugarCRM Inc.
+ * SugarCRM, Inc. Copyright (C) 2004-2012 SugarCRM Inc.
  * 
  * This program is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Affero General Public License version 3 as published by the
@@ -176,7 +176,7 @@ $mod_strings = array (
   'LBL_VIEWLICENSE_COM' => '<P>This program is free software; you can redistribute it and/or modify it under the terms of the <a href="LICENSE.txt" target="_blank" class="body"> GNU Affero General Public License version 3</a> as published by the Free Software Foundation, including the additional permission set forth in the source code header.</P>',
   'LBL_ADD_TERM_COM' => '<P>The interactive user interfaces in modified source and object code versions of this program must display Appropriate Legal Notices, as required under Section 5 of the GNU Affero General Public License version 3. In accordance with Section 7(b) of the GNU General Public License version 3, these Appropriate Legal Notices must retain the display of the &quot;Powered by SugarCRM&quot; logo. If the display of the logo is not reasonably feasible for technical reasons, the Appropriate Legal Notices must display the words &quot;Powered by SugarCRM&quot;.</P>',
 
- 
+
   'LBL_SUGAR_COMMUNITY_EDITION' => 'Sugar Community Edition',
   'LBL_SUGAR_PROFESSIONAL' => "Sugar Professional",
   'LBL_SUGAR_ENTERPRISE' => "Sugar Enterprise",
@@ -212,17 +212,16 @@ $mod_strings = array (
   'LBL_SOURCE_HTTP_WEBDAV_SERVER' => 'HTTP_WebDAV_Server - A WebDAV Server Implementation in PHP.',
   'LBL_SOURCE_PCLZIP' => 'PclZip - library offers compression and extraction functions for Zip formatted archives by Vincent Blavet',
   'LBL_SOURCE_SMARTY' => 'Smarty - A template engine for PHP.',
-  'LBL_SOURCE_OVERLIBMWS' => 'Overlibmws - JavaScript library for client-side windowing.',
   'LBL_SOURCE_YAHOO_UI_LIB' => 'Yahoo! User Interface Library - The UI Library Utilities facilitate the implementation of rich client-side features.',
   'LBL_SOURCE_PHPMAILER' => 'PHPMailer - A full featured email transfer class for PHP',
+  'LBL_SOURCE_JSHRINK' => 'JShrink - A Javascript minifier written in PHP',
   'LBL_SOURCE_CRYPT_BLOWFISH' => 'Crypt_Blowfish - Allows for quick two-way blowfish encryption without requiring the MCrypt PHP extension.',
-  'LBL_SOURCE_HTML_SAFE' => 'HTML_Safe - A parser that strips down all potentially dangerous content within HTML',
   'LBL_SOURCE_XML_HTMLSAX3' => 'XML_HTMLSax3 - A SAX parser for HTML and other badly formed XML documents',
   'LBL_SOURCE_YAHOO_UI_LIB_EXT' => 'Yahoo! UI Extensions Library - Extensions to the Yahoo! User Interface Library by Jack Slocum',
   'LBL_SOURCE_SWFOBJECT' => 'SWFObject - Javascript Flash Player detection and embed script.',
   'LBL_SOURCE_TINYMCE' => 'TinyMCE - A WYSIWYG editor control for web browsers that enables the user to edit HTML contents',
   'LBL_SOURCE_EXT' => 'Ext - A client-side JavaScript framework for building web applications.',
-  'LBL_SOURCE_RECAPTCHA' => 'reCAPTCHA - A free CAPTCHA service that helps to digitize books, newspapers and old time radio shows.', 
+  'LBL_SOURCE_RECAPTCHA' => 'reCAPTCHA - A free CAPTCHA service that helps to digitize books, newspapers and old time radio shows.',
   'LBL_SOURCE_TCPDF' => 'TCPDF - A PHP class for generating PDF documents.',
   'LBL_SOURCE_CSSMIN' => 'CssMin - A css parser and minifier.',
   'LBL_SOURCE_PHPSAML' => 'PHP-SAML - A simple SAML toolkit for PHP.',
@@ -232,6 +231,8 @@ $mod_strings = array (
   'LBL_SOURCE_ZEND' => 'Zend Framework - An open source, object oriented web application framework for PHP5.',
   'LBL_SOURCE_PARSECSV' => 'parseCSV - CSV data parser for PHP',
   'LBL_SOURCE_PHPJS' => 'php.js - Use PHP functions in JavaScript',
+  'LBL_SOURCE_PHPSQL' => 'PHP SQL Parser',
+  'LBL_SOURCE_HTMLPURIFIER' => 'HTML Purifier - A standards-compliant HTML filtering library.',
 
   'LBL_DASHLET_TITLE' => 'My Sites',
   'LBL_DASHLET_OPT_TITLE' => 'Title',
@@ -239,6 +240,41 @@ $mod_strings = array (
   'LBL_DASHLET_OPT_HEIGHT' => 'Dashlet Height (in pixels)',
   'LBL_DASHLET_SUGAR_NEWS' => 'Sugar News',
   'LBL_DASHLET_DISCOVER_SUGAR_PRO' => 'Discover Sugar',
+	'LBL_POWERED_BY_SUGAR' => 'Powered By SugarCRM' /*for 508 compliance fix*/,
+	'LBL_MORE_DETAIL' => 'More Detail' /*for 508 compliance fix*/,
+	'LBL_BASIC_SEARCH' => 'Basic Search' /*for 508 compliance fix*/,
+	'LBL_ADVANCED_SEARCH' => 'Advanced Search' /*for 508 compliance fix*/,
+    'LBL_TOUR_HOME' => 'Home Icon',
+    'LBL_TOUR_HOME_DESCRIPTION' => 'Quickly get back to your Home Page dashboard in one click.',
+    'LBL_TOUR_MODULES' => 'Modules',
+    'LBL_TOUR_MODULES_DESCRIPTION' => 'All your important modules are here.',
+    'LBL_TOUR_MORE' => 'More Modules',
+    'LBL_TOUR_MORE_DESCRIPTION' => 'The rest of your modules are here.',
+    'LBL_TOUR_SEARCH' => 'Full Text Search',
+    'LBL_TOUR_SEARCH_DESCRIPTION' => 'Search just got a whole lot better.',
+    'LBL_TOUR_NOTIFICATIONS' => 'Notifications',
+    'LBL_TOUR_NOTIFICATIONS_DESCRIPTION' => 'Sugar application notifications would go here.',
+    'LBL_TOUR_PROFILE' => 'Profile',
+    'LBL_TOUR_PROFILE_DESCRIPTION' => 'Access profile, settings and logout.',
+    'LBL_TOUR_QUICKCREATE' => 'Quick Create',
+    'LBL_TOUR_QUICKCREATE_DESCRIPTION' => 'Quickly create records without losing your place.',
+    'LBL_TOUR_FOOTER' => 'Collapsible Footer',
+    'LBL_TOUR_FOOTER_DESCRIPTION' => 'Easily expand and collapse the footer.',
+    'LBL_TOUR_CUSTOM' => 'Custom Apps',
+    'LBL_TOUR_CUSTOM_DESCRIPTION' => 'Custom integrations would go here.',
+    'LBL_TOUR_BRAND' => 'Your Brand',
+    'LBL_TOUR_BRAND_DESCRIPTION' => 'Your logo goes here. You can mouse over for more info.',
+    'LBL_TOUR_WELCOME' => 'Welcome to Sugar',
+    'LBL_TOUR_WATCH' => 'Watch What\'s New in Sugar',
+    'LBL_TOUR_FEATURES' => '<ul style=""><li class="icon-ok">New simplifed navigation bar</li><li class="icon-ok">New collapsible footer</li><li class="icon-ok">Improved Search</li><li class="icon-ok">Updated actions menu</li></ul><p>and much more!</p>',
+    'LBL_TOUR_VISIT' => 'For more information please visit our application',
+    'LBL_TOUR_DONE' => 'You\'re Done!',
+    'LBL_TOUR_REFERENCE_1' => 'You can always reference our',
+    'LBL_TOUR_REFERENCE_2' => 'through the "Support" link under the profile tab.',
+    'LNK_TOUR_DOCUMENTATION' => 'documentation',
+    'LBL_TOUR_CALENDAR_URL_1' => 'Do you share your SugarCRM calendar with 3rd party applications, such as Microsoft Outlook or Exchange? If so, you have a new URL. This new, more secure URL includes a personal key which will prevent unauthorized publishing of your calendar.',
+    'LBL_TOUR_CALENDAR_URL_2' => 'Retrieve your new shared calendar URL.',
+
 );
 
 

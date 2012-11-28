@@ -2,7 +2,7 @@
 if(!defined('sugarEntry') || !sugarEntry) die('Not A Valid Entry Point');
 /*********************************************************************************
  * SugarCRM Community Edition is a customer relationship management program developed by
- * SugarCRM, Inc. Copyright (C) 2004-2011 SugarCRM Inc.
+ * SugarCRM, Inc. Copyright (C) 2004-2012 SugarCRM Inc.
  * 
  * This program is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Affero General Public License version 3 as published by the
@@ -115,31 +115,14 @@ class TemplateDatetimecombo extends TemplateRange
     	'am' => 'am',
     	'pm' => 'pm',
     );
-    
-	function __construct() 
-	{
-		parent::__construct();
-	}       
-    
-	function get_db_type(){
-	    if($GLOBALS['db']->dbType == 'oracle'){
-	        return " DATE ";
-	    } else {
-	        return " DATETIME ";
-	    }
-	}
-	
+
 	function get_db_default($modify=false){
 			return '';
 	}
 
 	function get_field_def(){
 		$def = parent::get_field_def();
-		if($GLOBALS['db']->dbType == 'oracle'){
-	        $def['dbType'] = 'date';
-	    } else {
-	        $def['dbType'] = 'datetime';
-	    }
+	    $def['dbType'] = 'datetime';
 	    if(!empty($def['default'])){
 			$def['display_default'] = $def['default'];
 			$def['default'] = '';
@@ -147,10 +130,6 @@ class TemplateDatetimecombo extends TemplateRange
 		return $def;
 	}
 	
-	function save($df){
-    	parent::save($df);
-    } 
-    
     function populateFromPost(){
     	parent::populateFromPost();
     	if(!empty($_REQUEST['defaultDate']) && !empty($_REQUEST['defaultTime'])){
@@ -180,7 +159,17 @@ class TemplateDatetimecombo extends TemplateRange
     	
 		foreach($this->vardef_map as $vardef=>$field){
 			if(isset($_REQUEST[$vardef])){
-				$this->$vardef = $_REQUEST[$vardef];
+                //  Bug #48826. Some fields are allowed to have special characters and must be decoded from the request
+                // Bug 49774, 49775: Strip html tags from 'formula' and 'dependency'.
+                if (is_string($_REQUEST[$vardef]) && in_array($vardef, $this->decode_from_request_fields_map))
+                {
+                    $this->$vardef = html_entity_decode(strip_tags(from_html($_REQUEST[$vardef])));
+                }
+                else
+                {
+                    $this->$vardef = $_REQUEST[$vardef];
+                }
+
 				if($vardef != $field){
 					$this->$field = $this->$vardef;
 				}

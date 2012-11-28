@@ -2,7 +2,7 @@
 if(!defined('sugarEntry') || !sugarEntry) die('Not A Valid Entry Point');
 /*********************************************************************************
  * SugarCRM Community Edition is a customer relationship management program developed by
- * SugarCRM, Inc. Copyright (C) 2004-2011 SugarCRM Inc.
+ * SugarCRM, Inc. Copyright (C) 2004-2012 SugarCRM Inc.
  * 
  * This program is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Affero General Public License version 3 as published by the
@@ -67,6 +67,7 @@ $mod_strings = array (
 	'ERR_LAST_ADMIN_2'					=> '" is the last user with administrator access.	At least one user must be an administrator.',
 	'ERR_PASSWORD_CHANGE_FAILED_1'		=> 'User password change failed for ',
 	'ERR_PASSWORD_CHANGE_FAILED_2'		=> ' failed.	The new password must be set.',
+	'ERR_PASSWORD_CHANGE_FAILED_3'		=> '.	The new password is invalid.',
 	'ERR_PASSWORD_INCORRECT_OLD_1'		=> 'Incorrect current password for user ',
 	'ERR_PASSWORD_INCORRECT_OLD_2'		=> '. Re-enter password information.',
 	'ERR_PASSWORD_MISMATCH'				=> 'The passwords do not match.',
@@ -116,7 +117,8 @@ $mod_strings = array (
 	'LBL_CHANGE_SYSTEM_PASSWORD'		=> 'Please provide a new password.',
 	'LBL_CHANGE_PASSWORD_TITLE'         => 'Password',
     'LBL_CHOOSE_A_KEY'					=> 'Choose a key to prevent unauthorized publishing of your calendar',
-	'LBL_CHOOSE_WHICH'					=> 'Choose which tabs are displayed',
+    'LBL_NO_KEY'                        => 'Key is not set. Please set key to enable publishing.',
+	'LBL_CHOOSE_WHICH'					=> 'Select which modules are accessible within the top navigation bar. Designate the order in which you would like the modules to appear.',
 	'LBL_CITY'							=> 'City',
 
 	'LBL_CLEAR_BUTTON_TITLE'			=> 'Clear',
@@ -134,15 +136,17 @@ $mod_strings = array (
 	'LBL_NUMBER_GROUPING_SEP_TEXT'		=> 'Character used to separate thousands',
 	'LBL_DECIMAL_SEP'					=> 'Decimal Symbol',
 	'LBL_DECIMAL_SEP_TEXT'				=> 'Character used to separate decimal portion',
+	'LBL_FDOW'					=> 'First Day of Week',
+	'LBL_FDOW_TEXT'				=> 'First Day displayed in Week, Month, and Year Views',
 	'LBL_DATE_FORMAT_TEXT'				=> 'Set the display format for date stamps',
 	'LBL_DATE_FORMAT'					=> 'Date Format',
 	'LBL_DEFAULT_SUBPANEL_TITLE'		=> 'Users',
 	'LBL_DEPARTMENT'					=> 'Department',
 	'LBL_DESCRIPTION'					=> 'Description',
-	'LBL_DISPLAY_TABS'					=> 'Display Tabs',
+	'LBL_DISPLAY_TABS'					=> 'Display Modules',
 	'LBL_DOWNLOADS'                    => 'Downloads',
 	'LBL_DST_INSTRUCTIONS'				=> '(+DST) indicates the observance of Daylight Savings Time',
-	'LBL_EDIT_TABS'						=> 'Edit Tabs',
+	'LBL_EDIT_TABS'						=> 'Select Modules for Navigation Bar',
 	'LBL_EDIT'							=> 'Edit',
 	'LBL_USER_HASH'						=> 'Password',
 	'LBL_AUTHENTICATE_ID'				=> 'Authentication Id',
@@ -177,12 +181,12 @@ $mod_strings = array (
     'LBL_GENERATE_PASSWORD_BUTTON_KEY'  => 'G',
     'LBL_SYSTEM_GENERATED_PASSWORD'     =>'System Generated Password',
     'LBL_GENERATE_PASSWORD_BUTTON_LABEL'   => 'Reset Password',
-    'LBL_GENERATE_PASSWORD_BUTTON_TITLE'   => 'Reset Password [Alt+G]',
+    'LBL_GENERATE_PASSWORD_BUTTON_TITLE'   => 'Reset Password',
     'LBL_GENERATE_PASSWORD'             => 'Reset Password',
 	'LBL_GROUP_DESC'					=> 'Use for assigning items to a group (example: for Inbound Email).  This type cannot login through the Sugar web interface.',
 	'LBL_GROUP_USER_STATUS'				=> 'Group User',
 	'LBL_GROUP_USER'					=> 'Group User',
-	'LBL_HIDE_TABS'						=> 'Hide Tabs',
+	'LBL_HIDE_TABS'						=> 'Hide Modules',
 	'LBL_HOME_PHONE'					=> 'Home Phone',
 	'LBL_INBOUND_TITLE'					=> 'Account Information',
 	'LBL_IS_ADMIN'						=> 'Is Administrator',
@@ -218,7 +222,7 @@ $mod_strings = array (
 	// LOGIN PAGE STRINGS
 	'LBL_LOGIN_BUTTON_KEY'				=> 'L',
 	'LBL_LOGIN_BUTTON_LABEL'			=> 'Log In',
-	'LBL_LOGIN_BUTTON_TITLE'			=> 'Log In [Alt+L]',
+	'LBL_LOGIN_BUTTON_TITLE'			=> 'Log In',
 	'LBL_LOGIN_WELCOME_TO'				=> 'Welcome to',
 	'LBL_LOGIN_OPTIONS'					=> 'Options',
     'LBL_LOGIN_FORGOT_PASSWORD'         => 'Forgot Password?',
@@ -231,6 +235,9 @@ $mod_strings = array (
    	'LBL_LOGIN_LOGIN_TIME_SECONDS'      => 'sec.',
     'LBL_LOGIN_ADMIN_CALL'              => 'Please contact the system administrator.',
 	// END LOGIN PAGE STRINGS
+    'LBL_LOGGED_OUT_1' => 'You have been logged out. To login again please click ',
+    'LBL_LOGGED_OUT_2' => 'here',
+    'LBL_LOGGED_OUT_3' => '.',
 	'LBL_MAIL_FROMADDRESS'				=> 'Reply-to address',
 	'LBL_MAIL_FROMNAME'					=> 'Reply-to name',
 	'LBL_MAIL_OPTIONS_TITLE'			=> 'Email Settings',
@@ -239,22 +246,23 @@ $mod_strings = array (
 	'LBL_MAIL_SMTPPORT'					=> 'SMTP Port',
 	'LBL_MAILMERGE_TEXT'				=> 'Enable Mail Merge (Mail Merge must also be enabled by the system administrator in Configure Settings)',
 	'LBL_MAILMERGE'						=> 'Mail Merge',
-	'LBL_MAX_TAB'						=> 'Number of Tabs',
-    'LBL_MAX_TAB_DESCRIPTION'           => 'Number of tabs shown at the top of the page before an overflow menu appears.',
+	'LBL_MAX_TAB'						=> 'Maximum Number of Modules',
+    'LBL_MAX_TAB_DESCRIPTION'           => 'Select the maximum number of modules that can be displayed in the navigation bar. The number of modules that will display depends on the width of the browser. The modules that are not displayed will appear in the More menu.',
     'LBL_MAX_SUBTAB'                    => 'Number of subtabs',
     'LBL_MAX_SUBTAB_DESCRIPTION'        => 'Number of subtabs shown per tab before an overflow menu appears.',
 	'LBL_MESSENGER_ID'					=> 'IM Name',
 	'LBL_MESSENGER_TYPE'				=> 'IM Type',
 	'LBL_MOBILE_PHONE'					=> 'Mobile',
 	'LBL_MODIFIED_BY'                  =>'Modified By',
+	'LBL_CREATED_BY_NAME' => 'Created By', //bug 48978
     'LBL_MODIFIED_BY_ID'               =>'Modified By ID',
     'LBL_MODULE_NAME'					=> 'Users',
 	'LBL_MODULE_TITLE'					=> 'Users: Home',
     'LBL_NAME'							=> 'Full Name',
     'LBL_SIGNATURE_NAME'                                        =>  'Name',
     'LBL_NAVIGATION_PARADIGM'           => 'Navigation',
-    'LBL_NAVIGATION_PARADIGM_DESCRIPTION'   => 'Select to view modules tabs in the navigation bar based on pre-defined groups. If this feature is not selected, all modules will appear within the navigation bar.',
-    'LBL_USE_GROUP_TABS'                => 'Grouped Modules',
+    'LBL_NAVIGATION_PARADIGM_DESCRIPTION'   => 'Select to be able to view modules in the navigation bar based on pre-defined groups. When selected, the "Filter Menu By" feature will appear in the "More" menu.',
+    'LBL_USE_GROUP_TABS'                => 'Module Menu Filters',
 	'LBL_NEW_FORM_TITLE'				=> 'New User',
 	'LBL_NEW_PASSWORD'					=> 'New Password',
 	'LBL_NEW_PASSWORD1'					=> 'Password',
@@ -264,7 +272,7 @@ $mod_strings = array (
 	'LBL_NEW_USER_PASSWORD_3'			=> 'Password was created successfully.',
 	'LBL_NEW_USER_BUTTON_KEY'			=> 'N',
 	'LBL_NEW_USER_BUTTON_LABEL'			=> 'New User',
-	'LBL_NEW_USER_BUTTON_TITLE'			=> 'New User [Alt+N]',
+	'LBL_NEW_USER_BUTTON_TITLE'			=> 'New User',
 	'LBL_NORMAL_LOGIN'					=> 'Switch to Normal View',
 	'LBL_NOTES'							=> 'Notes',
 	'LBL_OFFICE_PHONE'					=> 'Office Phone',
@@ -278,7 +286,7 @@ $mod_strings = array (
     'LBL_PASSWORD_EXPIRATION_GENERATED' => 'Your password is system-generated',
     'LBL_PASSWORD_EXPIRATION_TIME'      => 'Your password has expired. Please provide a new password.',
 
-	'LBL_PSW_MODIFIED'                  => 'password last changed',
+	'LBL_PSW_MODIFIED'                  => 'Password Last Changed',
     'LBL_PHONE'							=> 'Phone',
 	'LBL_PICK_TZ_WELCOME'				=> 'Welcome to Sugar.',
 	'LBL_PICK_TZ_DESCRIPTION'           => 'Before continuing, please confirm your time zone.  Select the appropriate time zone from the list below, and click Save to continue. The time zone can be changed at any time in your user settings.',
@@ -305,8 +313,11 @@ $mod_strings = array (
 	'LBL_RECEIVE_NOTIFICATIONS'			=> 'Notify on Assignment',
 	'LBL_REGISTER'                      => 'New user? Please register',
 	'LBL_REGULAR_USER'                  => 'Regular User',
-	'LBL_REMINDER_TEXT'					=> 'Set a default for reminders for calls and meetings.',
+	'LBL_REMINDER_TEXT'					=> 'Set a default for reminders for calls and meetings. Pop-up notifications appear for all invitees using Sugar. Email reminders are sent to all invitees.',
 	'LBL_REMINDER'						=> 'Reminders',
+	'LBL_REMINDER_POPUP' => 'Popup',
+	'LBL_REMINDER_EMAIL' => 'Email',
+    'LBL_REMINDER_EMAIL_ALL_INVITEES'   => 'Email all invitees',
 	'LBL_REMOVED_TABS'					=> 'Admin Remove Tabs',
 	'LBL_REPORTS_TO_NAME'				=> 'Reports to',
 	'LBL_REPORTS_TO'					=> 'Reports to',
@@ -368,6 +379,8 @@ $mod_strings = array (
 	'LBL_USER'							=> 'Users',
 	'LBL_WORK_PHONE'					=> 'Work Phone',
 	'LBL_YOUR_PUBLISH_URL'				=> 'Publish at my location',
+    'LBL_ICAL_PUB_URL'                  => 'iCal integration URL',
+    'LBL_ICAL_PUB_URL_HELP'             => 'Use this URL to subscribe to the Sugar calendar within iCal.',
 	'LBL_YOUR_QUERY_URL'				=> 'Your Query URL',
 	'LNK_NEW_USER'						=> 'Create New User',
 	'LNK_NEW_PORTAL_USER'				=> 'Create Portal API User',
@@ -375,6 +388,7 @@ $mod_strings = array (
 	'LNK_USER_LIST'						=> 'View Users',
 	'LNK_REASSIGN_RECORDS'				=> 'Reassign Records',
     'LBL_PROSPECT_LIST'                 => 'Prospect List',
+    'LBL_EMAILS'                        => 'Emails',
     'LBL_PROCESSING'                    => 'Processing',
     'LBL_UPDATE_FINISH'                 => 'Update complete',
     'LBL_AFFECTED'                      => 'affected',
@@ -416,7 +430,7 @@ $mod_strings = array (
 	'LBL_SSL'							=> 'Use SSL',
 	'LBL_SSL_DESC'						=> 'Use Secure Socket Layer when connecting to your mail server.',
 	'LBL_TEST_BUTTON_KEY'				=> 't',
-	'LBL_TEST_BUTTON_TITLE'				=> 'Test [Alt+T]',
+	'LBL_TEST_BUTTON_TITLE'				=> 'Test',
 	'LBL_TEST_SETTINGS'					=> 'Test Settings',
 	'LBL_TEST_SUCCESSFUL'				=> 'Connection completed successfully.',
 	'LBL_TLS_DESC'						=> 'Use Transport Layer Security when connecting to the mail server - only use this if your mail server supports this protocol.',
@@ -500,6 +514,17 @@ $mod_strings = array (
     'LBL_WIZARD_FINISH_TAB' => 'Finish',
     'LBL_WIZARD_FINISH_TITLE' => 'You are ready to use Sugar!',
 
+    'LBL_WIZARD_FINISH' => 'Click <b>Finish</b> below to save your settings and to begin using Sugar. For more information on using Sugar:<br /><br />
+<table cellpadding=0 cellspacing=0>
+<tr><td><!--not_in_theme!--><img src=include/images/university.png style="margin-right: 5px;"></td><td><a href="http://www.sugarcrm.com/university" target="_blank"><b>Sugar University</b></a><br>End-user and System Administrator Training and Resources</td></tr>
+<tr><td colspan=2><hr style="margin: 5px 0px;"></td></tr>
+<tr><td><!--not_in_theme!--><img src=include/images/docs.png style="margin-right: 5px;"></td><td><a href="http://docs.sugarcrm.com/" target="_blank"><b>Documentation</b></a><br>Product Guides and Release Notes</td></tr>
+<tr><td colspan=2><hr style="margin: 5px 0px;"></td></tr>
+<tr><td><!--not_in_theme!--><img src=include/images/kb.png style="margin-right: 5px;"></td><td><a href="http://kb.sugarcrm.com/" target="_blank"><b>Knowledge Base</b></a><br>Tips from SugarCRM Support for performing common tasks and processes in Sugar</td></tr>
+<tr><td colspan=2><hr style="margin: 5px 0px;"></td></tr>
+<tr><td><!--not_in_theme!--><img src=include/images/forums.png style="margin-right: 5px;"></td><td><a href="http://www.sugarcrm.com/forums" target="_blank"><b>Forums</b></a><br>Forums dedicated to the Sugar Community to discuss topics of interest with each other and with SugarCRM Developers</td></tr>
+</table>',
+
     'LBL_WIZARD_FINISH1' => 'What would you like to do next?',
     'LBL_WIZARD_FINISH2' => 'Start Using Sugar',
     'LBL_WIZARD_FINISH3' => 'Import Data ',
@@ -526,6 +551,12 @@ $mod_strings = array (
     'LBL_WIZARD_LOCALE_DESC' => 'Specify your time zone and how you would like dates, currencies and names to appear in Sugar.',
     'LBL_WIZARD_SMTP_DESC' => 'Provide your email account username and password for the default outbound email server.',
 	'LBL_EAPM_SUBPANEL_TITLE' => 'External Accounts',
+
+	'LBL_EDITLAYOUT' => 'Edit Layout' /*for 508 compliance fix*/,
+	'LBL_HELP' => 'Help' /*for 508 compliance fix*/,
+	'LBL_CHECKMARK' => 'Checkmark' /*for 508 compliance fix*/,
+	'LBL_THEMEPREVIEW' => 'Preview' /*for 508 compliance fix*/,
+
     'LBL_OAUTH_TOKENS' => 'OAuth Tokens',
     'LBL_OAUTH_TOKENS_SUBPANEL_TITLE' => "OAuth Access Tokens",
 
@@ -537,8 +568,16 @@ $mod_strings = array (
     'LBL_PHONE_OTHER' => 'Phone Other',
     'LBL_PHONE_FAX' => 'Phone Fax',
     'LBL_PORTAL_ONLY' => 'Portal Only',
+    'LBL_SHOW_ON_EMPLOYEES' => 'Display Employee Record',
     'LBL_IS_GROUP' => 'Is Group',
     'LBL_EXPORT_CREATED_BY' => 'Created By ID',
+
+    'LBL_DATE_MODIFIED' => 'Date Modified',
+    'LBL_DATE_ENTERED' => 'Date Entered',
+    'LBL_DELETED' => 'Deleted',
+    'LBL_HIDEOPTIONS' => 'Hide Options',
+    'LBL_SHOWOPTIONS' => 'Show Options',
+
 ); // END STRINGS DEFS
 
 ?>

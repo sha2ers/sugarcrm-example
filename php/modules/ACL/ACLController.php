@@ -2,7 +2,7 @@
 if(!defined('sugarEntry') || !sugarEntry) die('Not A Valid Entry Point');
 /*********************************************************************************
  * SugarCRM Community Edition is a customer relationship management program developed by
- * SugarCRM, Inc. Copyright (C) 2004-2011 SugarCRM Inc.
+ * SugarCRM, Inc. Copyright (C) 2004-2012 SugarCRM Inc.
  * 
  * This program is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Affero General Public License version 3 as published by the
@@ -58,6 +58,7 @@ class ACLController {
 	function requireOwner($category, $value, $type='module'){
 			global $current_user;
 			if(is_admin($current_user))return false;
+			if($current_user->isAdminForModule($category))return false;
 			return ACLAction::userNeedsOwnership($current_user->id, $category, $value,$type);
 	}
 
@@ -98,8 +99,7 @@ class ACLController {
 			}else{
 				unset($moduleList['Calendar']);
 			}
-			if(isset($compList['Activities']) &&
-				!( ACLController::checkModuleAllowed('Notes', $actions) || ACLController::checkModuleAllowed('Notes', $actions))){
+			if(isset($compList['Activities']) && !ACLController::checkModuleAllowed('Notes', $actions)){
 				if($by_value){
 					unset($moduleList[$compList['Activities']]);
 				}else{
@@ -127,7 +127,7 @@ class ACLController {
 		return false;
 	}
 
-	function disabledModuleList($moduleList, $by_value=true,$view='list'){
+	static function disabledModuleList($moduleList, $by_value=true,$view='list'){
 		global $aclModuleList, $current_user;
 		if(is_admin($GLOBALS['current_user'])) return array();
 		$actions = ACLAction::getUserActions($current_user->id, false);
@@ -215,7 +215,7 @@ class ACLController {
 
 	function displayNoAccess($redirect_home = false){
 		echo '<script>function set_focus(){}</script><p class="error">' . translate('LBL_NO_ACCESS', 'ACL') . '</p>';
-		if($redirect_home)echo 'Redirect to Home in <span id="seconds_left">3</span> seconds<script> function redirect_countdown(left){document.getElementById("seconds_left").innerHTML = left; if(left == 0){document.location.href = "index.php";}else{left--; setTimeout("redirect_countdown("+ left+")", 1000)}};setTimeout("redirect_countdown(3)", 1000)</script>';
+		if($redirect_home)echo translate('LBL_REDIRECT_TO_HOME', 'ACL') . ' <span id="seconds_left">3</span> ' . translate('LBL_SECONDS', 'ACL') . '<script> function redirect_countdown(left){document.getElementById("seconds_left").innerHTML = left; if(left == 0){document.location.href = "index.php";}else{left--; setTimeout("redirect_countdown("+ left+")", 1000)}};setTimeout("redirect_countdown(3)", 1000)</script>';
 	}
 
 }

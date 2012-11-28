@@ -1,6 +1,6 @@
 /*********************************************************************************
  * SugarCRM Community Edition is a customer relationship management program developed by
- * SugarCRM, Inc. Copyright (C) 2004-2011 SugarCRM Inc.
+ * SugarCRM, Inc. Copyright (C) 2004-2012 SugarCRM Inc.
  * 
  * This program is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Affero General Public License version 3 as published by the
@@ -57,13 +57,15 @@ function toggleDisplay(id){
 		if(this.document.getElementById(id+"link") != undefined){
 			this.document.getElementById(id+"link").style.display='none';
 		}
-        document.getElementById(id+"_options").src = 'index.php?entryPoint=getImage&themeName='+SUGAR.themes.theme_name+'&imageName=basic_search.gif';		
+        document.getElementById(id+"_options").src = 'index.php?entryPoint=getImage&themeName='+SUGAR.themes.theme_name+'&imageName=basic_search.gif';
+        document.getElementById(id+"_options").alt = LBL_HIDEOPTIONS;/*for 508 compliance fix - label defined in login.tpl*/
 	}else{
 		this.document.getElementById(id).style.display='none'
 		if(this.document.getElementById(id+"link") != undefined){
 			this.document.getElementById(id+"link").style.display='inline';
 		}
 	document.getElementById(id+"_options").src = 'index.php?entryPoint=getImage&themeName='+SUGAR.themes.theme_name+'&imageName=advanced_search.gif';	
+    document.getElementById(id+"_options").alt = LBL_SHOWOPTIONS;/*for 508 compliance fix - label defined in login.tpl*/
 	}
 }
 
@@ -91,6 +93,6 @@ var callback;
 			alert(SUGAR.language.get('app_strings','LBL_AJAX_FAILURE'));
             }
         }   
-    postData = '&to_pdf=1&module=Home&action=index&entryPoint=GeneratePassword&username='+document.getElementById("fp_user_name").value+'&user_email='+document.getElementById("fp_user_mail").value+'&link=1';
+    postData = '&to_pdf=1&module=Home&action=index&entryPoint=GeneratePassword&user_name='+document.getElementById("fp_user_name").value+'&Users0emailAddress0='+document.getElementById("fp_user_mail").value+'&link=1';
     YAHOO.util.Connect.asyncRequest('POST', 'index.php', callback, postData);   
 }

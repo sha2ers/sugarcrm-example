@@ -2,7 +2,7 @@
 if(!defined('sugarEntry') || !sugarEntry) die('Not A Valid Entry Point');
 /*********************************************************************************
  * SugarCRM Community Edition is a customer relationship management program developed by
- * SugarCRM, Inc. Copyright (C) 2004-2011 SugarCRM Inc.
+ * SugarCRM, Inc. Copyright (C) 2004-2012 SugarCRM Inc.
  * 
  * This program is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Affero General Public License version 3 as published by the
@@ -40,6 +40,7 @@ if(!defined('sugarEntry') || !sugarEntry) die('Not A Valid Entry Point');
 $dictionary['ProjectTask'] = array('audited'=>true,
 	'table' => 'project_task',
 	'unified_search' => true,
+	'full_text_search' => true,
 	'unified_search_default_enabled' => false,
 	'fields' => array(
 		'id' => array(
@@ -88,6 +89,7 @@ $dictionary['ProjectTask'] = array('audited'=>true,
             'type' => 'name',
             'len' => 50,
             'unified_search' => true,
+            'full_text_search' => array('boost' => 3),
             'importable' => 'required',
             'required' => true,
         ),
@@ -167,6 +169,20 @@ $dictionary['ProjectTask'] = array('audited'=>true,
             'type' => 'int',
             'required' => false,
             'audited'=>true,
+        ),
+        'date_due' => array(
+            'name' => 'date_due',
+            'vname' => 'LBL_DATE_DUE',
+            'type' => 'date',
+            'rel_field' => 'time_due',
+            'audited' => true
+        ),
+        'time_due' => array(
+                    'name' => 'time_due',
+                    'vname' => 'LBL_TIME_DUE',
+                    'type' => 'time',
+                    'rel_field' => 'date_due',
+                    'audited' => true
         ),
         'parent_task_id' => array(
             'name' => 'parent_task_id',

@@ -1,7 +1,7 @@
 <?php
 /*********************************************************************************
  * SugarCRM Community Edition is a customer relationship management program developed by
- * SugarCRM, Inc. Copyright (C) 2004-2011 SugarCRM Inc.
+ * SugarCRM, Inc. Copyright (C) 2004-2012 SugarCRM Inc.
  * 
  * This program is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Affero General Public License version 3 as published by the
@@ -39,17 +39,18 @@ require_once('include/MVC/View/views/view.list.php');
 
 class UsersViewList extends ViewList
 {
- 	public function preDisplay()
- 	{
- 	    if ( !$GLOBALS['current_user']->isAdminForModule('Users')
-                ) {
+    public function preDisplay()
+    {
+        //bug #46690: Developer Access to Users/Teams/Roles
+        if (!$GLOBALS['current_user']->isAdminForModule('Users') && !$GLOBALS['current_user']->isDeveloperForModule('Users'))
+        {
             //instead of just dying here with unauthorized access will send the user back to his/her settings
-             SugarApplication::redirect('index.php?module=Users&action=DetailView&record='.$GLOBALS['current_user']->id);
+            SugarApplication::redirect('index.php?module=Users&action=DetailView&record=' . $GLOBALS['current_user']->id);
         }
- 	    $this->lv = new ListViewSmarty();
- 	    $this->lv->delete = false;
- 	    $this->lv->email = false;
- 	}
+        $this->lv = new ListViewSmarty();
+        $this->lv->delete = false;
+        $this->lv->email = false;
+    }
 
  	public function listViewProcess()
  	{

@@ -1,7 +1,7 @@
 <?php
 /*********************************************************************************
  * SugarCRM Community Edition is a customer relationship management program developed by
- * SugarCRM, Inc. Copyright (C) 2004-2011 SugarCRM Inc.
+ * SugarCRM, Inc. Copyright (C) 2004-2012 SugarCRM Inc.
  * 
  * This program is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Affero General Public License version 3 as published by the
@@ -35,13 +35,28 @@
  ********************************************************************************/
 
 require_once('include/SugarObjects/templates/basic/Basic.php');
- class Company extends Basic{
- 	
- 	function Company(){
+
+class Company extends Basic
+{ 	
+ 	/**
+ 	 * Constructor
+ 	 */
+    public function Company()
+ 	{
  		parent::Basic();	
  		$this->emailAddress = new SugarEmailAddress();
  	}
- 	function save($check_notify=false) {
+ 	
+ 	/**
+ 	 * @see parent::save()
+ 	 */
+	public function save($check_notify=false) 
+ 	{
+ 	    if(!empty($GLOBALS['resavingRelatedBeans']))
+ 	    {
+ 	        parent::save($check_notify);
+ 	        return $this;
+ 	    } 	    
 		$this->add_address_streets('billing_address_street');
 		$this->add_address_streets('shipping_address_street');
         $ori_in_workflow = empty($this->in_workflow) ? false : true;
@@ -63,14 +78,22 @@ require_once('include/SugarObjects/templates/basic/Basic.php');
 		return $this;
 	}
 	
- 	function retrieve($id = -1, $encode=true) {
-		$ret_val = parent::retrieve($id, $encode);
-		$this->emailAddress->handleLegacyRetrieve($this);
-		return $ret_val;
+ 	/**
+ 	 * Populate email address fields here instead of retrieve() so that they are properly available for logic hooks
+ 	 *
+ 	 * @see parent::fill_in_relationship_fields()
+ 	 */
+	public function fill_in_relationship_fields()
+	{
+	    parent::fill_in_relationship_fields();
+	    $this->emailAddress->handleLegacyRetrieve($this);
 	}
 	
-	function get_list_view_data() {
-		
+	/**
+ 	 * @see parent::get_list_view_data()
+ 	 */
+	public function get_list_view_data() 
+	{	
 		global $system_config;
 		global $current_user;
 		$temp_array = $this->get_list_view_array();
@@ -78,6 +101,4 @@ require_once('include/SugarObjects/templates/basic/Basic.php');
 		$temp_array['EMAIL1_LINK'] = $current_user->getEmailLink('email1', $this, '', '', 'ListView');
 		return $temp_array;
 	}
- 	
- }
-?>
+}

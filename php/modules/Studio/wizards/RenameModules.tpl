@@ -2,7 +2,7 @@
 
 /*********************************************************************************
  * SugarCRM Community Edition is a customer relationship management program developed by
- * SugarCRM, Inc. Copyright (C) 2004-2011 SugarCRM Inc.
+ * SugarCRM, Inc. Copyright (C) 2004-2012 SugarCRM Inc.
  * 
  * This program is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Affero General Public License version 3 as published by the
@@ -70,8 +70,8 @@
     <tr><td>&nbsp;</td></tr>
     <tr>
         <td colspan="3">
-            <input type="button" class="button primary" value="{$MOD.LBL_BTN_SAVE}"  onclick='validateForm();'name="{$MOD.LBL_BTN_SAVE}" />
-            <input type="button" class="button" value="{$MOD.LBL_BTN_CANCEL}"  name="{$MOD.LBL_BTN_CANCEL}" onclick="document.editdropdown.action.value='index'; document.editdropdown.module.value='Administration';document.editdropdown.submit()" />
+            <input type="button" class="button primary" value="{$MOD.LBL_BTN_SAVE}" id="renameSaveBttn" onclick='validateForm();'name="{$MOD.LBL_BTN_SAVE}" />
+            <input type="button" class="button" value="{$MOD.LBL_BTN_CANCEL}"  id="renameCancelBttn" name="{$MOD.LBL_BTN_CANCEL}" onclick="document.editdropdown.action.value='index'; document.editdropdown.module.value='Administration';document.editdropdown.submit()" />
         </td>
     </tr>
 </table>
@@ -145,9 +145,8 @@
 </table>
 </table>
 
+{sugar_getscript file="include/javascript/yui/dragdrop.js"}
 {literal}
-<script type='text/javascript' src='include/javascript/sugar_grp_overlib.js'></script>
-<script src = "include/javascript/yui/dragdrop.js" ></script>
 <script>
 
     var lastField = '';
@@ -162,7 +161,7 @@
             if(checkForErrors(lastRowCount))
                 return true;
 
-            setDropDownValue(lastRowCount, lastField.innerHTML, true);
+            collapseRow(lastRowCount);
         }
         if(tempLastField == field)
             return;
@@ -173,7 +172,6 @@
 
         var textspan =  document.getElementById('slot' + rowCount + '_textspan');
         var text = document.getElementById("slot" + rowCount + "_text");
-        text.value=field.innerHTML;
         textspan.style.display='inline'
         text.focus();
     }
@@ -198,6 +196,28 @@
         return foundErrors;
     }
 
+    /*
+        scrub input for bug 50607: able to enter HTML/JS and execute through module renaming.
+     */
+    function cleanModuleName(val)
+    {
+        return YAHOO.lang.escapeHTML(val);
+    }
+
+    /*
+        pulled out routine to keep scrubbing from being called multiple times
+     */
+    function collapseRow(rowCount)
+    {
+        var text =  document.getElementById('slot' + rowCount + '_text');
+        var textspan =  document.getElementById('slot' + rowCount + '_textspan');
+        var span = document.getElementById('slot' + rowCount + '_value');
+        textspan.style.display = 'none';
+        span.style.display = 'inline';
+        lastField = '';
+        lastRowCount = -1;
+    }
+
     function setSingularDropDownValue(rowCount)
     {
         document.getElementById('svalue_'+ rowCount).value = document.getElementById('slot' + rowCount + '_stext').value;
@@ -210,17 +230,14 @@
             return true;
 
         document.getElementById('value_' + rowCount).value = val;
-        var text =  document.getElementById('slot' + rowCount + '_text');
-        var textspan =  document.getElementById('slot' + rowCount + '_textspan');
+
         var span = document.getElementById('slot' + rowCount + '_value');
         if(collapse)
         {
-            span.innerHTML  = val;
-            textspan.style.display = 'none';
-            span.style.display = 'inline';
+            span.innerHTML  = cleanModuleName(val);
+            collapseRow(rowCount);
         }
-        lastField = '';
-        lastRowCount = -1;
+
         setSingularDropDownValue(rowCount);
     }
 

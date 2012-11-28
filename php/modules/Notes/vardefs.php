@@ -2,7 +2,7 @@
 if(!defined('sugarEntry') || !sugarEntry) die('Not A Valid Entry Point');
 /*********************************************************************************
  * SugarCRM Community Edition is a customer relationship management program developed by
- * SugarCRM, Inc. Copyright (C) 2004-2011 SugarCRM Inc.
+ * SugarCRM, Inc. Copyright (C) 2004-2012 SugarCRM Inc.
  * 
  * This program is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Affero General Public License version 3 as published by the
@@ -38,7 +38,7 @@ if(!defined('sugarEntry') || !sugarEntry) die('Not A Valid Entry Point');
 $dictionary['Note'] = array(
 
     'table' => 'notes',
-	'unified_search' => true, 'unified_search_default_enabled' => true,
+	'unified_search' => true, 'full_text_search' => true, 'unified_search_default_enabled' => true,
 
 	'comment' => 'Notes and Attachments'
                                ,'fields' => array (
@@ -66,7 +66,7 @@ $dictionary['Note'] = array(
     'vname' => 'LBL_DATE_MODIFIED',
     'type' => 'datetime',
     'comment' => 'Date record last modified',
-    'enable_range_search' => true,  
+    'enable_range_search' => true,
   ),
    'modified_user_id' =>
 	  array (
@@ -131,6 +131,7 @@ $dictionary['Note'] = array(
     'type' => 'name',
     'len' => '255',
 	'unified_search' => true,
+	'full_text_search' => array('boost' => 3),
     'comment' => 'Name of the note',
     'importable' => 'required',
     'required' => true,
@@ -149,10 +150,9 @@ $dictionary['Note'] = array(
   	'name'=>'file_url',
     'vname' => 'LBL_FILE_URL',
   	'type'=>'function',
-  	'function_require'=>'include/upload_file.php',
   	'function_class'=>'UploadFile',
-  	'function_name'=>'get_url',
-  	'function_params'=> array('filename', 'id'),
+  	'function_name'=>'get_upload_url',
+  	'function_params'=> array('$this'),
   	'source'=>'function',
   	'reportable'=>false,
   	'comment' => 'Path to file (can be URL)',
@@ -176,6 +176,7 @@ $dictionary['Note'] = array(
   	'type' =>'parent_type',
     'dbType' => 'varchar',
     'group'=>'parent_name',
+    'options'=> 'parent_type_display',
   	'len'=> '255',
   	'comment' => 'Sugar module the Note is associated with'
   ),
@@ -274,7 +275,8 @@ $dictionary['Note'] = array(
         'name'=>'contact_email',
         'type'=>'varchar',
 		'vname' => 'LBL_EMAIL_ADDRESS',
-		'source' => 'non-db'
+		'source' => 'non-db',
+        'studio' => false
     ),
 
   'account_id' =>

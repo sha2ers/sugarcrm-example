@@ -2,7 +2,7 @@
 if(!defined('sugarEntry') || !sugarEntry) die('Not A Valid Entry Point');
 /*********************************************************************************
  * SugarCRM Community Edition is a customer relationship management program developed by
- * SugarCRM, Inc. Copyright (C) 2004-2011 SugarCRM Inc.
+ * SugarCRM, Inc. Copyright (C) 2004-2012 SugarCRM Inc.
  * 
  * This program is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Affero General Public License version 3 as published by the
@@ -107,13 +107,14 @@ if(empty($GLOBALS['installing']) && !file_exists('config.php'))
 
 // config|_override.php
 if(is_file('config.php')) {
-    require_once('config.php'); // provides $sugar_config
+	require_once('config.php'); // provides $sugar_config
 }
+
 // load up the config_override.php file.  This is used to provide default user settings
 if(is_file('config_override.php')) {
 	require_once('config_override.php');
 }
-if(empty($GLOBALS['installing']) &&empty($sugar_config['dbconfig']['db_host_name']))
+if(empty($GLOBALS['installing']) &&empty($sugar_config['dbconfig']['db_name']))
 {
 	    header('Location: install.php');
 	    exit ();
@@ -125,6 +126,7 @@ require_once 'include/SugarObjects/SugarConfig.php';
 ///////////////////////////////////////////////////////////////////////////////
 ////	DATA SECURITY MEASURES
 require_once('include/utils.php');
+require_once('include/clean.php');
 clean_special_arguments();
 clean_incoming_data();
 ////	END DATA SECURITY MEASURES
@@ -152,7 +154,6 @@ require('include/SugarObjects/VardefManager.php');
 require('modules/DynamicFields/templates/Fields/TemplateText.php');
 
 require_once('include/utils/file_utils.php');
-
 require_once('include/SugarEmailAddress/SugarEmailAddress.php');
 require_once('include/SugarLogger/LoggerManager.php');
 require_once('modules/Trackers/BreadCrumbStack.php');
@@ -169,6 +170,9 @@ require_once('include/MVC/SugarModule.php');
 require_once('include/SugarCache/SugarCache.php');
 require('modules/Currencies/Currency.php');
 require_once('include/MVC/SugarApplication.php');
+
+require_once('include/upload_file.php');
+UploadStream::register();
 //
 //SugarApplication::startSession();
 
@@ -177,13 +181,15 @@ require_once('include/MVC/SugarApplication.php');
 if (!defined('SUGAR_PATH')) {
     define('SUGAR_PATH', realpath(dirname(__FILE__) . '/..'));
 }
-require_once SUGAR_PATH . '/include/SugarObjects/SugarRegistry.php';
+require_once 'include/SugarObjects/SugarRegistry.php';
+
 if(empty($GLOBALS['installing'])){
 ///////////////////////////////////////////////////////////////////////////////
 ////	SETTING DEFAULT VAR VALUES
 $GLOBALS['log'] = LoggerManager::getLogger('SugarCRM');
 $error_notice = '';
 $use_current_user_login = false;
+
 // Allow for the session information to be passed via the URL for printing.
 if(isset($_GET['PHPSESSID'])){
     if(!empty($_COOKIE['PHPSESSID']) && strcmp($_GET['PHPSESSID'],$_COOKIE['PHPSESSID']) == 0) {
@@ -192,6 +198,7 @@ if(isset($_GET['PHPSESSID'])){
         unset($_GET['PHPSESSID']);
     }
 }
+
 if(!empty($sugar_config['session_dir'])) {
 	session_save_path($sugar_config['session_dir']);
 }
@@ -219,7 +226,11 @@ $current_user = new User();
 $current_entity = null;
 $system_config = new Administration();
 $system_config->retrieveSettings();
+
+LogicHook::initialize()->call_custom_logic('', 'after_entry_point');
 }
+
+
 ////	END SETTING DEFAULT VAR VALUES
 ///////////////////////////////////////////////////////////////////////////////
 

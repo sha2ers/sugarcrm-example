@@ -2,7 +2,7 @@
 if(!defined('sugarEntry') || !sugarEntry) die('Not A Valid Entry Point');
 /*********************************************************************************
  * SugarCRM Community Edition is a customer relationship management program developed by
- * SugarCRM, Inc. Copyright (C) 2004-2011 SugarCRM Inc.
+ * SugarCRM, Inc. Copyright (C) 2004-2012 SugarCRM Inc.
  * 
  * This program is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Affero General Public License version 3 as published by the
@@ -45,42 +45,13 @@ class TemplateDecimal extends TemplateFloat{
     	parent::__construct();
 	}
 
-    function get_db_type(){
-//    	$GLOBALS['log']->debug('TemplateFloat:get_db_type()'.print_r($this,true));
-    	
-		if ($GLOBALS['db']->dbType=='mysql')
-		{
-    	    $type = " DECIMAL";
-        	if(!empty($this->len))
-        	{
-	            $precision = (!empty($this->precision)) ? $this->precision : 4; // bug 17041 tyoung - mysql requires a precision value if length is specified
-	            $type .= "({$this->len},$precision)";
-    		}
+    function get_db_type()
+	{
+		if(empty($this->len)) {
+			return parent::get_db_type();
 		}
-		elseif ($GLOBALS['db']->dbType=='mssql')
-		{
-			$type = " decimal";
-        	if(!empty($this->len))
-        	{
- 	            $precision = (!empty($this->precision)) ? $this->precision : 4;       		
-	            $type .= "({$this->len},$precision)";
-        	}
-        	else
-        	{
-        		$type .= "(11,4)";
-        	}	
-		}
-    	elseif ($GLOBALS['db']->dbType=='oci8')
-    	{
-			$precision = (!empty($this->precision))? $this->precision: 6;
-			$type= " NUMBER(30,$precision) ";
-    	}
-    	
-    	/**
-		 * FOR ORACLE 
-    	 * return " NUMBER($this->max_size, $this->precision)";
-     	 */
-    	return $type;
+		$precision = (!empty($this->precision)) ? $this->precision : 6;
+		return " ".sprintf($GLOBALS['db']->getColumnType("decimal_tpl"), $this->len, $precision); 
 	}
 }
 

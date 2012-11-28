@@ -1,7 +1,7 @@
 {*
 /*********************************************************************************
  * SugarCRM Community Edition is a customer relationship management program developed by
- * SugarCRM, Inc. Copyright (C) 2004-2011 SugarCRM Inc.
+ * SugarCRM, Inc. Copyright (C) 2004-2012 SugarCRM Inc.
  * 
  * This program is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Affero General Public License version 3 as published by the
@@ -39,7 +39,7 @@
     <td scope="row">{$app_strings.LBL_EMAIL_ADDRESSES}: </td>
 </tr>
 
-<script type="text/javascript" src="include/SugarEmailAddress/SugarEmailAddress.js"></script>
+<script type="text/javascript" src="{sugar_getjspath file='include/SugarEmailAddress/SugarEmailAddress.js'}"></script>
 <script type="text/javascript">
 	var module = '{$module}';
 </script>
@@ -56,8 +56,9 @@
 						<span class="id-ff multiple ownline">
 						<button class='button' type='button' id="{$module}{$index}_email_widget_add"
 onClick="javascript:SUGAR.EmailAddressWidget.instances.{$module}{$index}.addEmailAddress('{$module}emailAddressesTable{$index}','','');" 
-value='{$app_strings.LBL_ADD_BUTTON}'><img src="{sugar_getimagepath file="id-ff-add.png"}"></button>
+value='{$app_strings.LBL_ADD_BUTTON}'>{sugar_getimage name="id-ff-add" alt=$app_strings.LBL_ID_FF_ADD ext=".png" other_attributes=''}</button>
 						</span>					
+
 					</td>
 					<td scope="row" NOWRAP>
 					    &nbsp;

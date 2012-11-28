@@ -3,7 +3,7 @@ if (! defined ( 'sugarEntry' ) || ! sugarEntry)
 	die ( 'Not A Valid Entry Point' ) ;
 /*********************************************************************************
  * SugarCRM Community Edition is a customer relationship management program developed by
- * SugarCRM, Inc. Copyright (C) 2004-2011 SugarCRM Inc.
+ * SugarCRM, Inc. Copyright (C) 2004-2012 SugarCRM Inc.
  * 
  * This program is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Affero General Public License version 3 as published by the
@@ -45,6 +45,10 @@ if (! defined ( 'sugarEntry' ) || ! sugarEntry)
 //constructor
 //	open the layout_definitions file.
 //
+/**
+ * Subpanel implementation
+ * @api
+ */
 class aSubPanel
 {
 
@@ -55,6 +59,16 @@ class aSubPanel
 	var $panel_definition ;
 	var $sub_subpanels ;
 	var $parent_bean ;
+
+    /**
+     * Can we display this subpanel?
+     *
+     * This is set after it loads the def's for the subpanel.  If there are no beans to display in the collection
+     * we don't want to display this as it will just throw errors.
+     *
+     * @var bool
+     */
+    var $canDisplay = true;
 
 	//module's table name and column fields.
 	var $table_name ;
@@ -77,9 +91,9 @@ class aSubPanel
 		}
 		$this->mod_strings = $mod_strings ;
 
-		if ($this->isCollection ())
+        if ($this->isCollection ())
 		{
-			$this->load_sub_subpanels () ; //load sub-panel definition.
+			$this->canDisplay = $this->load_sub_subpanels () ; //load sub-panel definition.
 		} else
 		{
 			if (!is_dir('modules/' . $this->_instance_properties [ 'module' ])){
@@ -110,6 +124,7 @@ class aSubPanel
 			if (!$loaded)
 			{
 				$GLOBALS['log']->fatal("Failed to load original or custom subpanel data for $name in $def_path");
+                $this->canDisplay = false;
 			}
 
 			// check that the loaded subpanel definition includes a $subpanel_layout section - some, such as projecttasks/default do not...
@@ -124,14 +139,26 @@ class aSubPanel
 
 	}
 
+    /**
+     * is the sub panel default hidden?
+     *
+     * @return bool
+     */
+    public function isDefaultHidden()
+    {
+        if(isset($this->_instance_properties['default_hidden']) && $this->_instance_properties['default_hidden'] == true) {
+            return true;
+        }
+
+        return false;
+    }
+
+
 	function distinct_query ()
 	{
 		if (isset ( $this->_instance_properties [ 'get_distinct_data' ] ))
 		{
-
-			if (! empty ( $this->_instance_properties [ 'get_distinct_data' ] ))
-			return true ; else
-			return false ;
+			return !empty($this->_instance_properties['get_distinct_data']) ? true : false;
 		}
 		return false ;
 	}
@@ -187,7 +214,14 @@ class aSubPanel
 	}
 
 
-	//call this function for sub-panels that have unions.
+    /**
+     * Load the Sub-Panel objects if it can from the metadata files.
+     *
+     * call this function for sub-panels that have unions.
+     *
+     * @return bool         True by default if the subpanel was loaded.  Will return false if none in the collection are
+     *                      allowed by the current user.
+     */
 	function load_sub_subpanels ()
 	{
 
@@ -203,7 +237,10 @@ class aSubPanel
 			}
 		}
 
-		global $modules_exempt_from_availability_check ;
+        //by default all the activities modules are exempt, so hiding them won't affect their appearance unless the 'activity' subpanel itself is hidden.
+        //add email to the list temporarily so it is not affected in activities subpanel
+        global $modules_exempt_from_availability_check ;
+        $modules_exempt_from_availability_check['Emails'] = 'Emails';
 
 		$listFieldMap = array();
 
@@ -217,6 +254,8 @@ class aSubPanel
 					$this->sub_subpanels [ $panel ] = new aSubPanel ( $panel, $properties, $this->parent_bean ) ;
 				}
 			}
+            // if it's empty just dump out as there is nothing to process.
+            if(empty($this->sub_subpanels)) return false;
 			//Sync displayed list fields across the subpanels
 			$display_fields = $this->getDisplayFieldsFromCollection($this->sub_subpanels);
 		 	$query_fields = array();
@@ -294,6 +333,8 @@ class aSubPanel
 				$subpanel->panel_definition['list_fields'] = $list_fields;
 			}
 		}
+
+        return true;
 	}
 
 	protected function getDisplayFieldsFromCollection($sub_subpanels)
@@ -342,19 +383,21 @@ class aSubPanel
 		}
 		return true ;
 	}
+
+    /**
+     * Test to see if the sub panels defs contain a collection
+     *
+     * @return bool
+     */
 	function isCollection ()
 	{
-		if ($this->get_inst_prop_value ( 'type' ) == 'collection')
-		return true ; else
-		return false ;
+		return ($this->get_inst_prop_value ( 'type' ) == 'collection');
 	}
 
 	//get value of a property defined at the panel instance level.
 	function get_inst_prop_value ( $name )
 	{
-		if (isset ( $this->_instance_properties [ $name ] ))
-		return $this->_instance_properties [ $name ] ; else
-		return null ;
+		return isset($this->_instance_properties[$name]) ? $this->_instance_properties [ $name ] : null;
 	}
 	//get value of a property defined at the panel definition level.
 	function get_def_prop_value ( $name )
@@ -437,7 +480,7 @@ class aSubPanel
 		return $this->name ;
 	}
 
-	//load subpanel mdoule's table name and column fields.
+	//load subpanel module's table name and column fields.
 	function load_module_info ()
 	{
 		global $beanList ;
@@ -606,12 +649,27 @@ class SubPanelDefinitions
 	 * Load the definition of the a sub-panel.
 	 * Also the sub-panel is added to an array of sub-panels.
 	 * use of reload has been deprecated, since the subpanel is initialized every time.
+     *
+     * @param string $name              The name of the sub-panel to reload
+     * @param boolean $reload           Reload the sub-panel (unused)
+     * @param boolean $original_only    Only load the original sub-panel and no custom ones
+     * @return boolean|aSubPanel        Returns aSubPanel object or boolean false if one is not found or it can't be
+     *      displayed due to ACL reasons.
 	 */
 	function load_subpanel ( $name , $reload = false , $original_only = false )
 	{
 		if (!is_dir('modules/' . $this->layout_defs [ 'subpanel_setup' ][ strtolower ( $name ) ] [ 'module' ]))
 		  return false;
-		return new aSubPanel ( $name, $this->layout_defs [ 'subpanel_setup' ] [ strtolower ( $name ) ], $this->_focus, $reload, $original_only ) ;
+
+        $subpanel = new aSubPanel ( $name, $this->layout_defs [ 'subpanel_setup' ] [ strtolower ( $name ) ], $this->_focus, $reload, $original_only ) ;
+
+        // only return the subpanel object if we can display it.
+        if($subpanel->canDisplay == true) {
+            return $subpanel;
+        }
+
+        // by default return false so we don't show anything if it's not required.
+        return false;
 	}
 
 	/**

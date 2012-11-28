@@ -2,7 +2,7 @@
 if(!defined('sugarEntry') || !sugarEntry) die('Not A Valid Entry Point');
 /*********************************************************************************
  * SugarCRM Community Edition is a customer relationship management program developed by
- * SugarCRM, Inc. Copyright (C) 2004-2011 SugarCRM Inc.
+ * SugarCRM, Inc. Copyright (C) 2004-2012 SugarCRM Inc.
  * 
  * This program is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Affero General Public License version 3 as published by the
@@ -47,12 +47,14 @@ class OauthTokensViewAuthorize extends SugarView
             sugar_die($GLOBALS['mod_strings']['LBL_OAUTH_DISABLED']);
         }
         global $current_user;
+        if(!isset($_REQUEST['token']) && isset($_REQUEST['oauth_token'])) {
+            $_REQUEST['token'] = $_REQUEST['oauth_token'];
+        }
         $sugar_smarty = new Sugar_Smarty();
         $sugar_smarty->assign('APP', $GLOBALS['app_strings']);
         $sugar_smarty->assign('MOD', $GLOBALS['mod_strings']);
         $sugar_smarty->assign('token', $_REQUEST['token']);
         $sugar_smarty->assign('sid', session_id());
-
         $token = OAuthToken::load($_REQUEST['token']);
         if(empty($token) || empty($token->consumer) || $token->tstate != OAuthToken::REQUEST || empty($token->consumer_obj)) {
             sugar_die('Invalid token');
@@ -76,6 +78,16 @@ class OauthTokensViewAuthorize extends SugarView
                 sugar_die('Invalid request');
             }
             $verify = $token->authorize(array("user" => $current_user->id));
+            if(!empty($token->callback_url)){
+                $redirect_url=$token->callback_url;
+                if(strchr($redirect_url, "?") !== false) {
+                    $redirect_url .= '&';
+                } else {
+                    $redirect_url .= '?';
+                }
+                $redirect_url .= "oauth_verifier=".$verify.'&oauth_token='.$_REQUEST['token'];
+                SugarApplication::redirect($redirect_url);
+            }
             $sugar_smarty->assign('VERIFY', $verify);
             $sugar_smarty->assign('token', '');
             echo $sugar_smarty->fetch('modules/OAuthTokens/tpl/authorized.tpl');

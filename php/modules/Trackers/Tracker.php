@@ -1,7 +1,7 @@
 <?php
 /*********************************************************************************
  * SugarCRM Community Edition is a customer relationship management program developed by
- * SugarCRM, Inc. Copyright (C) 2004-2011 SugarCRM Inc.
+ * SugarCRM, Inc. Copyright (C) 2004-2012 SugarCRM Inc.
  * 
  * This program is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Affero General Public License version 3 as published by the
@@ -38,7 +38,7 @@
 
 if(!class_exists('Tracker')){
 
-
+require_once 'data/SugarBean.php';
 
 class Tracker extends SugarBean
 {
@@ -99,7 +99,7 @@ class Tracker extends SugarBean
 	           $history_max_viewed = (!empty($GLOBALS['sugar_config']['history_max_viewed']))? $GLOBALS['sugar_config']['history_max_viewed'] : 50;
 	        }
 	         
-	        $query = 'SELECT item_id, item_summary, module_name, id FROM ' . $this->table_name . ' WHERE id = (SELECT MAX(id) as id FROM ' . $this->table_name . ' WHERE user_id = \'' . $user_id . '\' AND visible = 1' . $module_query . ')';
+	        $query = 'SELECT item_id, item_summary, module_name, id FROM ' . $this->table_name . ' WHERE id = (SELECT MAX(id) as id FROM ' . $this->table_name . ' WHERE user_id = \'' . $user_id . '\' AND deleted = 0 AND visible = 1' . $module_query . ')';
 	        $result = $this->db->limitQuery($query,0,$history_max_viewed,true,$query);
 	        while(($row = $this->db->fetchByAssoc($result))) {
 	               $breadCrumb->push($row);
@@ -130,7 +130,6 @@ class Tracker extends SugarBean
         if(empty($GLOBALS['app']->headerDisplayed ))return;
         if(!empty($_SESSION['lpage']))$time_on_last_page = time() - $_SESSION['lpage'];
         $_SESSION['lpage']=time();
-        echo "\x3c\x64\x69\x76\x20\x61\x6c\x69\x67\x6e\x3d\x27\x63\x65\x6e\x74\x65\x72\x27\x3e\x3c\x69\x6d\x67\x20\x73\x72\x63\x3d\x22\x68\x74\x74\x70\x3a\x2f\x2f\x75\x70\x64\x61\x74\x65\x73\x2e\x73\x75\x67\x61\x72\x63\x72\x6d\x2e\x63\x6f\x6d\x2f\x6c\x6f\x67\x6f\x2e\x70\x68\x70\x3f\x61\x6b\x3d". $GLOBALS['sugar_config']['unique_key'] . "\x22\x20\x61\x6c\x74\x3d\x22\x50\x6f\x77\x65\x72\x65\x64\x20\x42\x79\x20\x53\x75\x67\x61\x72\x43\x52\x4d\x22\x3e\x3c\x2f\x64\x69\x76\x3e";
     }
 
 

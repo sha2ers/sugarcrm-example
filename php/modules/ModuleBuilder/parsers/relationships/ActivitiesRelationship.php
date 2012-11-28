@@ -2,7 +2,7 @@
 if(!defined('sugarEntry') || !sugarEntry) die('Not A Valid Entry Point');
 /*********************************************************************************
  * SugarCRM Community Edition is a customer relationship management program developed by
- * SugarCRM, Inc. Copyright (C) 2004-2011 SugarCRM Inc.
+ * SugarCRM, Inc. Copyright (C) 2004-2012 SugarCRM Inc.
  * 
  * This program is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Affero General Public License version 3 as published by the
@@ -99,26 +99,32 @@ class ActivitiesRelationship extends OneToManyRelationship
 	        	$labelDefinitions [] = array (
 	            	'module' => 'application' ,
 	            	'system_label' => 'parent_type_display',
-	            	'display_label' => array ( $this->lhs_module => ucfirst ( $this->lhs_module ))
+	            	'display_label' => array(
+                        $this->lhs_module => $this->lhs_label ? $this->lhs_label : ucfirst($this->lhs_module)
+                    )
 	            ) ;
 
 	            $labelDefinitions [] = array (
 	            	'module' => 'application' ,
 	            	'system_label' => 'record_type_display',
-	            	'display_label' => array ( $this->lhs_module => ucfirst ( $this->lhs_module ))
+	            	'display_label' => array(
+                        $this->lhs_module => $this->lhs_label ? $this->lhs_label : ucfirst($this->lhs_module)
+                    )
 	            ) ;
 
 	            $labelDefinitions [] = array (
 	            	'module' => 'application' ,
 	            	'system_label' => 'record_type_display_notes',
-	            	'display_label' => array ( $this->lhs_module => ucfirst ( $this->lhs_module ))
+	            	'display_label' => array(
+                        $this->lhs_module => $this->lhs_label ? $this->lhs_label : ucfirst($this->lhs_module)
+                    )
 	            ) ;
             }
             
             $labelDefinitions [] = array ( 
             	'module' => $this->lhs_module , 
             	'system_label' => 'LBL_' . strtoupper ( $this->relationship_name . '_FROM_' . $this->getRightModuleSystemLabel() ) . '_TITLE' , 
-            	'display_label' => /*'*' .*/ ucfirst ( $this->rhs_module )
+            	'display_label' => $this->lhs_label ? $this->lhs_label : ucfirst($this->lhs_module)
             ) ;
             ActivitiesRelationship::$labelsAdded[$this->lhs_module] = true;
         }
@@ -147,6 +153,7 @@ class ActivitiesRelationship extends OneToManyRelationship
         $vardef [ 'type' ] = 'link' ;
         $vardef [ 'relationship' ] = $relationshipName ;
         $vardef [ 'source' ] = 'non-db' ;
+        $vardef [ 'vname' ] = strtoupper("LBL_{$relationshipName}_FROM_{$sourceModule}_TITLE");
         return $vardef ;
     }
 

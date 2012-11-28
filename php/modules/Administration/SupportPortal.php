@@ -2,7 +2,7 @@
 if(!defined('sugarEntry') || !sugarEntry) die('Not A Valid Entry Point');
 /*********************************************************************************
  * SugarCRM Community Edition is a customer relationship management program developed by
- * SugarCRM, Inc. Copyright (C) 2004-2011 SugarCRM Inc.
+ * SugarCRM, Inc. Copyright (C) 2004-2012 SugarCRM Inc.
  * 
  * This program is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Affero General Public License version 3 as published by the
@@ -66,6 +66,7 @@ switch ($_REQUEST['view']) {
         
         $sugar_smarty = new Sugar_Smarty();
         $sugar_smarty->assign('iframeURL', $iframe_url);
+        $sugar_smarty->assign('langHeader', get_language_header());
         echo $sugar_smarty->fetch('modules/Administration/SupportPortal.tpl');
 
 		break;
@@ -108,6 +109,7 @@ switch ($_REQUEST['view']) {
 			$sugar_smarty->assign('table', "<table class='tabForm'><tr><td>");
 			$sugar_smarty->assign('endtable', "</td></tr></table>");
 			$sugar_smarty->assign('charset', $app_strings['LBL_CHARSET']);
+            $sugar_smarty->assign('langHeader', get_language_header());
 			echo $sugar_smarty->fetch('modules/Administration/SupportPortal.tpl');			
 			
 		} else {
@@ -133,7 +135,6 @@ switch ($_REQUEST['view']) {
 													array('name' => 'Administration', 'action' => 'licensesettings', 'anchor' => '1910574'),
 													array('name' => 'Administration', 'action' => 'diagnostic', 'anchor' => '1111949'),
 													array('name' => 'Administration', 'action' => 'listviewofflineclient', 'anchor' => '1111949'),
-													array('name' => 'Administration', 'action' => 'enablewirelessmodules', 'anchor' => '1111949'),
 													array('name' => 'Administration', 'action' => 'backups', 'anchor' => '1111949'),
 													array('name' => 'Administration', 'action' => 'upgrade', 'anchor' => '1111949'),
 													array('name' => 'Administration', 'action' => 'locale', 'anchor' => '1111949'),
@@ -210,11 +211,9 @@ switch ($_REQUEST['view']) {
 				}
 				//$send_module = $sendModuleMap[strtolower($send_module)];
 			}
-			$sendUrl = "http://www.sugarcrm.com/crm/product_doc.php?edition={$send_edition}&version={$send_version}&lang={$send_lang}&module={$send_module}&help_action={$send_action}&status={$dev_status}&key={$send_key}&anchor={$send_anchor}";
-			if(!empty($send_anchor)){
-				$sendUrl .= "&anchor=".$send_anchor;
-			}
-			$iframe_url = $sendUrl;
+
+
+            $iframe_url = get_help_url($send_edition, $send_version, $send_lang, $send_module, $send_action, $dev_status, $send_key, $send_anchor);
 			
 			header("Location: {$iframe_url}");
 			

@@ -1,7 +1,7 @@
 {*
 /*********************************************************************************
  * SugarCRM Community Edition is a customer relationship management program developed by
- * SugarCRM, Inc. Copyright (C) 2004-2011 SugarCRM Inc.
+ * SugarCRM, Inc. Copyright (C) 2004-2012 SugarCRM Inc.
  * 
  * This program is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Affero General Public License version 3 as published by the
@@ -42,17 +42,17 @@
 <input type='hidden' name='return_record' value='{$RETURN.record}'>
 <input type='hidden' name='return_action' value='{$RETURN.action}'>
 <input type='hidden' name='return_module' value='{$RETURN.module}'> 
-<input title="{$APP.LBL_SAVE_BUTTON_TITLE}" accessKey="{$APP.LBL_SAVE_BUTTON_KEY}" class="button" onclick="this.form.action.value='Save';aclviewer.save('ACLEditView');return false;" type="button" name="button" value="  {$APP.LBL_SAVE_BUTTON_LABEL}  " > &nbsp;
+<input title="{$APP.LBL_SAVE_BUTTON_TITLE}" accessKey="{$APP.LBL_SAVE_BUTTON_KEY}" class="button" onclick="this.form.action.value='Save';aclviewer.save('ACLEditView');return false;" type="button" name="button" value="  {$APP.LBL_SAVE_BUTTON_LABEL}  " id="SAVE_HEADER"> &nbsp;
 <input title="{$APP.LBL_CANCEL_BUTTON_TITLE}"   class='button' accessKey="{$APP.LBL_CANCEL_BUTTON_KEY}" type='button' name='save' value="  {$APP.LBL_CANCEL_BUTTON_LABEL} " class='button' onclick='aclviewer.view("{$ROLE.id}", "All");'>
 </p>
 <p>
 </p>
 <TABLE width='100%' class='detail view' border='0' cellpadding=0 cellspacing = 1  >
-<TR>
-<td></td>
+<TR id="ACLEditView_Access_Header">
+<td id="ACLEditView_Access_Header_category"></td>
 
-{foreach from=$ACTION_NAMES item="ACTION_NAME" }
-	<td align='center'><div align='center'><b>{$ACTION_NAME}</b></div></td>
+{foreach from=$ACTION_NAMES item="ACTION_LABEL" key="ACTION_NAME"}
+	<td align='center' id="ACLEditView_Access_Header_{$ACTION_NAME}"><div align='center'><b>{$ACTION_LABEL}</b></div></td>
 {foreachelse}
 
           <td colspan="2">&nbsp;</td>
@@ -67,8 +67,8 @@
 
 	{if $APP_LIST.moduleList[$CATEGORY_NAME]!='Users'}
 
-	<TR>
-	<td nowrap width='1%'><b>
+	<TR id="ACLEditView_Access_{$CATEGORY_NAME}">
+	<td nowrap width='1%' id="ACLEditView_Access_{$CATEGORY_NAME}_category"><b>
 	{if $APP_LIST.moduleList[$CATEGORY_NAME]=='Users'}
 	   {$MOD.LBL_USER_NAME_FOR_ROLE}
 	{elseif !empty($APP_LIST.moduleList[$CATEGORY_NAME])}
@@ -82,7 +82,7 @@
 		{foreach from=$TYPES item="ACTIONS"}
 			{foreach from=$ACTIONS item="ACTION" key="ACTION_NAME_ACTIVE"}
 				{if $ACTION_NAME==$ACTION_NAME_ACTIVE}
-					<td nowrap width='{$TDWIDTH}%' style="text-align: center;">
+					<td nowrap width='{$TDWIDTH}%' style="text-align: center;" id="ACLEditView_Access_{$CATEGORY_NAME}_{$ACTION_NAME}">
 					<div  style="display: none" id="{$ACTION.id}">
 					{if $APP_LIST.moduleList[$CATEGORY_NAME]==$APP_LIST.moduleList.Users && $ACTION_LABEL != $MOD.LBL_ACTION_ADMIN}
 					<select DISABLED name='act_guid{$ACTION.id}' id = 'act_guid{$ACTION.id}' onblur="document.getElementById('{$ACTION.id}link').innerHTML=this.options[this.selectedIndex].text; aclviewer.toggleDisplay('{$ACTION.id}');" >
@@ -105,7 +105,7 @@
 			{/foreach}
 		{/foreach}
 		{if $ACTION_FIND=='false'}
-			<td nowrap width='{$TDWIDTH}%' style="text-align: center;">
+			<td nowrap width='{$TDWIDTH}%' style="text-align: center;" id="ACLEditView_Access_{$CATEGORY_NAME}_{$ACTION_NAME}">
 			<div><font color='red'>N/A</font></div>
 			</td>
 		{/if}
@@ -121,7 +121,7 @@
 {/foreach}
 </TABLE>
 <div style="padding-top:10px;">
-&nbsp;<input title="{$APP.LBL_SAVE_BUTTON_TITLE}" accessKey="{$APP.LBL_SAVE_BUTTON_KEY}" class="button" onclick="this.form.action.value='Save';aclviewer.save('ACLEditView');return false;" type="button" name="button" value="  {$APP.LBL_SAVE_BUTTON_LABEL}  " > &nbsp;
-<input title="{$APP.LBL_CANCEL_BUTTON_TITLE}"   class='button' accessKey="{$APP.LBL_CANCEL_BUTTON_KEY}" type='button' name='save' value="  {$APP.LBL_CANCEL_BUTTON_LABEL} " class='button' onclick='aclviewer.view("{$ROLE.id}", "All");'>
+&nbsp;<input title="{$APP.LBL_SAVE_BUTTON_TITLE}" class="button" onclick="this.form.action.value='Save';aclviewer.save('ACLEditView');return false;" type="button" name="button" value="  {$APP.LBL_SAVE_BUTTON_LABEL}  " id="SAVE_FOOTER"> &nbsp;
+<input title="{$APP.LBL_CANCEL_BUTTON_TITLE}"   class='button' type='button' name='save' value="  {$APP.LBL_CANCEL_BUTTON_LABEL} " class='button' onclick='aclviewer.view("{$ROLE.id}", "All");'>
 </div>
 </form>

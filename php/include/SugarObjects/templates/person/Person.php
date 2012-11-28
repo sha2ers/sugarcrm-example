@@ -1,7 +1,7 @@
 <?php
 /*********************************************************************************
  * SugarCRM Community Edition is a customer relationship management program developed by
- * SugarCRM, Inc. Copyright (C) 2004-2011 SugarCRM Inc.
+ * SugarCRM, Inc. Copyright (C) 2004-2012 SugarCRM Inc.
  * 
  * This program is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Affero General Public License version 3 as published by the
@@ -35,58 +35,111 @@
  ********************************************************************************/
 
 
-
 require_once('include/SugarObjects/templates/basic/Basic.php');
 
-
 class Person extends Basic
-{	
+{
     var $picture;
-    //Variable to control whether or not to invoke the getLocalFormatttedName method with title and salutation
+    /**
+     * @var bool controls whether or not to invoke the getLocalFormatttedName method with title and salutation
+     */
     var $createLocaleFormattedName = true;
     
-	function Person(){
+	public function Person()
+	{
 		parent::Basic();
 		$this->emailAddress = new SugarEmailAddress();
 	}
-	
-	// need to override to have a name field created for this class
-	function retrieve($id = -1, $encode=true) {
-		$ret_val = parent::retrieve($id, $encode);
+
+	/**
+	 * need to override to have a name field created for this class
+	 *
+ 	 * @see parent::retrieve()
+ 	 */
+    public function retrieve($id = -1, $encode=true, $deleted=true) {
+		$ret_val = parent::retrieve($id, $encode, $deleted);
 		$this->_create_proper_name_field();
-		$this->emailAddress->handleLegacyRetrieve($this);
 		return $ret_val;
 	}
-	
+
 	/**
-	 * Generate the name field from the first_name and last_name fields.
+ 	 * Populate email address fields here instead of retrieve() so that they are properly available for logic hooks
+ 	 *
+ 	 * @see parent::fill_in_relationship_fields()
+ 	 */
+	public function fill_in_relationship_fields()
+	{
+	    parent::fill_in_relationship_fields();
+	    $this->emailAddress->handleLegacyRetrieve($this);
+	}
+
+	/**
+     * This function helps generate the name and full_name member field variables from the salutation, title, first_name and last_name fields.
+     * It takes into account the locale format settings as well as ACL settings if supported.
 	 */
-	function _create_proper_name_field() 
+	public function _create_proper_name_field()
 	{
 		global $locale, $app_list_strings;
-			if($this->createLocaleFormattedName)
-			{
-			    // Bug 38648 - If the given saluation doesn't exist in the dropdown, don't display it as part of the full name
-				$salutation = '';
-			    if(isset($this->field_defs['salutation']['options']) 
-			            && isset($app_list_strings[$this->field_defs['salutation']['options']])
-			            && isset($app_list_strings[$this->field_defs['salutation']['options']][$this->salutation]) ) {
+
+        // Bug# 46125 - make first name, last name, salutation and title of Contacts respect field level ACLs
+        $first_name = ""; $last_name = ""; $salutation = ""; $title = "";
+
+           // first name has at least read access
+           $first_name = $this->first_name;
+
+            // last name has at least read access
+            $last_name = $this->last_name;
+
+
+            // salutation has at least read access
+            if(isset($this->field_defs['salutation']['options'])
+			  && isset($app_list_strings[$this->field_defs['salutation']['options']])
+			  && isset($app_list_strings[$this->field_defs['salutation']['options']][$this->salutation]) ) {
+
 			        $salutation = $app_list_strings[$this->field_defs['salutation']['options']][$this->salutation];
-			    }
-				$full_name = $locale->getLocaleFormattedName($this->first_name, $this->last_name, $salutation, $this->title);
+			} // if
+
+            // last name has at least read access
+            $title = $this->title;
+
+        // Corner Case:
+        // Both first name and last name cannot be empty, at least one must be shown
+        // In that case, we can ignore field level ACL and just display last name...
+        // In the ACL field level access settings, last_name cannot be set to "none"
+        if (empty($first_name) && empty($last_name)) {
+            $full_name = $locale->getLocaleFormattedName("", $last_name, $salutation, $title);
+        } else {
+			if($this->createLocaleFormattedName) {
+				$full_name = $locale->getLocaleFormattedName($first_name, $last_name, $salutation, $title);
 			} else {
-				$full_name = $locale->getLocaleFormattedName($this->first_name, $this->last_name);
+				$full_name = $locale->getLocaleFormattedName($first_name, $last_name);
 			}
+		}
+
 		$this->name = $full_name;
 		$this->full_name = $full_name; //used by campaigns
 	}
 	
-	function save($check_notify=false) {
-		$this->add_address_streets('primary_address_street');
-		$this->add_address_streets('alt_address_street');
+
+	/**
+ 	 * @see parent::save()
+ 	 */
+	public function save($check_notify=false) 
+	{
+		//If we are saving due to relationship changes, don't bother trying to update the emails
+        if(!empty($GLOBALS['resavingRelatedBeans']))
+        {
+            parent::save($check_notify);
+            return $this->id;
+        }
+        $this->add_address_streets('primary_address_street');
+        $this->add_address_streets('alt_address_street');
         $ori_in_workflow = empty($this->in_workflow) ? false : true;
-		$this->emailAddress->handleLegacySave($this, $this->module_dir);
+        $this->emailAddress->handleLegacySave($this, $this->module_dir);
+        // bug #39188 - store emails state before workflow make any changes
+        $this->emailAddress->stash($this->id, $this->module_dir);
         parent::save($check_notify);
+        // $this->emailAddress->evaluateWorkflowChanges($this->id, $this->module_dir);
         $override_email = array();
         if(!empty($this->email1_set_in_workflow)) {
             $override_email['emailAddress0'] = $this->email1_set_in_workflow;
@@ -99,17 +152,25 @@ class Person extends Basic
         }
         if($ori_in_workflow === false || !empty($override_email)){
             $this->emailAddress->save($this->id, $this->module_dir, $override_email,'','','','',$this->in_workflow);
+            // $this->emailAddress->applyWorkflowChanges($this->id, $this->module_dir);
         }
 		return $this->id;
 	}
-	
-	function get_summary_text() {
+
+	/**
+ 	 * @see parent::get_summary_text()
+ 	 */
+	public function get_summary_text() 
+	{
 		$this->_create_proper_name_field();
         return $this->name;
 	}
-	
-	function get_list_view_data() {
-		
+
+	/**
+ 	 * @see parent::get_list_view_data()
+ 	 */
+	public function get_list_view_data() 
+	{
 		global $system_config;
 		global $current_user;
 		$this->_create_proper_name_field();
@@ -120,7 +181,7 @@ class Person extends Basic
 		$temp_array['EMAIL1_LINK'] = $current_user->getEmailLink('email1', $this, '', '', 'ListView');
 		return $temp_array;
 	}
-    
+
     /**
      * @see SugarBean::populateRelatedBean()
  	 */
@@ -129,7 +190,7 @@ class Person extends Basic
         )
     {
         parent::populateRelatedBean($newbean);
-        
+
         if ( $newbean instanceOf Company ) {
             $newbean->phone_fax = $this->phone_fax;
             $newbean->phone_office = $this->phone_work;
@@ -150,5 +211,3 @@ class Person extends Basic
         }
     }
 }
-
-?>

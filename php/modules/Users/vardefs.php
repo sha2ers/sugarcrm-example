@@ -2,7 +2,7 @@
 if(!defined('sugarEntry') || !sugarEntry) die('Not A Valid Entry Point');
 /*********************************************************************************
  * SugarCRM Community Edition is a customer relationship management program developed by
- * SugarCRM, Inc. Copyright (C) 2004-2011 SugarCRM Inc.
+ * SugarCRM, Inc. Copyright (C) 2004-2012 SugarCRM Inc.
  * 
  * This program is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Affero General Public License version 3 as published by the
@@ -51,14 +51,29 @@ $dictionary['User'] = array(
             'dbType' => 'varchar',
             'len' => '60',
             'importable' => 'required',
+            'required' => true,
+            'studio' => array(
+               'no_duplicate' => true,
+               'editview' => false,
+               'detailview' => true,
+               'quickcreate' => false,
+               'basic_search' => false,
+               'advanced_search' => false,
+               ),
         ) ,
         'user_hash' => array(
             'name' => 'user_hash',
             'vname' => 'LBL_USER_HASH',
             'type' => 'varchar',
-            'len' => '32',
+            'len' => '255',
             'reportable' => false,
             'importable' => 'false',
+            'sensitive' => true,
+            'studio' => array(
+                'no_duplicate'=>true,
+                'listview' => false,
+                'searchview'=>false,
+            ),
         ) ,
         'system_generated_password' => array(
             'name' => 'system_generated_password',
@@ -67,6 +82,12 @@ $dictionary['User'] = array(
             'required' => true,
             'reportable' => false,
             'massupdate' => false,
+            'studio' => array(
+                'listview' => false,
+                'searchview'=>false,
+                'editview'=>false,
+                'quickcreate'=>false,
+            ),
         ) ,
 
         'pwd_last_changed' => array(
@@ -75,6 +96,7 @@ $dictionary['User'] = array(
             'type' => 'datetime',
             'required' => false,
             'massupdate' => false,
+            'studio' => array('formula' => false),
         ) ,
         /**
          * authenticate_id is used by authentication plugins so they may place a quick lookup key for looking up a given user after authenticating through the plugin
@@ -86,6 +108,7 @@ $dictionary['User'] = array(
             'len' => '100',
             'reportable' => false,
             'importable' => 'false',
+            'studio' => array('listview' => false, 'searchview'=>false, 'related' => false),
         ) ,
         /**
          * sugar_login will force the user to use sugar authentication
@@ -99,6 +122,7 @@ $dictionary['User'] = array(
             'reportable' => false,
             'massupdate' => false,
             'importable' => false,
+            'studio' => array('listview' => false, 'searchview'=>false, 'formula' => false),
         ) ,
         'first_name' => array(
             'name' => 'first_name',
@@ -133,6 +157,7 @@ $dictionary['User'] = array(
                 1 => 'last_name'
             ) ,
             'len' => '510',
+            'studio' => array('formula' => false),
         ) ,
         'name' => array(
             'name' => 'name',
@@ -147,28 +172,12 @@ $dictionary['User'] = array(
             ) ,
             'importable' => 'false',
         ) ,
-        'reports_to_id' => array(
-            'name' => 'reports_to_id',
-            'vname' => 'LBL_REPORTS_TO_ID',
-            'type' => 'id',
-            'required' => false,
-        ) ,
-        'reports_to_name' => array(
-            'name' => 'reports_to_name',
-            'vname' => 'LBL_REPORTS_TO_NAME',
-            'type' => 'relate',
-            'reportable' => false,
-            'source' => 'non-db',
-            'table' => 'users',
-            'id_name' => 'reports_to_id',
-            'module' => 'Users',
-            'duplicate_merge' => 'disabled',
-        ) ,
         'is_admin' => array(
             'name' => 'is_admin',
             'vname' => 'LBL_IS_ADMIN',
             'type' => 'bool',
             'default' => '0',
+            'studio' => array('listview' => false, 'searchview'=>false, 'related' => false),
         ) ,
         'external_auth_only' => array(
             'name' => 'external_auth_only',
@@ -177,6 +186,7 @@ $dictionary['User'] = array(
             'reportable' => false,
             'massupdate' => false,
             'default' => '0',
+            'studio' => array('listview' => false, 'searchview'=>false, 'related' => false),
         ) ,
         'receive_notifications' => array(
             'name' => 'receive_notifications',
@@ -184,6 +194,7 @@ $dictionary['User'] = array(
             'type' => 'bool',
             'default' => '1',
             'massupdate' => false,
+            'studio' => false,
         ) ,
         'description' => array(
             'name' => 'description',
@@ -195,13 +206,21 @@ $dictionary['User'] = array(
             'vname' => 'LBL_DATE_ENTERED',
             'type' => 'datetime',
             'required' => true,
+            'studio' => array(
+                'editview' => false,
+                'quickcreate' => false,
+            ),
         ) ,
         'date_modified' => array(
             'name' => 'date_modified',
             'vname' => 'LBL_DATE_MODIFIED',
             'type' => 'datetime',
             'required' => true,
-        ) ,
+            'studio' => array(
+                'editview' => false,
+                'quickcreate' => false,
+            ),
+        ),
         'modified_user_id' => array(
             'name' => 'modified_user_id',
             'rname' => 'user_name',
@@ -217,6 +236,7 @@ $dictionary['User'] = array(
             'vname' => 'LBL_MODIFIED_BY',
             'type' => 'varchar',
             'source' => 'non-db',
+            'studio' => false,
         ) ,
         'created_by' => array(
             'name' => 'created_by',
@@ -226,10 +246,12 @@ $dictionary['User'] = array(
             'type' => 'assigned_user_name',
             'table' => 'users',
             'isnull' => 'false',
-            'dbType' => 'id'
+            'dbType' => 'id',
+            'studio' => false,
         ) ,
         'created_by_name' => array(
             'name' => 'created_by_name',
+	        'vname' => 'LBL_CREATED_BY_NAME', //bug 48978
             'type' => 'varchar',
             'source' => 'non-db',
             'importable' => 'false',
@@ -288,6 +310,7 @@ $dictionary['User'] = array(
             'len' => 100,
             'options' => 'user_status_dom',
             'importable' => 'required',
+            'required' => true,
         ) ,
         'address_street' => array(
             'name' => 'address_street',
@@ -319,6 +342,18 @@ $dictionary['User'] = array(
             'type' => 'varchar',
             'len' => '20',
         ) ,
+        // This is a fake field for the edit view
+        'UserType' => array(
+            'name' => 'UserType',
+            'vname' => 'LBL_USER_TYPE',
+            'type' => 'enum',
+            'len' => 50,
+            'options' => 'user_type_dom',
+            'source' => 'non-db',
+            'import' => false,
+            'reportable' => false,
+            'studio' => array('formula' => false),
+        ),
         'deleted' => array(
             'name' => 'deleted',
             'vname' => 'LBL_DELETED',
@@ -331,7 +366,17 @@ $dictionary['User'] = array(
             'vname' => 'LBL_PORTAL_ONLY_USER',
             'type' => 'bool',
             'massupdate' => false,
-            'default' => '0'
+            'default' => '0',
+            'studio' => array('listview' => false, 'searchview'=>false, 'formula' => false),
+        ) ,
+        'show_on_employees' => array(
+            'name' => 'show_on_employees',
+            'vname' => 'LBL_SHOW_ON_EMPLOYEES',
+            'type' => 'bool',
+            'massupdate' => true,
+            'importable' => true,
+            'default' => true,
+            'studio' => array('formula' => false),
         ) ,
         'employee_status' => array(
             'name' => 'employee_status',
@@ -353,12 +398,8 @@ $dictionary['User'] = array(
         'messenger_type' => array(
             'name' => 'messenger_type',
             'vname' => 'LBL_MESSENGER_TYPE',
-            'type' => 'varchar',
-            'function' => array(
-                'name' => 'getMessengerTypeOptions',
-                'returns' => 'html',
-                'include' => 'modules/Employees/EmployeeStatus.php'
-            ) ,
+            'type' => 'enum',
+            'options' => 'messenger_type_dom',
             'len' => 100,
         ) ,
         'calls' => array(
@@ -382,6 +423,27 @@ $dictionary['User'] = array(
             'source' => 'non-db',
             'vname' => 'LBL_CONTACTS_SYNC',
             'reportable' => false,
+        ) ,
+        'reports_to_id' => array(
+            'name' => 'reports_to_id',
+            'vname' => 'LBL_REPORTS_TO_ID',
+            'type' => 'id',
+            'required' => false,
+        ) ,
+        'reports_to_name' => array(
+            'name' => 'reports_to_name',
+            'rname' => 'last_name',
+            'id_name' => 'reports_to_id',
+            'vname' => 'LBL_REPORTS_TO_NAME',
+            'type' => 'relate',
+            'isnull' => 'true',
+            'module' => 'Users',
+            'table' => 'users',
+            'link' => 'reports_to_link',
+            'reportable' => false,
+            'source' => 'non-db',
+            'duplicate_merge' => 'disabled',
+            'side' => 'right',
         ) ,
         'reports_to_link' => array(
             'name' => 'reports_to_link',
@@ -434,7 +496,19 @@ $dictionary['User'] = array(
             'vname' => 'LBL_EMAIL_ADDRESS_PRIMARY',
             'duplicate_merge' => 'disabled',
             'required' => true,
-        ) ,
+        ),
+        /* Virtual email fields so they will display on the main user page */
+        'email_link_type' => array(
+            'name' => 'email_link_type',
+            'vname' => 'LBL_EMAIL_LINK_TYPE',
+            'type' => 'enum',
+            'options' => 'dom_email_link_type',
+            'importable' => false,
+            'reportable' => false,
+            'source' => 'non-db',
+            'studio' => false,
+        ),
+
         'aclroles' => array(
             'name' => 'aclroles',
             'type' => 'link',
@@ -448,6 +522,7 @@ $dictionary['User'] = array(
             'vname' => 'LBL_GROUP_USER',
             'type' => 'bool',
             'massupdate' => false,
+            'studio' => array('listview' => false, 'searchview'=>false, 'formula' => false),
         ) ,
         /* to support Meetings SubPanels */
         'c_accept_status_fields' => array(
@@ -463,7 +538,7 @@ $dictionary['User'] = array(
             'link_type' => 'relationship_info',
             'source' => 'non-db',
             'importable' => 'false',
-            'studio' => array('listview' => false),
+            'studio' => array('listview' => false, 'searchview'=>false, 'formula' => false),
         ) ,
         'm_accept_status_fields' => array(
             'name' => 'm_accept_status_fields',
@@ -478,7 +553,7 @@ $dictionary['User'] = array(
             'link_type' => 'relationship_info',
             'source' => 'non-db',
             'importable' => 'false',
-            'studio' => array('listview' => false),
+            'studio' => array('listview' => false, 'searchview'=>false, 'formula' => false),
         ) ,
         'accept_status_id' => array(
             'name' => 'accept_status_id',
@@ -486,7 +561,7 @@ $dictionary['User'] = array(
             'source' => 'non-db',
             'vname' => 'LBL_LIST_ACCEPT_STATUS',
             'importable' => 'false',
-        	'studio' => array('listview' => false),
+        	'studio' => array('listview' => false, 'searchview'=>false, 'formula' => false),
         ) ,
         'accept_status_name' => array(
             'name' => 'accept_status_name',
@@ -495,6 +570,7 @@ $dictionary['User'] = array(
             'vname' => 'LBL_LIST_ACCEPT_STATUS',
             'options' => 'dom_meeting_accept_status',
             'massupdate' => false,
+            'studio' => array('listview' => false, 'searchview'=>false, 'formula' => false),
         ) ,
         'prospect_lists' => array(
             'name' => 'prospect_lists',
@@ -504,6 +580,14 @@ $dictionary['User'] = array(
             'source' => 'non-db',
             'vname' => 'LBL_PROSPECT_LIST',
         ) ,
+        'emails_users' => array(
+            'name' => 'emails_users',
+            'type' => 'link',
+            'relationship' => 'emails_users_rel',
+            'module' => 'Emails',
+            'source' => 'non-db',
+            'vname' => 'LBL_EMAILS'
+        ),
         'holidays' => array(
             'name' => 'holidays',
             'type' => 'link',

@@ -2,7 +2,7 @@
 if(!defined('sugarEntry') || !sugarEntry) die('Not A Valid Entry Point');
 /*********************************************************************************
  * SugarCRM Community Edition is a customer relationship management program developed by
- * SugarCRM, Inc. Copyright (C) 2004-2011 SugarCRM Inc.
+ * SugarCRM, Inc. Copyright (C) 2004-2012 SugarCRM Inc.
  * 
  * This program is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Affero General Public License version 3 as published by the
@@ -47,8 +47,7 @@ logThis('Upgrade started. At start.php');
 //set the upgrade progress status.
 set_upgrade_progress('start','in_progress');
 
-unlinkTempFiles();
-unlinkUploadFiles();
+unlinkUWTempFiles();
 resetUwSession();
 
 if(isset($_REQUEST['showUpdateWizardMessage']) && $_REQUEST['showUpdateWizardMessage'] == true) {
@@ -101,7 +100,7 @@ $uwMain =<<<eoq
 <div id="upgradeDiv" style="display:none">
     <table cellspacing="0" cellpadding="0" border="0">
         <tr><td>
-           <p><img src='modules/UpgradeWizard/processing.gif'> <br></p>
+           <p><!--not_in_theme!--><img src='modules/UpgradeWizard/processing.gif' alt='Processing'> <br></p>
         </td></tr>
      </table>
  </div>

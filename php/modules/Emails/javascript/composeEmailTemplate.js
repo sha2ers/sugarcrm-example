@@ -1,6 +1,6 @@
 /*********************************************************************************
  * SugarCRM Community Edition is a customer relationship management program developed by
- * SugarCRM, Inc. Copyright (C) 2004-2011 SugarCRM Inc.
+ * SugarCRM, Inc. Copyright (C) 2004-2012 SugarCRM Inc.
  * 
  * This program is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Affero General Public License version 3 as published by the
@@ -34,7 +34,7 @@
  ********************************************************************************/
 
 SUGAR.email2.templates['compose'] = '<div id="composeLayout{idx}" class="ylayout-inactive-content"></div>' +
-'<div id="composeOverFrame{idx}" style="height:100%;width:100%">' +
+'<div id="composeOverFrame{idx}" style="height:100%;width:100%;position:absolute;top:0px">' +
 '	<form id="emailCompose{idx}" name="ComposeEditView{idx}" action="index.php" method="POST">' +
 '		<input type="hidden" id="email_id{idx}" name="email_id" value="">' +
 '		<input type="hidden" id="uid{idx}" name="uid" value="">' +
@@ -76,7 +76,7 @@ SUGAR.email2.templates['compose'] = '<div id="composeLayout{idx}" class="ylayout
 '					<table cellpadding="4" cellspacing="0" border="0" width="100%">' +
 '						<tr>' +
 '							<td class="emailUILabel" NOWRAP >' +
-'								{app_strings.LBL_EMAIL_FROM}:' +
+'								<label for="addressFrom{idx}">{app_strings.LBL_EMAIL_FROM}:</label>' +
 '							</td>' +
 '							<td class="emailUIField" NOWRAP>' +
 '								<div>' +
@@ -92,7 +92,7 @@ SUGAR.email2.templates['compose'] = '<div id="composeLayout{idx}" class="ylayout
 '							</td>' +
 '							<td class="emailUIField" NOWRAP>' +
 '								<div class="ac_autocomplete">' +
-'									&nbsp;&nbsp;<input class="ac_input" type="text" size="96" id="addressTO{idx}" name="addressTO{idx}" onkeyup="SE.composeLayout.showAddressDetails(this);">' +
+'									&nbsp;&nbsp;<input class="ac_input" type="text" size="96" id="addressTO{idx}" title="{app_strings.LBL_EMAIL_TO}" name="addressTO{idx}" onkeyup="SE.composeLayout.showAddressDetails(this);">' +
 '									<span class="rolloverEmail"> <a id="MoreaddressTO{idx}" href="#" style="display: none;">+<span id="DetailaddressTO{idx}">&nbsp;</span></a> </span>' +
 '									<div class="ac_container" id="addressToAC{idx}"></div>' +
 '								</div>' +
@@ -109,7 +109,7 @@ SUGAR.email2.templates['compose'] = '<div id="composeLayout{idx}" class="ylayout
 '							</td>' +
 '							<td class="emailUIField" NOWRAP>' +
 '								<div class="ac_autocomplete">' +
-'									&nbsp;&nbsp;<input class="ac_input" type="text" size="96" id="addressCC{idx}" name="addressCC{idx}" onkeyup="SE.composeLayout.showAddressDetails(this);">' +
+'									&nbsp;&nbsp;<input class="ac_input" type="text" size="96" id="addressCC{idx}" name="addressCC{idx}"   title="{app_strings.LBL_EMAIL_CC}" onkeyup="SE.composeLayout.showAddressDetails(this);">' +
 '									<span class="rolloverEmail"> <a id="MoreaddressCC{idx}" href="#"  style="display: none;">+<span id="DetailaddressCC{idx}">&nbsp;</span></a> </span>' + 
 '									<div class="ac_container" id="addressCcAC{idx}"></div>' +
 '								</div>' +
@@ -123,7 +123,7 @@ SUGAR.email2.templates['compose'] = '<div id="composeLayout{idx}" class="ylayout
 '							</td>' +
 '							<td class="emailUIField" NOWRAP>' +
 '								<div class="ac_autocomplete">' +
-'									&nbsp;&nbsp;<input class="ac_input" type="text" size="96" id="addressBCC{idx}" name="addressBCC{idx}" onkeyup="SE.composeLayout.showAddressDetails(this);">' +
+'									&nbsp;&nbsp;<input class="ac_input" type="text" size="96" id="addressBCC{idx}" name="addressBCC{idx}" title="{app_strings.LBL_EMAIL_BCC}" onkeyup="SE.composeLayout.showAddressDetails(this);">' +
 '									<span class="rolloverEmail"> <a id="MoreaddressBCC{idx}" href="#" style="display: none;">+<span id="DetailaddressBCC{idx}">&nbsp;</span></a> </span>' +
 '									<div class="ac_container" id="addressBccAC{idx}"></div>' +
 '								</div>' +
@@ -131,11 +131,11 @@ SUGAR.email2.templates['compose'] = '<div id="composeLayout{idx}" class="ylayout
 '						</tr>' +
 '						<tr>' +
 '							<td class="emailUILabel" NOWRAP width="1%">' +
-'								{app_strings.LBL_EMAIL_SUBJECT}:' +
+'								<label for="emailSubject{idx}">{app_strings.LBL_EMAIL_SUBJECT}:</label>' +
 '							</td>' +
 '							<td class="emailUIField" NOWRAP width="99%">' +
 '								<div class="ac_autocomplete">' +
-'									&nbsp;&nbsp;<input class="ac_input" type="text" size="96" id="emailSubject{idx}" name="subject{idx}" value="">' +
+'									&nbsp;&nbsp;<input class="ac_input" type="text" size="96" id="emailSubject{idx}" name="subject{idx}" value="" maxlength="'+SUGAR.email2.composeLayout.subjectMaxlen+'">' +
 '								</div>' +
 '							</td>' +
 '						</tr>' +

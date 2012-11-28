@@ -2,7 +2,7 @@
 if(!defined('sugarEntry') || !sugarEntry) die('Not A Valid Entry Point');
 /*********************************************************************************
  * SugarCRM Community Edition is a customer relationship management program developed by
- * SugarCRM, Inc. Copyright (C) 2004-2011 SugarCRM Inc.
+ * SugarCRM, Inc. Copyright (C) 2004-2012 SugarCRM Inc.
  * 
  * This program is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Affero General Public License version 3 as published by the
@@ -123,13 +123,14 @@ class SearchViewMetaDataParser extends ListLayoutMetaDataParser
 				return true;
 		}
 		
+    if (isset($def [ 'studio' ]) && is_array($def [ 'studio' ]) && isset($def [ 'studio' ]['searchview']))
+       {
+           return $def [ 'studio' ]['searchview'] !== false &&
+                  ($def [ 'studio' ]['searchview'] === true || $def [ 'studio' ]['searchview'] != 'false');
+       }
+		
     	if (!parent::isValidField($key, $def))
             return false;
-
-        if (isset($def [ 'studio' ]) && is_array($def [ 'studio' ]) && isset($def [ 'studio' ]['searchview']))
-        {
-        	return $def [ 'studio' ]['searchview'] !== false && $def [ 'studio' ]['searchview'] != 'false';
-        }
     	
         //Special case to prevent multiple copies of assigned, modified, or created by user on the search view
         if (empty ($def[ 'studio' ] ) && $key == "assigned_user_name")
@@ -189,20 +190,30 @@ class SearchViewMetaDataParser extends ListLayoutMetaDataParser
         }
         return $temp ;
     }
-    
+
+
+    function normalizeDefs($defs) {
+        $out = array();
+        foreach ($defs as $def)
+        {
+            if (is_array($def) && isset($def['name']))
+            {
+                $out[strtolower($def['name'])] = $def;
+            }
+        }
+        return $out;
+    }
+
     function getOriginalViewDefs() {
         $defs = $this->implementation->getOriginalViewdefs ();
         $out = array();
         if (!empty($defs) && !empty($defs['layout']) && !empty($defs['layout'][$this->_searchLayout]))
         {
-        	$defs = $defs['layout'][$this->_searchLayout];
-	        foreach ($defs as $def)
-	        {
-	            if (is_array($def) && isset($def['name']))
-	            {
-	            	$out[strtolower($def['name'])] = $def;
-	            }
-	        }
+            if($this->_searchLayout == "basic_search" &&  !empty($defs['layout']["advanced_search"]))
+            {
+                $out = $this->normalizeDefs($defs['layout']["advanced_search"]);
+            }
+            $out = array_merge($out, $this->normalizeDefs($defs['layout'][$this->_searchLayout]));
         }
 
         return $out;

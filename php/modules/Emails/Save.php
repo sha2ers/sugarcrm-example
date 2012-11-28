@@ -2,7 +2,7 @@
 if(!defined('sugarEntry') || !sugarEntry) die('Not A Valid Entry Point');
 /*********************************************************************************
  * SugarCRM Community Edition is a customer relationship management program developed by
- * SugarCRM, Inc. Copyright (C) 2004-2011 SugarCRM Inc.
+ * SugarCRM, Inc. Copyright (C) 2004-2012 SugarCRM Inc.
  * 
  * This program is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Affero General Public License version 3 as published by the
@@ -34,16 +34,6 @@ if(!defined('sugarEntry') || !sugarEntry) die('Not A Valid Entry Point');
  * technical reasons, the Appropriate Legal Notices must display the words
  * "Powered by SugarCRM".
  ********************************************************************************/
-
-/*********************************************************************************
-
- * Description:
- * Portions created by SugarCRM are Copyright (C) SugarCRM, Inc. All Rights
- * Reserved. Contributor(s): ______________________________________..
- *********************************************************************************/
-
-
-
 
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -208,6 +198,11 @@ $focus->db->query($query);
 // delete al the relationship of this email with all the beans
 //$query = "update emails_beans set deleted = 1, bean_id = '', bean_module = '' WHERE email_id = '{$focus->id}'";
 //$focus->db->query($query);
+if(!empty($_REQUEST['to_addrs_ids'])) {
+    $exContactIds = explode(';', $_REQUEST['to_addrs_ids']);
+} else {
+    $exContactIds = array();
+}
 
 if(isset($_REQUEST['object_type']) && !empty($_REQUEST['object_type']) && isset($_REQUEST['object_id']) && !empty($_REQUEST['object_id'])) {
     //run linking code only if the object_id has not been linked as part of the contacts above and it is an OOB relationship
@@ -252,9 +247,8 @@ $focus->save(false);
 $focus->load_relationship('users');
 $focus->users->add($current_user->id);
 
-if(!empty($_REQUEST['to_addrs_ids'])) {
+if(!empty($exContactIds)) {
 	$focus->load_relationship('contacts');
-	$exContactIds = explode(';', $_REQUEST['to_addrs_ids']);
 	foreach($exContactIds as $contactId) {
 		$contactId = trim($contactId);
 		$focus->contacts->add($contactId);

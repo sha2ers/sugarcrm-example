@@ -1,7 +1,7 @@
 <?php
 /*********************************************************************************
  * SugarCRM Community Edition is a customer relationship management program developed by
- * SugarCRM, Inc. Copyright (C) 2004-2011 SugarCRM Inc.
+ * SugarCRM, Inc. Copyright (C) 2004-2012 SugarCRM Inc.
  * 
  * This program is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Affero General Public License version 3 as published by the
@@ -39,6 +39,10 @@
 require_once('include/TemplateHandler/TemplateHandler.php');
 require_once('include/EditView/SugarVCR.php');
 
+/**
+ * New EditView
+ * @api
+ */
 class EditView
 {
     public $th;
@@ -84,7 +88,7 @@ class EditView
      */
     function setup($module, $focus = null, $metadataFile = null, $tpl = 'include/EditView/EditView.tpl', $createFocus = true)
     {
-        $this->th = new TemplateHandler();
+        $this->th = $this->getTemplateHandler();
         $this->th->ss =& $this->ss;
         $this->tpl = $tpl;
         $this->module = $module;
@@ -302,7 +306,7 @@ class EditView
                         $panel[$row][$col]['field']['tabindex'] =
                             (isset($p[$row][$col]['tabindex']) && is_numeric($p[$row][$col]['tabindex']))
                                 ? $p[$row][$col]['tabindex']
-                                : $itemCount;
+                                : '0';
 
                         if ($columnsInRows < $maxColumns)
                         {
@@ -371,7 +375,7 @@ class EditView
         }
 
         return $panel;
-    }    
+    }
 
     function process($checkFormName = false, $formName = '')
     {
@@ -379,6 +383,13 @@ class EditView
 
         //the retrieve already did this work;
         //$this->focus->fill_in_relationship_fields();
+        //Bug#53261: If quickeditview is loaded after editview.tpl is created,
+        //           the th->checkTemplate will return true. So, the following
+        //           code prevent avoid rendering popup editview container.
+        if(!empty($this->formName)) {
+            $formName = $this->formName;
+            $checkFormName = true;
+        }
 
         if (!$this->th->checkTemplate($this->module, $this->view, $checkFormName, $formName))
         {
@@ -419,6 +430,10 @@ class EditView
                 $this->focus->assigned_user_name = get_assigned_user_name($this->focus->assigned_user_id);
             }
 
+            if (!empty($this->focus->job) && $this->focus->job_function == '')
+            {
+                $this->focus->job_function = $this->focus->job;
+            }
 
             foreach ($this->focus->toArray() as $name => $value)
             {
@@ -440,7 +455,8 @@ class EditView
                 if (isset($this->fieldDefs[$name]['options']) && isset($app_list_strings[$this->fieldDefs[$name]['options']]))
                 {
                     $this->fieldDefs[$name]['options'] = $app_list_strings[$this->fieldDefs[$name]['options']];
-                    if(isset($GLOBALS['sugar_config']['enable_autocomplete']) && $GLOBALS['sugar_config']['enable_autocomplete'] == true){
+                    if(isset($GLOBALS['sugar_config']['enable_autocomplete']) && $GLOBALS['sugar_config']['enable_autocomplete'] == true)
+                    {
 						$this->fieldDefs[$name]['autocomplete'] = true;
 	                	$this->fieldDefs[$name]['autocomplete_options'] = $this->fieldDefs[$name]['options']; // we need the name for autocomplete
 					} else {
@@ -448,29 +464,10 @@ class EditView
                    }
                 }
 
-                if (isset($this->fieldDefs[$name]['function']))
-                {
-                    $function = $this->fieldDefs[$name]['function'];
-                    $function = (is_array($function) && isset($function['name']))
-                        ? $this->fieldDefs[$name]['function']['name']
-                        : $this->fieldDefs[$name]['function'];
-
-                    if (!empty($this->fieldDefs[$name]['function']['returns']) && $this->fieldDefs[$name]['function']['returns'] == 'html')
-                    {
-                        if (!empty($this->fieldDefs[$name]['function']['include']))
-                        {
-                            require_once($this->fieldDefs[$name]['function']['include']);
-                        }
-
-                        $value = $function($this->focus, $name, $value, $this->view);
-                        $valueFormatted = true;
-                    }
-                    else
-                    {
-                        $this->fieldDefs[$name]['options'] = $function($this->focus, $name, $value, $this->view);
-                    }
+                if(isset($this->fieldDefs[$name]['options']) && is_array($this->fieldDefs[$name]['options']) && isset($this->fieldDefs[$name]['default_empty']) && !isset($this->fieldDefs[$name]['options'][$this->fieldDefs[$name]['default_empty']])) {
+                    $this->fieldDefs[$name]['options'] = array_merge(array($this->fieldDefs[$name]['default_empty']=>$this->fieldDefs[$name]['default_empty']), $this->fieldDefs[$name]['options']);
                 }
-
+                                
 	       	 	if(isset($this->fieldDefs[$name]['function'])) {
 	       	 		$function = $this->fieldDefs[$name]['function'];
 	       			if(is_array($function) && isset($function['name'])){
@@ -478,14 +475,20 @@ class EditView
 	       			}else{
 	       				$function = $this->fieldDefs[$name]['function'];
 	       			}
+
+                    if(isset($this->fieldDefs[$name]['function']['include']) && file_exists($this->fieldDefs[$name]['function']['include']))
+                    {
+                  		require_once($this->fieldDefs[$name]['function']['include']);
+                  	}
+
 	       	 		if(!empty($this->fieldDefs[$name]['function']['returns']) && $this->fieldDefs[$name]['function']['returns'] == 'html'){
 						if(!empty($this->fieldDefs[$name]['function']['include'])){
 								require_once($this->fieldDefs[$name]['function']['include']);
 						}
-						$value = $function($this->focus, $name, $value, $this->view);
+						$value = call_user_func($function, $this->focus, $name, $value, $this->view);
 						$valueFormatted = true;
 					}else{
-						$this->fieldDefs[$name]['options'] = $function($this->focus, $name, $value, $this->view);
+						$this->fieldDefs[$name]['options'] = call_user_func($function, $this->focus, $name, $value, $this->view);
 					}
 	       	 	}
 
@@ -506,9 +509,8 @@ class EditView
 
 
                 //This code is used for QuickCreates that go to Full Form view.  We want to overwrite the values from the bean
-                //with values from the request if they are set
-                if ($this->populateBean
-                    && (isset($_REQUEST['full_form']) || ($_REQUEST['action'] == "SubpanelCreates" && empty($this->focus->id)))
+                //with values from the request if they are set and either the bean is brand new (such as a create from a subpanels) or the 'full form' button has been clicked
+                if ((($this->populateBean && empty($this->focus->id)) || (isset($_REQUEST['full_form'])))
                     && (!isset($this->fieldDefs[$name]['function']['returns']) || $this->fieldDefs[$name]['function']['returns'] != 'html')
                     && isset($_REQUEST[$name]))
                 {
@@ -559,9 +561,11 @@ class EditView
             }
         }
     }
+
+    
     /**
      * display
-     * This method makes the Smarty variable assignments and theautocomplete_ajax'vars the
+     * This method makes the Smarty variable assignments and then displays the
      * generated view.
      * @param $showTitle boolean value indicating whether or not to show a title on the resulting page
      * @param $ajaxSave boolean value indicating whether or not the operation is an Ajax save request
@@ -596,7 +600,7 @@ class EditView
         $this->th->ss->assign('returnId', $this->returnId);
         $this->th->ss->assign('isDuplicate', $this->isDuplicate);
         $this->th->ss->assign('def', $this->defs);
-        $this->th->ss->assign('useTabs', isset($this->defs['templateMeta']['useTabs']) ? $this->defs['templateMeta']['useTabs'] : false);
+        $this->th->ss->assign('useTabs', isset($this->defs['templateMeta']['useTabs']) && isset($this->defs['templateMeta']['tabDefs']) ? $this->defs['templateMeta']['useTabs'] : false);
         $this->th->ss->assign('maxColumns', isset($this->defs['templateMeta']['maxColumns']) ? $this->defs['templateMeta']['maxColumns'] : 2);
         $this->th->ss->assign('module', $this->module);
         $this->th->ss->assign('headerTpl', isset($this->defs['templateMeta']['form']['headerTpl']) ? $this->defs['templateMeta']['form']['headerTpl'] : 'include/' . $this->view . '/header.tpl');
@@ -605,6 +609,8 @@ class EditView
         $this->th->ss->assign('bean', $this->focus);
         $this->th->ss->assign('isAuditEnabled', $this->focus->is_AuditEnabled());
         $this->th->ss->assign('gridline',$current_user->getPreference('gridline') == 'on' ? '1' : '0');
+        $this->th->ss->assign('tabDefs', isset($this->defs['templateMeta']['tabDefs']) ? $this->defs['templateMeta']['tabDefs'] : false);
+        $this->th->ss->assign('VERSION_MARK', getVersionedPath(''));
 
         global $js_custom_version;
         global $sugar_version;
@@ -698,6 +704,7 @@ class EditView
             $this->th->ss->assign('CALENDAR_FORMAT', $date_format . ' ' . $t23 . $time_separator . '%M' . $pm);
         }
 
+        $this->th->ss->assign('CALENDAR_FDOW', $current_user->get_first_day_of_week());
         $this->th->ss->assign('TIME_SEPARATOR', $time_separator);
 
         $seps = get_number_seperators();
@@ -878,4 +885,14 @@ class EditView
 
         return '';
     }
+
+    /**
+     * Get template handler object
+     * @return TemplateHandler
+     */
+    protected function getTemplateHandler()
+    {
+        return new TemplateHandler();
+    }
 }
+

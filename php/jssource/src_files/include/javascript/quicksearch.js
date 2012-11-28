@@ -1,6 +1,6 @@
 /*********************************************************************************
  * SugarCRM Community Edition is a customer relationship management program developed by
- * SugarCRM, Inc. Copyright (C) 2004-2011 SugarCRM Inc.
+ * SugarCRM, Inc. Copyright (C) 2004-2012 SugarCRM Inc.
  * 
  * This program is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Affero General Public License version 3 as published by the
@@ -151,6 +151,11 @@ function enableQS(noReload){
                     	inputElement: qsFields[qsField],
                     	//YUI requires the data, even POST, to be URL encoded
                     	generateRequest : function(sQuery) {
+                            //preprocess values
+                            var item_id = this.inputElement.form_id + '_' + this.inputElement.name;
+                            if (QSCallbacksArray[item_id]) {
+                                QSCallbacksArray[item_id](this.sqs);
+                            }
 	                    	var out = SUGAR.util.paramsToUrl({
 	                    		to_pdf: 'true',
 	                            module: 'Home',
@@ -229,7 +234,7 @@ function enableQS(noReload){
 	                	        	   this.qs_obj.populate_list[key].match(filter)) {
 	                	        	   
 	                	        	    var displayValue = data[i].replace(/&amp;/gi,'&').replace(/&lt;/gi,'<').replace(/&gt;/gi,'>').replace(/&#039;/gi,'\'').replace(/&quot;/gi,'"');
-		   	        					var data_label =  document.getElementById(this.qs_obj.populate_list[key]+'_label').innerHTML.replace(/\n/gi,'');
+                                        var data_label =  document.getElementById(this.qs_obj.populate_list[key]+'_label').innerHTML.replace(/\n/gi,'').replace(/<\/?[^>]+(>|$)/g, "");
 			        					
 			        					label_and_data = data_label  + ' ' + displayValue;
 			        					
@@ -351,4 +356,5 @@ function registerSingleSmartInputListener(input) {
 if(typeof QSFieldsArray == 'undefined') {
    QSFieldsArray = new Array();
    QSProcessedFieldsArray = new Array();
+   QSCallbacksArray = new Array();
 }

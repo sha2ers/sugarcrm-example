@@ -1,7 +1,7 @@
 {*
 /*********************************************************************************
  * SugarCRM Community Edition is a customer relationship management program developed by
- * SugarCRM, Inc. Copyright (C) 2004-2011 SugarCRM Inc.
+ * SugarCRM, Inc. Copyright (C) 2004-2012 SugarCRM Inc.
  * 
  * This program is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Affero General Public License version 3 as published by the
@@ -36,8 +36,8 @@
 
 *}
 <div id="companyLogo">
-    <a href="index.php?module=Home&action=index">
-    <img src="{$COMPANY_LOGO_URL}" width="{$COMPANY_LOGO_WIDTH}" height="{$COMPANY_LOGO_HEIGHT}" 
-        alt="Company Logo" border="0"/>
+    <a href="index.php?module=Home&action=index" border="0">
+    <img src="{$COMPANY_LOGO_URL}" width="{$COMPANY_LOGO_WIDTH}" height="{$COMPANY_LOGO_HEIGHT}"
+        alt="{sugar_translate label='LBL_COMPANY_LOGO'}" border="0"/>
     </a>
 </div>

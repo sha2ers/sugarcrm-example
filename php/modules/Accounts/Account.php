@@ -2,7 +2,7 @@
 if(!defined('sugarEntry') || !sugarEntry) die('Not A Valid Entry Point');
 /*********************************************************************************
  * SugarCRM Community Edition is a customer relationship management program developed by
- * SugarCRM, Inc. Copyright (C) 2004-2011 SugarCRM Inc.
+ * SugarCRM, Inc. Copyright (C) 2004-2012 SugarCRM Inc.
  * 
  * This program is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Affero General Public License version 3 as published by the
@@ -149,12 +149,9 @@ class Account extends Company {
 		}
 
 
-        //Combine the email logic original here with bug #26450.
-		if( (!empty($_REQUEST['parent_id']) && !empty($_REQUEST['parent_type']) && $_REQUEST['parent_type'] == 'Emails'
-        	&& !empty($_REQUEST['return_module']) && $_REQUEST['return_module'] == 'Emails' )
-        	||
-        	(!empty($_REQUEST['parent_type']) && $_REQUEST['parent_type'] != 'Accounts' &&
-        	!empty($_REQUEST['return_module']) && $_REQUEST['return_module'] != 'Accounts') ){
+        //Email logic
+		if (!empty($_REQUEST['parent_id']) && !empty($_REQUEST['parent_type']) && $_REQUEST['parent_type'] == 'Emails'
+        	&& !empty($_REQUEST['return_module']) && $_REQUEST['return_module'] == 'Emails') {
 			$_REQUEST['parent_name'] = '';
 			$_REQUEST['parent_id'] = '';
 		}
@@ -230,7 +227,7 @@ class Account extends Company {
 			$camp = new Campaign();
 		    $where = "campaigns.id='{$this->campaign_id}'";
 		    $campaign_list = $camp->get_full_list("campaigns.name", $where, true);
-		    $this->campaign_name = $campaign_list[0]->name;	
+		    $this->campaign_name = $campaign_list[0]->name;
 		}
 	}
 
@@ -247,15 +244,10 @@ class Account extends Company {
 		{
 			$temp_array["CITY"] = $this->billing_address_city;
 		}
-		$temp_array["BILLING_ADDRESS_STREET"]  = preg_replace("/[\r]/",'',$this->billing_address_street);
-		$temp_array["SHIPPING_ADDRESS_STREET"] = preg_replace("/[\r]/",'',$this->shipping_address_street);
-		$temp_array["BILLING_ADDRESS_STREET"]  = preg_replace("/[\n]/",'\n',$temp_array["BILLING_ADDRESS_STREET"] );
-		$temp_array["SHIPPING_ADDRESS_STREET"] = preg_replace("/[\n]/",'\n',$temp_array["SHIPPING_ADDRESS_STREET"] );
-    	if(isset($system_config->settings['system_skypeout_on']) && $system_config->settings['system_skypeout_on'] == 1){
-    	if(!empty($temp_array['PHONE_OFFICE']) && skype_formatted($temp_array['PHONE_OFFICE'])){
-    		$temp_array['PHONE_OFFICE'] = '<a href="callto://' . $temp_array['PHONE_OFFICE']. '">'.$temp_array['PHONE_OFFICE']. '</a>' ;
-    	}}
-    	$temp_array["EMAIL1"] = $this->emailAddress->getPrimaryAddress($this);
+		$temp_array["BILLING_ADDRESS_STREET"]  = $this->billing_address_street;
+		$temp_array["SHIPPING_ADDRESS_STREET"] = $this->shipping_address_street;
+    	
+    		$temp_array["EMAIL1"] = $this->emailAddress->getPrimaryAddress($this);
 		$this->email1 = $temp_array['EMAIL1'];
 		$temp_array["EMAIL1_LINK"] = $current_user->getEmailLink('email1', $this, '', '', 'ListView');
 		return $temp_array;

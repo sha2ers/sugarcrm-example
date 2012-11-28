@@ -2,7 +2,7 @@
 //if(!defined('sugarEntry') || !sugarEntry) die('Not A Valid Entry Point');
 /*********************************************************************************
  * SugarCRM Community Edition is a customer relationship management program developed by
- * SugarCRM, Inc. Copyright (C) 2004-2011 SugarCRM Inc.
+ * SugarCRM, Inc. Copyright (C) 2004-2012 SugarCRM Inc.
  * 
  * This program is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Affero General Public License version 3 as published by the
@@ -51,17 +51,17 @@ $checked = (isset($_SESSION['setup_license_accept']) && !empty($_SESSION['setup_
 
 require_once("install/install_utils.php");
 $license_file = getLicenseContents("LICENSE.txt");
-
+$langHeader = get_language_header();
 $out =<<<EOQ
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
-<html>
+<html {$langHeader}>
 <head>
    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
    <meta http-equiv="Content-Style-Type" content="text/css">
    <title>{$mod_strings['LBL_WIZARD_TITLE']} {$mod_strings['LBL_LICENSE_ACCEPTANCE']}</title>
    <link REL="SHORTCUT ICON" HREF="include/images/sugar_icon.ico">
    <link rel="stylesheet" href="install/install.css" type="text/css">
-   <script src="include/javascript/sugar_grp1_yui.js?s={$sugar_version}&c={$js_custom_version}"></script>
+   <script src="cache/include/javascript/sugar_grp1_yui.js?s={$sugar_version}&c={$js_custom_version}"></script>
    <script type="text/javascript">
     <!--
     if ( YAHOO.env.ua )
@@ -85,7 +85,7 @@ $out =<<<EOQ
 		</p>
       {$mod_strings['LBL_LICENSE_ACCEPTANCE']}</th>
       <th width="200" height="30" style="text-align: right;"><a href="http://www.sugarcrm.com" target="_blank">
-      	<IMG src="include/images/sugarcrm_login.png" width="145" height="30" alt="SugarCRM" border="0"></a>
+      	<IMG src="include/images/sugarcrm_login.png" alt="SugarCRM" border="0"></a>
       </th>
     </tr>
     <tr>
@@ -163,7 +163,7 @@ function callSysCheck(){
                 success = function(o) {
                     if (o.responseText.indexOf('passed')>=0){
                         if ( YAHOO.util.Selector.query('button', 'p_msg', true) != null )
-                            YAHOO.util.Selector.query('button', 'p_msg', true).style.display = 'none'; 
+                            YAHOO.util.Selector.query('button', 'p_msg', true).style.display = 'none';
                         scsbody =  "<table cellspacing='0' cellpadding='0' border='0' align='center'><tr><td>";
                         scsbody += "<p>{$mod_strings['LBL_LICENSE_CHECK_PASSED']}</p>";
                         scsbody += "<div id='cntDown'>{$mod_strings['LBL_THREE']}</div>";
@@ -221,7 +221,7 @@ function callSysCheck(){
            <div id="checkingDiv" style="display:none">
            <table cellspacing="0" cellpadding="0" border="0">
                <tr><td>
-                    <p><img src='install/processing.gif'> <br>{$mod_strings['LBL_LICENSE_CHECKING']}</p>
+                    <p><img src='install/processing.gif' alt="{$mod_strings['LBL_LICENSE_CHECKING']}"> <br>{$mod_strings['LBL_LICENSE_CHECKING']}</p>
                 </td></tr>
             </table>
             </div>

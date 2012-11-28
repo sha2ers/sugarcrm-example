@@ -2,7 +2,7 @@
 if(!defined('sugarEntry') || !sugarEntry) die('Not A Valid Entry Point');
 /*********************************************************************************
  * SugarCRM Community Edition is a customer relationship management program developed by
- * SugarCRM, Inc. Copyright (C) 2004-2011 SugarCRM Inc.
+ * SugarCRM, Inc. Copyright (C) 2004-2012 SugarCRM Inc.
  * 
  * This program is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Affero General Public License version 3 as published by the
@@ -88,7 +88,7 @@ $mod_strings = array (
     'LBL_CONVERTED_OPP'=>'Converted Opportunity:',
     'LBL_CONVERTED'=> 'Converted',
     'LBL_CONVERTLEAD_BUTTON_KEY' => 'V',
-    'LBL_CONVERTLEAD_TITLE' => 'Convert Lead [Alt+V]',
+    'LBL_CONVERTLEAD_TITLE' => 'Convert Lead',
     'LBL_CONVERTLEAD' => 'Convert Lead',
     'LBL_CONVERTLEAD_WARNING' => 'Warning: The status of the Lead you are about to convert is "Converted". Contact and/or Account records may already have been created from the Lead. If you wish to continue with converting the Lead, click Save. To go back to the Lead without converting it, click Cancel.',
     'LBL_CONVERTLEAD_WARNING_INTO_RECORD' => ' Possible Contact: ',
@@ -173,6 +173,7 @@ $mod_strings = array (
     'LBL_REFERED_BY' => 'Referred By:',
     'LBL_REPORTS_TO_ID'=>'Reports To ID',
     'LBL_REPORTS_TO' => 'Reports To:',
+    'LBL_REPORTS_FROM' => 'Reports From:',
     'LBL_SALUTATION' => 'Salutation',
     'LBL_MODIFIED'=>'Modified By',
 	'LBL_MODIFIED_ID'=>'Modified By Id',
@@ -199,7 +200,6 @@ $mod_strings = array (
     'LNK_NEW_OPPORTUNITY' => 'Create Opportunity',
     'LNK_SELECT_ACCOUNT' => ' <b>OR</b> Select Account',
 	'LNK_SELECT_ACCOUNTS' => ' <b>OR</b> Select Account',
-    'MSG_DUPLICATE' => 'Similar leads have been found. Please check the box of any leads you would like to associate with the Records that will be created from this conversion. Once you are done, please press next.',
     'NTC_COPY_ALTERNATE_ADDRESS' => 'Copy alternate address to primary address',
     'NTC_COPY_PRIMARY_ADDRESS' => 'Copy primary address to alternate address',
     'NTC_DELETE_CONFIRMATION' => 'Are you sure you want to delete this record?',
@@ -248,6 +248,7 @@ $mod_strings = array (
 	'LBL_SELECTION_TIP' => 'Modules with a relate field in Contacts can be selected rather than created during the convert lead process.',
 	'LBL_EDIT_TIP'		=> 'Modify the convert layout for this module.',
 	'LBL_DELETE_TIP'	=> 'Remove this module from the convert layout.',
+
     'LBL_ACTIVITIES_MOVE'   => 'Move Activities to',
     'LBL_ACTIVITIES_COPY'   => 'Copy Activities to',
     'LBL_ACTIVITIES_MOVE_HELP'   => "Select the record to which to move the Lead's activities. Tasks, Calls, Meetings, Notes and Emails will be moved to the selected record(s).",
@@ -263,8 +264,11 @@ $mod_strings = array (
     'LBL_EXPORT_ASSIGNED_USER_ID' => 'Assigned User ID',
     'LBL_EXPORT_MODIFIED_USER_ID' => 'Modified By ID',
     'LBL_EXPORT_CREATED_BY' => 'Created By ID',
+    'LBL_EXPORT_PHONE_MOBILE' => 'Mobile Phone',
     'LBL_EXPORT_EMAIL2'=>'Other Email Address',
+	'LBL_EDITLAYOUT' => 'Edit Layout' /*for 508 compliance fix*/,
+	'LBL_ENTERDATE' => 'Enter Date' /*for 508 compliance fix*/,
+	'LBL_LOADING' => 'Loading' /*for 508 compliance fix*/,
+	'LBL_EDIT_INLINE' => 'Edit' /*for 508 compliance fix*/,
 );
-
-
 ?>

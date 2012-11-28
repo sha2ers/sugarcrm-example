@@ -2,7 +2,7 @@
 if(!defined('sugarEntry') || !sugarEntry) die('Not A Valid Entry Point');
 /*********************************************************************************
  * SugarCRM Community Edition is a customer relationship management program developed by
- * SugarCRM, Inc. Copyright (C) 2004-2011 SugarCRM Inc.
+ * SugarCRM, Inc. Copyright (C) 2004-2012 SugarCRM Inc.
  * 
  * This program is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Affero General Public License version 3 as published by the
@@ -38,35 +38,34 @@ if(!defined('sugarEntry') || !sugarEntry) die('Not A Valid Entry Point');
 
 
 
-require_once('include/generic/SugarWidgets/SugarWidgetField.php');
+
 //TODO Rename this to edit link
 class SugarWidgetSubPanelEditButton extends SugarWidgetField
 {
-	function displayHeaderCell(&$layout_def)
+    protected static $defs = array();
+    protected static $edit_icon_html;
+
+	function displayHeaderCell($layout_def)
 	{
-		return '&nbsp;';
+		return '';
 	}
 
-	function displayList(&$layout_def)
+	function displayList($layout_def)
 	{
-		global $app_strings, $beanList;
-
-		$edit_icon_html = SugarThemeRegistry::current()->getImage( 'edit_inline',
-			'align="absmiddle" alt="' . $app_strings['LNK_EDIT'] . '" border="0"');
-
+		global $app_strings;
+        global $subpanel_item_count;
+		$unique_id = $layout_def['subpanel_id']."_edit_".$subpanel_item_count; //bug 51512
         $onclick ='';
-            if($layout_def['EditView']) {
+        if($layout_def['EditView']) {
 			return "<a href='#' onMouseOver=\"javascript:subp_nav('".$layout_def['module']."', '".$layout_def['fields']['ID']."', 'e', this"
 			. (empty($layout_def['linked_field']) ? "" : ", '{$layout_def['linked_field']}'") . ");\""
 			. " onFocus=\"javascript:subp_nav('".$layout_def['module']."', '".$layout_def['fields']['ID']."', 'e', this"
 			. (empty($layout_def['linked_field']) ? "" : ", '{$layout_def['linked_field']}'") . ");\""
-			. ' class="listViewTdToolsS1">' . $edit_icon_html . '&nbsp;' . $app_strings['LNK_EDIT'] .'</a>&nbsp;';
+			. " class='listViewTdToolsS1' id=\"$unique_id\">". $app_strings['LNK_EDIT'] .'</a>';
 		}
-		else{
-		}
-			return '';
-		}
-	//}
+
+        return '';
+    }
 
 }
 

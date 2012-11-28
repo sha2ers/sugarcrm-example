@@ -1,7 +1,7 @@
 <?php
 /*********************************************************************************
  * SugarCRM Community Edition is a customer relationship management program developed by
- * SugarCRM, Inc. Copyright (C) 2004-2011 SugarCRM Inc.
+ * SugarCRM, Inc. Copyright (C) 2004-2012 SugarCRM Inc.
  * 
  * This program is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Affero General Public License version 3 as published by the
@@ -36,6 +36,7 @@
 
 require_once ('modules/ModuleBuilder/MB/ModuleBuilder.php') ;
 require_once ('modules/ModuleBuilder/parsers/ParserFactory.php') ;
+require_once ('modules/ModuleBuilder/Module/StudioModuleFactory.php');
 require_once 'modules/ModuleBuilder/parsers/constants.php' ;
 
 class ModuleBuilderController extends SugarController
@@ -102,31 +103,49 @@ class ModuleBuilderController extends SugarController
 
     function action_editLayout ()
     {
-        switch ( strtolower ( $_REQUEST [ 'view' ] ))
+        $view = strtolower ( $_REQUEST [ 'view' ] );
+        $found = false;
+        //Check the StudioModule first for mapping overrides
+        if(empty($_REQUEST [ 'view_package' ] )|| $_REQUEST [ 'view_package' ] == "studio")
         {
-            case MB_EDITVIEW :
-            case MB_DETAILVIEW :
-            case MB_QUICKCREATE :
-                $this->view = 'layoutView' ;
-                break ;
-            case MB_LISTVIEW :
-                $this->view = 'listView' ;
-                break ;
-            case MB_BASICSEARCH :
-            case MB_ADVANCEDSEARCH :
-                $this->view = 'searchView' ;
-                break ;
-            case MB_DASHLET :
-            case MB_DASHLETSEARCH :
-                $this->view = 'dashlet' ;
-                break ;
-            case MB_POPUPLIST :
-            case MB_POPUPSEARCH :
-                $this->view = 'popupview' ;
-                break ;
-            default :
-                $GLOBALS [ 'log' ]->fatal ( 'Action = editLayout with unknown view=' . $_REQUEST [ 'view' ] ) ;
+            $sm = StudioModuleFactory::getStudioModule($_REQUEST [ 'view_module' ]);
+            foreach($sm->sources as $file => $def)
+            {
+                if (!empty($def['type']) && !empty($def['view']) && $def['view'] == $view )
+                {
+                    $view = $def['type'];
+                }
+            }
         }
+        if (!$found)
+        {
+            switch ( $view)
+            {
+                case MB_EDITVIEW :
+                case MB_DETAILVIEW :
+                case MB_QUICKCREATE :
+                    $this->view = 'layoutView' ;
+                    break ;
+                case MB_LISTVIEW :
+                    $this->view = 'listView' ;
+                    break ;
+                case MB_BASICSEARCH :
+                case MB_ADVANCEDSEARCH :
+                    $this->view = 'searchView' ;
+                    break ;
+                case MB_DASHLET :
+                case MB_DASHLETSEARCH :
+                    $this->view = 'dashlet' ;
+                    break ;
+                case MB_POPUPLIST :
+                case MB_POPUPSEARCH :
+                    $this->view = 'popupview' ;
+                    break ;
+                default :
+                    $GLOBALS [ 'log' ]->fatal ( 'Action = editLayout with unknown view=' . $_REQUEST [ 'view' ] ) ;
+            } 
+        }
+
     }
 
 
@@ -194,10 +213,15 @@ class ModuleBuilderController extends SugarController
 
     function action_DeployPackage ()
     {
+    	global $current_user;
+    	
     	if(defined('TEMPLATE_URL')){
     		sugar_cache_reset();
     		SugarTemplateUtilities::disableCache();
     	}
+    	
+    	//increment etag for menu so the new module shows up when the AJAX UI reloads
+    	$current_user->incrementETag("mainMenuETag");
 
         $mb = new ModuleBuilder ( ) ;
         $load = $_REQUEST [ 'package' ] ;
@@ -208,10 +232,11 @@ class ModuleBuilderController extends SugarController
             require_once ('ModuleInstall/PackageManager/PackageManager.php') ;
             $pm = new PackageManager ( ) ;
             $info = $mb->packages [ $load ]->build ( false ) ;
-            mkdir_recursive ( $GLOBALS [ 'sugar_config' ] [ 'cache_dir' ] . '/upload/upgrades/module/') ;
-            rename ( $info [ 'zip' ], $GLOBALS [ 'sugar_config' ] [ 'cache_dir' ] . '/' . 'upload/upgrades/module/' . $info [ 'name' ] . '.zip' ) ;
-            copy ( $info [ 'manifest' ], $GLOBALS [ 'sugar_config' ] [ 'cache_dir' ] . '/' . 'upload/upgrades/module/' . $info [ 'name' ] . '-manifest.php' ) ;
-            $_REQUEST [ 'install_file' ] = $GLOBALS [ 'sugar_config' ] [ 'cache_dir' ] . '/' . 'upload/upgrades/module/' . $info [ 'name' ] . '.zip' ;
+            $uploadDir = $pm->upload_dir.'/upgrades/module/';
+            mkdir_recursive ($uploadDir) ;
+            rename ( $info [ 'zip' ], $uploadDir . $info [ 'name' ] . '.zip' ) ;
+            copy ( $info [ 'manifest' ], $uploadDir . $info [ 'name' ] . '-manifest.php' ) ;
+            $_REQUEST [ 'install_file' ] = $uploadDir. $info [ 'name' ] . '.zip' ;
             $GLOBALS [ 'mi_remove_tables' ] = false ;
             $pm->performUninstall ( $load ) ;
             //#23177 , js cache clear
@@ -228,7 +253,7 @@ class ModuleBuilderController extends SugarController
             UnifiedSearchAdvanced::unlinkUnifiedSearchModulesFile();
 
             //bug 44269 - start
-            global $current_user;
+            
             //clear workflow admin modules cache
             if (isset($_SESSION['get_workflow_admin_modules_for_user'])) unset($_SESSION['get_workflow_admin_modules_for_user']);
 
@@ -368,6 +393,9 @@ class ModuleBuilderController extends SugarController
             if (! empty ( $_REQUEST [ 'view_module' ] ))
             {
                 $module = $_REQUEST [ 'view_module' ] ;
+                if ( $module == 'Employees' ) {
+                    $module = 'Users';
+                }
 
                 $bean = BeanFactory::getBean($module);
                 if(!empty($bean))
@@ -391,8 +419,18 @@ class ModuleBuilderController extends SugarController
                 include_once ('modules/Administration/QuickRepairAndRebuild.php') ;
         		global $mod_strings;
                 $mod_strings['LBL_ALL_MODULES'] = 'all_modules';
+                require_once('ModuleInstall/ModuleInstaller.php');
+                $mi = new ModuleInstaller();
+                $mi->silent = true;
+                $mi->rebuild_extensions();
                 $repair = new RepairAndClear();
+
 		        $repair->repairAndClearAll(array('rebuildExtensions', 'clearVardefs', 'clearTpls'), array($class_name), true, false);
+                if ( $module == 'Users' ) {
+                    $repair->repairAndClearAll(array('rebuildExtensions', 'clearVardefs', 'clearTpls'), array('Employee'), true, false);
+                    
+                }
+
                 //#28707 ,clear all the js files in cache
 		        $repair->module_list = array();
 		        $repair->clearJsFiles();
@@ -416,12 +454,19 @@ class ModuleBuilderController extends SugarController
     {
     	global $mod_strings;
     	require_once ('modules/DynamicFields/FieldCases.php') ;
+    	    	
         $field = get_widget ( $_REQUEST [ 'type' ] ) ;
         $_REQUEST [ 'name' ] = trim ( $_POST [ 'name' ] ) ;
 
         $field->populateFromPost () ;
         require_once ('modules/ModuleBuilder/parsers/StandardField.php') ;
         $module = $_REQUEST [ 'view_module' ] ;
+        
+        // Need to map Employees -> Users
+        if ( $module=='Employees') {
+            $module = 'Users';
+        }
+        
         $df = new StandardField ( $module ) ;
         $mod = BeanFactory::getBean($module);
         $class_name = $GLOBALS [ 'beanList' ] [ $module ] ;
@@ -438,8 +483,13 @@ class ModuleBuilderController extends SugarController
         $GLOBALS [ 'mod_strings' ]['LBL_ALL_MODULES'] = 'all_modules';
         $_REQUEST['execute_sql'] = true;
 
+        require_once('ModuleInstall/ModuleInstaller.php');
+		$mi = new ModuleInstaller();
+        $mi->silent = true;
+		$mi->rebuild_extensions();
+
         $repair = new RepairAndClear();
-        $repair->repairAndClearAll(array('rebuildExtensions', 'clearVardefs', 'clearTpls'), array($class_name), true, false);
+        $repair->repairAndClearAll(array('clearVardefs', 'clearTpls'), array($class_name), true, false);
         //#28707 ,clear all the js files in cache
         $repair->module_list = array();
         $repair->clearJsFiles();
@@ -447,6 +497,9 @@ class ModuleBuilderController extends SugarController
         // now clear the cache so that the results are immediately visible
         include_once ('include/TemplateHandler/TemplateHandler.php') ;
         TemplateHandler::clearCache ( $module ) ;
+        if ( $module == 'Users' ) {
+            TemplateHandler::clearCache('Employees');
+        }
 
         $GLOBALS [ 'mod_strings' ] = $MBmodStrings;
     }
@@ -541,6 +594,7 @@ class ModuleBuilderController extends SugarController
                 $relationships = new UndeployedRelationships ( $module->getModuleDir () ) ;
             }
             $relationships->delete ( $_REQUEST [ 'relationship_name' ] ) ;
+
             $relationships->save () ;
             require_once("data/Relationships/RelationshipFactory.php");
             SugarRelationshipFactory::deleteCache();
@@ -567,6 +621,11 @@ class ModuleBuilderController extends SugarController
             {
                 require_once ('modules/DynamicFields/DynamicField.php') ;
                 $moduleName = $_REQUEST [ 'view_module' ] ;
+
+                // bug 51325 make sure we make this switch or delete will not work
+                if( $moduleName == 'Employees' )
+                    $moduleName = 'Users';
+                
                 $class_name = $GLOBALS [ 'beanList' ] [ $moduleName ] ;
                 require_once ($GLOBALS [ 'beanFiles' ] [ $class_name ]) ;
                 $seed = new $class_name ( ) ;
@@ -594,6 +653,18 @@ class ModuleBuilderController extends SugarController
         }
         $module->removeFieldFromLayouts( $field->name );
         $this->view = 'modulefields' ;
+
+        if (isset($GLOBALS['current_language']) && isset($_REQUEST['label']) &&
+                isset($_REQUEST['labelValue']) && isset($_REQUEST['view_module'])) {
+            $this->DeleteLabel($GLOBALS['current_language'], $_REQUEST['label'], $_REQUEST['labelValue'], $_REQUEST['view_module']);
+        }
+    }
+
+    function DeleteLabel($language, $label, $labelvalue, $modulename, $basepath = null, $forRelationshipLabel = false)
+    {
+        // remove the label
+        require_once 'modules/ModuleBuilder/parsers/parser.label.php';
+        ParserLabel::removeLabel($language, $label, $labelvalue, $modulename, $basepath, $forRelationshipLabel);
     }
 
     function action_CloneField ()
@@ -746,11 +817,7 @@ class ModuleBuilderController extends SugarController
         $module_name = $_REQUEST [ 'view_module' ] ;
         global $beanList;
         if (isset($beanList[$module_name]) && $beanList[$module_name]!="") {
-            $objectName = $beanList[$module_name];
-            if($objectName == 'aCase') // Bug 17614 - renamed aCase as Case in vardefs for backwards compatibililty with 451 modules
-            {
-                $objectName = 'Case';
-            }
+            $objectName = BeanFactory::getObjectName($module_name);
 
             //Load the vardefs for the module to pass to TemplateRange
             VardefManager::loadVardef($module_name, $objectName, true);
@@ -815,6 +882,26 @@ class ModuleBuilderController extends SugarController
     }
 
 
+    /**
+     * savetablesort
+     * This method handles saving the current user's tabling sorting preferences.  It is called when
+     * the user clicks on a column to sort from the fields layout table.
+     *
+     */
+    function action_savetablesort ()
+    {
+        $this->view = 'ajax';
+        global $current_user;
+
+        if(!empty($current_user) && isset($_REQUEST['column']) && isset($_REQUEST['direction']))
+        {
+            $direction = ($_REQUEST['direction'] == 'yui-dt-asc') ? 'ASC' : 'DESC';
+            $valid_columns = array('name', 'label', 'type', 'required', 'unified_search', 'custom');
+            $key = in_array($_REQUEST['column'], $valid_columns) ? $_REQUEST['column'] : 'name';
+            $val = array('key'=>$key, 'direction'=>$direction);
+            $current_user->setPreference('fieldsTableColumn', getJSONobj()->encode($val), 0, 'ModuleBuilder');
+        }
+    }
 
 }
 ?>

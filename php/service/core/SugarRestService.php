@@ -2,7 +2,7 @@
  if(!defined('sugarEntry'))define('sugarEntry', true);
 /*********************************************************************************
  * SugarCRM Community Edition is a customer relationship management program developed by
- * SugarCRM, Inc. Copyright (C) 2004-2011 SugarCRM Inc.
+ * SugarCRM, Inc. Copyright (C) 2004-2012 SugarCRM Inc.
  * 
  * This program is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Affero General Public License version 3 as published by the
@@ -87,8 +87,8 @@ class SugarRestService extends SugarWebService{
 		$GLOBALS['log']->info('Begin: SugarRestService->__construct');
 		$this->restURL = $url;
 
-		$this->responseClass = $this->_getTypeName($_REQUEST['response_type']);
-		$this->serverClass = $this->_getTypeName($_REQUEST['input_type']);
+		$this->responseClass = $this->_getTypeName(@$_REQUEST['response_type']);
+		$this->serverClass = $this->_getTypeName(@$_REQUEST['input_type']);
 		$GLOBALS['log']->info('SugarRestService->__construct serverclass = ' . $this->serverClass);
 		require_once('service/core/REST/'. $this->serverClass . '.php');
 		$GLOBALS['log']->info('End: SugarRestService->__construct');
@@ -126,7 +126,7 @@ class SugarRestService extends SugarWebService{
 
 		$responseServer = new $response($this->implementation);
 		$this->server->faultServer = $responseServer;
-		$this->responseServer->faultServer = $responseServer;
+		$responseServer->faultServer = $responseServer;
 		$responseServer->generateResponse($this->server->serve());
 		$GLOBALS['log']->info('End: SugarRestService->serve');
 	} // fn
@@ -195,7 +195,7 @@ class SugarRestService extends SugarWebService{
 	function error($errorObject){
 		$GLOBALS['log']->info('Begin: SugarRestService->error');
 		$this->server->fault($errorObject);
-		$GLOBALS['log']->info('Begin: SugarRestService->error');
+		$GLOBALS['log']->info('End: SugarRestService->error');
 	} // fn
 
 	/**

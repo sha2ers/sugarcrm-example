@@ -2,7 +2,7 @@
 if(!defined('sugarEntry') || !sugarEntry) die('Not A Valid Entry Point');
 /*********************************************************************************
  * SugarCRM Community Edition is a customer relationship management program developed by
- * SugarCRM, Inc. Copyright (C) 2004-2011 SugarCRM Inc.
+ * SugarCRM, Inc. Copyright (C) 2004-2012 SugarCRM Inc.
  * 
  * This program is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Affero General Public License version 3 as published by the
@@ -34,15 +34,6 @@ if(!defined('sugarEntry') || !sugarEntry) die('Not A Valid Entry Point');
  * technical reasons, the Appropriate Legal Notices must display the words
  * "Powered by SugarCRM".
  ********************************************************************************/
-
-/*********************************************************************************
-
- * Description:
- ********************************************************************************/
-
-
-
-
 
 
 require_once('modules/Calendar/Calendar.php');
@@ -133,10 +124,13 @@ class vCal extends SugarBean {
 		global $DO_USER_TIME_OFFSET,$timedate;
 
 		$DO_USER_TIME_OFFSET = true;
+		if(empty($GLOBALS['current_user']) || empty($GLOBALS['current_user']->id)) {
+		    $GLOBALS['current_user'] = $user_bean;
+		}
 		// get activities.. queries Meetings and Calls
 		$acts_arr =
 		CalendarActivity::get_activities($user_bean->id,
-			false,
+			array("show_calls" => true),
 			$start_date_time,
 			$end_date_time,
 			'freebusy');
@@ -237,6 +231,28 @@ class vCal extends SugarBean {
             $focus->save();
         }
 
+	/**
+	 * get ics file content for meeting invite email
+	 */
+	public static function get_ical_event(SugarBean $bean, User $user){
+		$str = "";
+
+		$str .= "BEGIN:VCALENDAR\n";
+		$str .= "VERSION:2.0\n";
+		$str .= "PRODID:-//SugarCRM//SugarCRM Calendar//EN\n";
+		$str .= "BEGIN:VEVENT\n";
+		$str .= "UID:".$bean->id."\n";
+		$str .= "ORGANIZER;CN=".$user->full_name.":".$user->email1."\n";
+		$str .= "DTSTART:".SugarDateTime::createFromFormat($GLOBALS['timedate']->get_db_date_time_format(),$bean->date_start)->format(self::UTC_FORMAT)."\n";
+		$str .= "DTEND:".SugarDateTime::createFromFormat($GLOBALS['timedate']->get_db_date_time_format(),$bean->date_end)->format(self::UTC_FORMAT)."\n";
+		$str .= "DTSTAMP:". $GLOBALS['timedate']->getNow(false)->format(self::UTC_FORMAT) ."\n";
+		$str .= "SUMMARY:" . $bean->name . "\n";
+		$str .= "DESCRIPTION:" . $bean->description . "\n";
+		$str .= "END:VEVENT\n";
+		$str .= "END:VCALENDAR\n";
+
+		return $str;
+	}
 
 }
 

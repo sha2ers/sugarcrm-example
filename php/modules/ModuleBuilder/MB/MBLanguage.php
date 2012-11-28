@@ -1,7 +1,7 @@
 <?php	
 /*********************************************************************************
  * SugarCRM Community Edition is a customer relationship management program developed by
- * SugarCRM, Inc. Copyright (C) 2004-2011 SugarCRM Inc.
+ * SugarCRM, Inc. Copyright (C) 2004-2012 SugarCRM Inc.
  * 
  * This program is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Affero General Public License version 3 as published by the
@@ -112,7 +112,7 @@ class MBLanguage{
 		function getModStrings($language='en_us'){
 			$language .= '.lang.php';
 			if(!empty($this->strings[$language]) && $language != 'en_us.lang.php'){
-			    return sugarArrayMerge($this->strings['en_us.lang.php'], $this->strings[$language]);
+			    return sugarLangArrayMerge($this->strings['en_us.lang.php'], $this->strings[$language]);
 			}
 			if(!empty($this->strings['en_us.lang.php']))return $this->strings['en_us.lang.php'];
 			$empty = array();
@@ -121,7 +121,7 @@ class MBLanguage{
 		function getAppListStrings($language='en_us'){
 			$language .= '.lang.php';
 			if(!empty($this->appListStrings[$language]) && $language != 'en_us.lang.php'){
-			    return sugarArrayMerge($this->appListStrings['en_us.lang.php'], $this->appListStrings[$language]);
+			    return sugarLangArrayMerge($this->appListStrings['en_us.lang.php'], $this->appListStrings[$language]);
 			}
 			if(!empty($this->appListStrings['en_us.lang.php']))return $this->appListStrings['en_us.lang.php'];
 			$empty = array();
@@ -194,7 +194,7 @@ class MBLanguage{
 				}
 				
 
-				$values = sugarArrayMerge($values, $app_list_strings);
+				$values = sugarLangArrayMerge($values, $app_list_strings);
 				$values['moduleList'][$key_name]= $this->label;
 				
 				
@@ -261,6 +261,25 @@ class MBLanguage{
 			$this->templates = null;
 			$this->load();
 		}
+
+    /**
+     * Attempts to translate the given label if it is contained in this
+     * undeployed module's language strings
+     *
+     * @param string $label Label to translate
+     * @param string $language Language to use to translate the label
+     * @return string
+     */
+    public function translate($label, $language = "en_us"){
+            $language = $language . ".lang.php";
+            if (isset($this->strings[$language][$label]))
+                return $this->strings[$language][$label];
+
+            if (isset($this->appListStrings[$language][$label]))
+                return $this->appListStrings[$language][$label];
+
+            return $label;
+        }
 		
 	
 }

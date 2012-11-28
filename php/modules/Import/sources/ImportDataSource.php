@@ -3,7 +3,7 @@ if(!defined('sugarEntry') || !sugarEntry) die('Not A Valid Entry Point');
 
 /*********************************************************************************
  * SugarCRM Community Edition is a customer relationship management program developed by
- * SugarCRM, Inc. Copyright (C) 2004-2011 SugarCRM Inc.
+ * SugarCRM, Inc. Copyright (C) 2004-2012 SugarCRM Inc.
  * 
  * This program is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Affero General Public License version 3 as published by the
@@ -274,7 +274,7 @@ abstract class ImportDataSource implements Iterator
                 //foreach column, strip the 'colnum_' prefix to the get the column key value
                 foreach($colnums as $column_key)
                 {
-                    if(strpos($column_key,'colnum_') == 0)
+                    if(strpos($column_key,'colnum_') === 0)
                     {
                         $colkey = substr($column_key,7);
                     }

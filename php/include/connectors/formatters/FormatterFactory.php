@@ -2,7 +2,7 @@
 if(!defined('sugarEntry') || !sugarEntry) die('Not A Valid Entry Point');
 /*********************************************************************************
  * SugarCRM Community Edition is a customer relationship management program developed by
- * SugarCRM, Inc. Copyright (C) 2004-2011 SugarCRM Inc.
+ * SugarCRM, Inc. Copyright (C) 2004-2012 SugarCRM Inc.
  * 
  * This program is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Affero General Public License version 3 as published by the
@@ -35,10 +35,14 @@ if(!defined('sugarEntry') || !sugarEntry) die('Not A Valid Entry Point');
  * "Powered by SugarCRM".
  ********************************************************************************/
 
+/**
+ * Formatter factory
+ * @api
+ */
 class FormatterFactory {
-	
+
 	static $formatter_map = array();
-	
+
 	/**
 	 * getInstance
 	 * This method returns a formatter instance for the given source name and
@@ -52,13 +56,13 @@ class FormatterFactory {
 	 */
 	public static function getInstance($source_name, $formatter_name=''){
 		require_once('include/connectors/formatters/default/formatter.php');
-		$key = $source_name . $formatter_name;		
+		$key = $source_name . $formatter_name;
 		if(empty(self::$formatter_map[$key])) {
-			
+
 			if(empty($formatter_name)){
 			   $formatter_name = $source_name;
-			}			
-			
+			}
+
 			//split the wrapper name to find the path to the file.
 			$dir = str_replace('_','/',$formatter_name);
 			$parts = explode("/", $dir);
@@ -78,7 +82,7 @@ class FormatterFactory {
 				//if there is no override wrapper, use the default.
 				$formatter_name = 'default_formatter';
 			}
-	
+
 			$component = ConnectorFactory::getInstance($source_name);
 			$formatter = new $formatter_name();
 			$formatter->setComponent($component);
@@ -91,6 +95,6 @@ class FormatterFactory {
 		} //if
 		return self::$formatter_map[$key];
 	}
-	
+
 }
 ?>

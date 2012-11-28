@@ -2,7 +2,7 @@
 if(!defined('sugarEntry') || !sugarEntry) die('Not A Valid Entry Point');
 /*********************************************************************************
  * SugarCRM Community Edition is a customer relationship management program developed by
- * SugarCRM, Inc. Copyright (C) 2004-2011 SugarCRM Inc.
+ * SugarCRM, Inc. Copyright (C) 2004-2012 SugarCRM Inc.
  * 
  * This program is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Affero General Public License version 3 as published by the
@@ -95,7 +95,7 @@ class Link {
 
 		$this->_db = DBManagerFactory::getInstance();
 
-	
+
 		//Following behavior is tied to a property(ignore_role) value in the vardef. It alters the values of 2 properties, ignore_role_filter and add_distinct.
 		//the property values can be altered again before any requests are made.
 		if (!empty($fieldDef) && is_array($fieldDef)) {
@@ -692,7 +692,7 @@ class Link {
 					return;
 				}
 		}
-        $GLOBALS['log']->fatal("Relationship type = {$this->_relationship->relationship_type}");
+        $GLOBALS['log']->debug("Relationship type = {$this->_relationship->relationship_type}");
         foreach($keys as $key) {
 
 			//fetch the related record using the key and update.
@@ -712,7 +712,7 @@ class Link {
                 if(!empty($GLOBALS['dictionary'][$this->_relationship_name]['true_relationship_type']) &&
 					($GLOBALS['dictionary'][$this->_relationship_name]['true_relationship_type'] == 'one-to-one'))
                 {
-                    //Remove all existing links with either bean. 
+                    //Remove all existing links with either bean.
                     $old_rev = isset($this->_relationship->reverse) ? false : $this->_relationship->reverse;
                     $this->_relationship->reverse = true;
                     $this->delete($key);
@@ -816,7 +816,7 @@ class Link {
 	}
 
 	function _delete_row($table_name,$key) {
-		$query="UPDATE $table_name SET deleted=1, date_modified='" .$GLOBALS['timedate']->nowDb()."' WHERE id='$key'";
+		$query="UPDATE $table_name SET deleted=1, date_modified='" .$GLOBALS['timedate']->nowDb()."' WHERE id='".$this->_db->quote($key)."'";
 		$GLOBALS['log']->debug("Relationship Delete Statement :".$query);
 
 		$result=$this->_db->query($query, true);
@@ -827,7 +827,7 @@ class Link {
 		$query='UPDATE '.$table_name.' SET ';
 		$delimiter='';
 		foreach ($value_array as $key=>$value) {
-			$query.=$delimiter.$key."='".$value."' ";
+			$query.=$delimiter.$key."='".$this->_db->quote($value)."' ";
 			$delimiter=",";
 		}
 		$query.=$where;
@@ -845,7 +845,7 @@ class Link {
 		$delimiter='';
 		foreach ($value_array as $key=>$value) {
 			$columns_list.=$delimiter.$key;
-			$values_list .=$delimiter."'".$value."'";
+			$values_list .=$delimiter."'".$this->_db->quote($value)."'";
 			$delimiter=",";
 		}
 		$insert_string='INSERT into '.$this->_relationship->join_table.' ('.$columns_list.') VALUES ('.$values_list.')';
@@ -856,12 +856,12 @@ class Link {
 
 
 
-	/* this method operates on all related record, takes action based on cardinality of the relationship.
+	/* This method operates on all related record, takes action based on cardinality of the relationship.
 	 * one-to-one, one-to-many: update the rhs table's parent id with null
 	 * many-to-one: update the lhs table's parent-id with null.
-	 * many-to-many: delete rows from the link table. related table must have delted and date_modified column.
-	 * if related_is is null, the methods assumes that the parent bean (whose id is passed) is being deleted.
-	 * if both id and related_id are passed the metod unlinks a single relationship.
+	 * many-to-many: delete rows from the link table. related table must have deleted and date_modified column.
+	 * If related_id is null, the methods assumes that the parent bean (whose id is passed) is being deleted.
+	 * If both id and related_id are passed, the method unlinks a single relationship.
 	 * parameters: id of the bean being deleted.
 	 *
 	 */

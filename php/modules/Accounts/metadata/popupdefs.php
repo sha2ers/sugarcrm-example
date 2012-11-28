@@ -2,7 +2,7 @@
 if(!defined('sugarEntry') || !sugarEntry) die('Not A Valid Entry Point');
 /*********************************************************************************
  * SugarCRM Community Edition is a customer relationship management program developed by
- * SugarCRM, Inc. Copyright (C) 2004-2011 SugarCRM Inc.
+ * SugarCRM, Inc. Copyright (C) 2004-2012 SugarCRM Inc.
  * 
  * This program is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Affero General Public License version 3 as published by the
@@ -52,7 +52,7 @@ $popupMeta = array(
 		'formBase' => 'AccountFormBase.php',
 		'formBaseClass' => 'AccountFormBase',
 		'getFormBodyParams' => array('','','AccountSave'),
-		'createButton' => $mod_strings['LNK_NEW_ACCOUNT']
+		'createButton' => 'LNK_NEW_ACCOUNT'
 	),
 	'listviewdefs' => array(
 		'NAME' => array(
@@ -127,6 +127,7 @@ $popupMeta = array(
 		'billing_address_city', 
 		'billing_address_state',
 		'billing_address_country',
+		'email',
 		array(
 			'name' => 'assigned_user_id', 
 			'label'=>'LBL_ASSIGNED_TO', 

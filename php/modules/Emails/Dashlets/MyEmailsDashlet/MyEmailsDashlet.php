@@ -2,7 +2,7 @@
 if(!defined('sugarEntry') || !sugarEntry) die('Not A Valid Entry Point');
 /*********************************************************************************
  * SugarCRM Community Edition is a customer relationship management program developed by
- * SugarCRM, Inc. Copyright (C) 2004-2011 SugarCRM Inc.
+ * SugarCRM, Inc. Copyright (C) 2004-2012 SugarCRM Inc.
  * 
  * This program is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Affero General Public License version 3 as published by the
@@ -92,28 +92,44 @@ class MyEmailsDashlet extends DashletGeneric {
         $tasksURL = "\"" . SugarThemeRegistry::current()->getImageURL('Tasks.gif') . "\"";
         $script = <<<EOQ
         <script>
-        function quick_create_overlib(id, theme) {
-            return overlib('<a style=\'width: 150px\' class=\'menuItem\' onmouseover=\'hiliteItem(this,"yes");\' onmouseout=\'unhiliteItem(this);\' href=\'index.php?module=Cases&action=EditView&inbound_email_id=' + id + '\'>' +
-            "<img border='0' src='" + {$casesImageURL} + "' style='margin-right:5px'>" + '{$mod_strings['LBL_LIST_CASE']}' + '</a>' +
+        function quick_create_overlib(id, theme, el) {
+        	
+        var \$dialog = \$('<div></div>')
+		.html('<a style=\'width: 150px\' class=\'menuItem\' onmouseover=\'hiliteItem(this,"yes");\' onmouseout=\'unhiliteItem(this);\' href=\'index.php?module=Cases&action=EditView&inbound_email_id=' + id + '\'>' +
+            "<!--not_in_theme!--><img border='0' src='" + {$casesImageURL} + "' style='margin-right:5px'>" + '{$mod_strings['LBL_LIST_CASE']}' + '</a>' +
+
             
             "<a style='width: 150px' class='menuItem' onmouseover='hiliteItem(this,\"yes\");' onmouseout='unhiliteItem(this);' href='index.php?module=Leads&action=EditView&inbound_email_id=" + id + "'>" +
-                    "<img border='0' src='" + {$leadsImageURL} + "' style='margin-right:5px'>"
+                    "<!--not_in_theme!--><img border='0' src='" + {$leadsImageURL} + "' style='margin-right:5px'>"
+
                     + '{$mod_strings['LBL_LIST_LEAD']}' + "</a>" +
                     
             "<a style='width: 150px' class='menuItem' onmouseover='hiliteItem(this,\"yes\");' onmouseout='unhiliteItem(this);' href='index.php?module=Contacts&action=EditView&inbound_email_id=" + id + "'>" +
-                    "<img border='0' src='" + {$contactsImageURL} + "' style='margin-right:5px'>"
+                    "<!--not_in_theme!--><img border='0' src='" + {$contactsImageURL} + "' style='margin-right:5px'>"
+
                     + '{$mod_strings['LBL_LIST_CONTACT']}' + "</a>" +
              
              "<a style='width: 150px' class='menuItem' onmouseover='hiliteItem(this,\"yes\");' onmouseout='unhiliteItem(this);' href='index.php?module=Bugs&action=EditView&inbound_email_id=" + id + "'>"+
-                    "<img border='0' src='" + {$bugsImageURL} + "' style='margin-right:5px'>"
+                    "<!--not_in_theme!--><img border='0' src='" + {$bugsImageURL} + "' style='margin-right:5px'>"
+
                     + '{$mod_strings['LBL_LIST_BUG']}' + "</a>" +
                     
              "<a style='width: 150px' class='menuItem' onmouseover='hiliteItem(this,\"yes\");' onmouseout='unhiliteItem(this);' href='index.php?module=Tasks&action=EditView&inbound_email_id=" + id + "'>" +
-                    "<img border='0' src='" + {$tasksURL} + "' style='margin-right:5px'>"
-                   + '{$mod_strings['LBL_LIST_TASK']}' + "</a>"
-            , CAPTION, '{$mod_strings['LBL_QUICK_CREATE']}'
-            , STICKY, MOUSEOFF, 3000, CLOSETEXT, '<div style="float:right"><img border=0 src="themes/default/images/close_inline.gif"></div>', WIDTH, 150, CLOSETITLE, SUGAR.language.get('app_strings', 'LBL_ADDITIONAL_DETAILS_CLOSE_TITLE'), CLOSECLICK, FGCLASS, 'olOptionsFgClass',
-            CGCLASS, 'olOptionsCgClass', BGCLASS, 'olBgClass', TEXTFONTCLASS, 'olFontClass', CAPTIONFONTCLASS, 'olOptionsCapFontClass', CLOSEFONTCLASS, 'olOptionsCloseFontClass');
+                    "<!--not_in_theme!--><img border='0' src='" + {$tasksURL} + "' style='margin-right:5px'>"
+
+                   + '{$mod_strings['LBL_LIST_TASK']}' + "</a>")
+		.dialog({
+			autoOpen: false,
+			title: '{$mod_strings['LBL_QUICK_CREATE']}',
+			width: 150,
+			position: { 
+				    my: 'right top',
+				    at: 'left top',
+				    of: $(el)
+			  }
+		});
+		\$dialog.dialog('open');
+          
         }
         </script>
 EOQ;

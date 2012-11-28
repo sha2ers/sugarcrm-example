@@ -2,7 +2,7 @@
 if(!defined('sugarEntry') || !sugarEntry) die('Not A Valid Entry Point');
 /*********************************************************************************
  * SugarCRM Community Edition is a customer relationship management program developed by
- * SugarCRM, Inc. Copyright (C) 2004-2011 SugarCRM Inc.
+ * SugarCRM, Inc. Copyright (C) 2004-2012 SugarCRM Inc.
  * 
  * This program is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Affero General Public License version 3 as published by the
@@ -43,10 +43,18 @@ if(!defined('sugarEntry') || !sugarEntry) die('Not A Valid Entry Point');
  * Contributor(s): ______________________________________..
  ********************************************************************************/
 if (!defined('SUGAR_PHPUNIT_RUNNER')) {
-    session_regenerate_id(false); 
+    session_regenerate_id(false);
 }
 global $mod_strings;
-$authController->login($_REQUEST['user_name'], $_REQUEST['user_password']);
+$login_vars = $GLOBALS['app']->getLoginVars(false);
+
+$user_name = isset($_REQUEST['user_name'])
+    ? $_REQUEST['user_name'] : '';
+
+$password = isset($_REQUEST['user_password'])
+    ? $_REQUEST['user_password'] : '';
+
+$authController->login($user_name, $password);
 // authController will set the authenticated_user_id session variable
 if(isset($_SESSION['authenticated_user_id'])) {
 	// Login is successful
@@ -60,49 +68,40 @@ if(isset($_SESSION['authenticated_user_id'])) {
     global $record;
     global $current_user;
     global $sugar_config;
-    
-    
-    $GLOBALS['module'] = !empty($_REQUEST['login_module']) ? '?module='.$_REQUEST['login_module'] : '?module='.( !empty($sugar_config['default_module']) ? $sugar_config['default_module'] : 'Home' );
-    $GLOBALS['action'] = !empty($_REQUEST['login_action']) ? '&action='.$_REQUEST['login_action'] : '&action='.( !empty($sugar_config['default_action']) ? $sugar_config['default_action'] : 'index' );
-    $GLOBALS['record']= !empty($_REQUEST['login_record']) ? '&record='.$_REQUEST['login_record'] : '';
-    
-	// awu: $module is somehow undefined even though the super globals is set, so we set the local variable here
-	$module = $GLOBALS['module'];
-	$action = $GLOBALS['action'];
-	$record = $GLOBALS['record'];
-     
-    global $current_user;
-    //C.L. Added $hasHistory check to respect the login_XXX settings if they are set
-    $hasHistory = (!empty($_REQUEST['login_module']) 
-        || !empty($_REQUEST['login_action']) 
-        || !empty($_REQUEST['login_record']) 
-        || !empty($sugar_config['default_module']) 
-        || !empty($sugar_config['default_action']) 
-        );
-    if(isset($current_user) && !$hasHistory){
-	    $modListHeader = query_module_access_list($current_user);
-	    //try to get the user's tabs
-	    $tempList = $modListHeader;
-	    $idx = array_shift($tempList);
-	    if(!empty($modListHeader[$idx])){
-	    	$module = '?module='.$modListHeader[$idx];
-	    	$action = '&action=index';
-	    	$record = '';
-	    }
-    }
 
+    global $current_user;
+
+    if(isset($current_user)  && empty($login_vars)) {
+        if(!empty($GLOBALS['sugar_config']['default_module']) && !empty($GLOBALS['sugar_config']['default_action'])) {
+            $url = "index.php?module={$GLOBALS['sugar_config']['default_module']}&action={$GLOBALS['sugar_config']['default_action']}";
+        } else {
+    	    $modListHeader = query_module_access_list($current_user);
+    	    //try to get the user's tabs
+    	    $tempList = $modListHeader;
+    	    $idx = array_shift($tempList);
+    	    if(!empty($modListHeader[$idx])){
+    	    	$url = "index.php?module={$modListHeader[$idx]}&action=index";
+    	    }
+        }
+    } else {
+        $url = $GLOBALS['app']->getLoginRedirect();
+    }
 } else {
 	// Login has failed
-	$module ="?module=Users";
-    $action="&action=Login";
-    $record="";
+	$url ="index.php?module=Users&action=Login";
+    if(!empty($login_vars))
+    {
+        $url .= '&' . http_build_query($login_vars);
+    }
 }
 
 // construct redirect url
-$url = 'Location: index.php'.$module.$action.$record;
+$url = 'Location: '.$url;
 
 //adding this for bug: 21712.
-$GLOBALS['app']->headerDisplayed = true;
+if(!empty($GLOBALS['app'])) {
+    $GLOBALS['app']->headerDisplayed = true;
+}
 if (!defined('SUGAR_PHPUNIT_RUNNER')) {
     sugar_cleanup();
     header($url);

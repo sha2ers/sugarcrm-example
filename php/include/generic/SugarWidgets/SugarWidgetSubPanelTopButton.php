@@ -2,7 +2,7 @@
 if(!defined('sugarEntry') || !sugarEntry) die('Not A Valid Entry Point');
 /*********************************************************************************
  * SugarCRM Community Edition is a customer relationship management program developed by
- * SugarCRM, Inc. Copyright (C) 2004-2011 SugarCRM Inc.
+ * SugarCRM, Inc. Copyright (C) 2004-2012 SugarCRM Inc.
  * 
  * This program is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Affero General Public License version 3 as published by the
@@ -38,7 +38,7 @@ if(!defined('sugarEntry') || !sugarEntry) die('Not A Valid Entry Point');
 
 
 
-require_once('include/generic/SugarWidgets/SugarWidget.php');
+
 
 class SugarWidgetSubPanelTopButton extends SugarWidget
 {
@@ -90,6 +90,15 @@ class SugarWidgetSubPanelTopButton extends SugarWidget
 				$this->form_value = translate($form_value, $module);
 		}
 	}
+
+    public function getWidgetId($buttonSuffix = true)
+    {
+    	$widgetID = parent::getWidgetId() . '_'.preg_replace('[ ]', '', strtolower($this->form_value));
+    	if($buttonSuffix){
+    		$widgetID .= '_button';
+    	}
+        return $widgetID;
+    }
 
     function &_get_form($defines, $additionalFormFields = null, $asUrl = false)
     {
@@ -255,14 +264,12 @@ class SugarWidgetSubPanelTopButton extends SugarWidget
     }
 
 	/** This default function is used to create the HTML for a simple button */
-	function display($defines, $additionalFormFields = null)
+	function display($defines, $additionalFormFields = null, $nonbutton = false)
 	{
 		$temp='';
-		$inputID = $this->getWidgetId() . '_'.preg_replace('[ ]', '', strtolower($this->form_value)).'_button';
+		$inputID = $this->getWidgetId();
 
 		if(!empty($this->acl) && ACLController::moduleSupportsACL($defines['module'])  &&  !ACLController::checkAccess($defines['module'], $this->acl, true)){
-			$inputID = $this->getWidgetId() . '_'.preg_replace('[ ]', '', strtolower($this->form_value)).'_button';
-			$button = "<input title='$this->title'  class='button' type='button' name='$inputID' id='$inputID' value='  $this->form_value  ' disabled/>\n</form>";
 			return $temp;
 		}
 
@@ -271,10 +278,14 @@ class SugarWidgetSubPanelTopButton extends SugarWidget
         if ( isset($_REQUEST['layout_def_key']) && $_REQUEST['layout_def_key'] == 'UserEAPM' ) {
             // Subpanels generally don't go on the editview, so we have to handle this special
             $megaLink = $this->_get_form($defines, $additionalFormFields,true);
-            $button = "<input title='$this->title' accesskey='$this->access_key' class='button' type='submit' name='$inputID' id='$inputID' value='  $this->form_value  ' onclick='javascript:document.location=\"index.php?".$megaLink."\"; return false;'/>";
+            $button = "<input title='$this->title' accesskey='$this->access_key' class='button' type='submit' name='$inputID' id='$inputID' value='$this->form_value' onclick='javascript:document.location=\"index.php?".$megaLink."\"; return false;'/>";
         } else {
             $button = $this->_get_form($defines, $additionalFormFields);
-            $button .= "<input title='$this->title' accesskey='$this->access_key' class='button' type='submit' name='$inputID' id='$inputID' value='  $this->form_value  ' />\n</form>";
+            $button .= "<input title='$this->title' accesskey='$this->access_key' class='button' type='submit' name='$inputID' id='$inputID' value='$this->form_value' />\n</form>";
+        }
+
+        if ($nonbutton) {
+            $button = "<a onclick=''>$this->form_value";
         }
         return $button;
 	}
@@ -285,43 +296,7 @@ class SugarWidgetSubPanelTopButton extends SugarWidget
 	 */
 	function _create_json_encoded_popup_request($popup_request_data)
 	{
-		$popup_request_array = array();
-
-		if(!empty($popup_request_data['call_back_function']))
-		{
-			$popup_request_array[] = '"call_back_function":"' . $popup_request_data['call_back_function'] . '"';
-		}
-
-		if(!empty($popup_request_data['form_name']))
-		{
-			$popup_request_array[] = '"form_name":"' . $popup_request_data['form_name'] . '"';
-		}
-
-		if(!empty($popup_request_data['field_to_name_array']))
-		{
-			$field_to_name_array = array();
-			foreach($popup_request_data['field_to_name_array'] as $field => $name)
-			{
-				$field_to_name_array[] = '"' . $field . '":"' . $name . '"';
-			}
-
-			$popup_request_array[] = '"field_to_name_array":{' . implode(',', $field_to_name_array) . '}';
-		}
-
-		if(!empty($popup_request_data['passthru_data']))
-		{
-			$passthru_array = array();
-			foreach($popup_request_data['passthru_data'] as $field => $name)
-			{
-				$passthru_array[] = '"' . $field . '":"' . $name . '"';
-			}
-
-			$popup_request_array[] = '"passthru_data":{' . implode(',', $passthru_array) . '}';
-		}
-
-		$encoded_popup_request = '{' . implode(',', $popup_request_array) . '}';
-
-		return $encoded_popup_request;
+	    return json_encode($popup_request_data);
 	}
 
 	/**

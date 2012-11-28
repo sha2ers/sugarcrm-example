@@ -2,7 +2,7 @@
 if(!defined('sugarEntry') || !sugarEntry) die('Not A Valid Entry Point');
 /*********************************************************************************
  * SugarCRM Community Edition is a customer relationship management program developed by
- * SugarCRM, Inc. Copyright (C) 2004-2011 SugarCRM Inc.
+ * SugarCRM, Inc. Copyright (C) 2004-2012 SugarCRM Inc.
  * 
  * This program is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Affero General Public License version 3 as published by the
@@ -86,8 +86,9 @@ class ConfiguratorViewSugarpdfsettings extends SugarView
                 }
                 if(!empty($_POST["sugarpdf_pdf_class"]) && $_POST["sugarpdf_pdf_class"] != PDF_CLASS){
                     // clear the cache for quotes detailview in order to switch the pdf class.
-                    if(is_file($GLOBALS['sugar_config']['cache_dir'].'modules/Quotes/DetailView.tpl'))
-                        unlink($GLOBALS['sugar_config']['cache_dir'].'modules/Quotes/DetailView.tpl');
+                    if(is_file($cachedfile = sugar_cached('modules/Quotes/DetailView.tpl'))) {
+                        unlink($cachedfile);
+                    }
                 }
                 $focus->saveConfig();
                 header('Location: index.php?module=Administration&action=index');
@@ -100,7 +101,7 @@ class ConfiguratorViewSugarpdfsettings extends SugarView
                 $prefix = $focus->get_config_prefix($key);
                 if(in_array($prefix[0], $focus->config_categories)) {
                     $result = $focus->db->query("SELECT count(*) AS the_count FROM config WHERE category = '{$prefix[0]}' AND name = '{$prefix[1]}'");
-                    $row = $focus->db->fetchByAssoc( $result, -1, true );
+                    $row = $focus->db->fetchByAssoc($result);
                     if( $row['the_count'] != 0){
                         $focus->db->query("DELETE FROM config WHERE category = '{$prefix[0]}' AND name = '{$prefix[1]}'");
                     }

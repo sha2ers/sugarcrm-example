@@ -2,7 +2,7 @@
 if(!defined('sugarEntry') || !sugarEntry) die('Not A Valid Entry Point');
 /*********************************************************************************
  * SugarCRM Community Edition is a customer relationship management program developed by
- * SugarCRM, Inc. Copyright (C) 2004-2011 SugarCRM Inc.
+ * SugarCRM, Inc. Copyright (C) 2004-2012 SugarCRM Inc.
  * 
  * This program is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Affero General Public License version 3 as published by the
@@ -54,13 +54,11 @@ if(file_exists('leadCapture_override.php')){
 	include('leadCapture_override.php');
 }
 if (!empty($_POST['user']) && !empty($users[$_POST['user']])) {
-    
+
     $current_user = new User();
 	$current_user->user_name = $users[$_POST['user']]['name'];
 
-	if($current_user->authenticate_user($users[$_POST['user']]['pass'])){
-		$userid = $current_user->retrieve_user_id($users[$_REQUEST['user']]['name']);
-		$current_user->retrieve($userid);
+	if($current_user->load_user($users[$_POST['user']]['pass'], true)){
 		$leadForm = new LeadFormBase();
 		$prefix = '';
 		if(!empty($_POST['prefix'])){
@@ -68,7 +66,7 @@ if (!empty($_POST['user']) && !empty($users[$_POST['user']])) {
 		}
 
 		if( !isset($_POST['assigned_user_id']) || !empty($_POST['assigned_user_id']) ){
-			$_POST['prefix'] = $userid;
+			$_POST['prefix'] = $current_user->id;
 		}
 
 		$_POST['record'] ='';
@@ -88,7 +86,7 @@ if (!empty($_POST['user']) && !empty($users[$_POST['user']])) {
 		if(isset($_POST['redirect']) && !empty($_POST['redirect'])){
 
 			//header("Location: ".$_POST['redirect']);
-			echo '<html><head><title>SugarCRM</title></head><body>';
+			echo '<html ' . get_language_header() .'><head><title>SugarCRM</title></head><body>';
 			echo '<form name="redirect" action="' .$_POST['redirect']. '" method="POST">';
 
 			foreach($_POST as $param => $value) {
@@ -116,7 +114,7 @@ if (!empty($_POST['user']) && !empty($users[$_POST['user']])) {
 
 echo "We're sorry, the server is currently unavailable, please try again later.";
 if (!empty($_POST['redirect'])) {
-	echo '<html><head><title>SugarCRM</title></head><body>';
+	echo '<html ' . get_language_header() . '><head><title>SugarCRM</title></head><body>';
 	echo '<form name="redirect" action="' .$_POST['redirect']. '" method="POST">';
 	echo '</form><script language="javascript" type="text/javascript">document.redirect.submit();</script>';
 	echo '</body></html>';

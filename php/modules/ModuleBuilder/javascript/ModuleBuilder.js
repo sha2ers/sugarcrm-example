@@ -1,6 +1,6 @@
 /*********************************************************************************
  * SugarCRM Community Edition is a customer relationship management program developed by
- * SugarCRM, Inc. Copyright (C) 2004-2011 SugarCRM Inc.
+ * SugarCRM, Inc. Copyright (C) 2004-2012 SugarCRM Inc.
  * 
  * This program is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Affero General Public License version 3 as published by the
@@ -106,9 +106,10 @@ if (typeof(ModuleBuilder) == 'undefined') {
 			}));
 
 			var viewHeight = document.documentElement ? document.documentElement.clientHeight : self.innerHeight;
+            var heightOffset = $('#dcmenu').length > 0 ? $('#dcmenu').height() : $('#header').height();
 			var mp = ModuleBuilder.mainPanel = new YAHOO.widget.Layout('mblayout', {
 				border: false,
-				height: viewHeight - (document.getElementById('header').clientHeight ) - 40,
+				height: viewHeight - heightOffset - 40,
 				//autoHeight: true
 				//frame: true,
 				units: [//ModuleBuilder.tree, ModuleBuilder.tabPanel,
@@ -432,29 +433,31 @@ if (typeof(ModuleBuilder) == 'undefined') {
 				ModuleBuilder.getContent(ModuleBuilder.state.intended_view.url, ModuleBuilder.state.intended_view.successCall);
 			},
 			popup: function(){
-                ModuleBuilder.state.popup_window = new YAHOO.widget.SimpleDialog("confirmUnsaved", {
-                 width: "400px",
-                 draggable: true,
-                 constraintoviewport: true,
-                 modal: true,
-                 fixedcenter: true,
-                 text: SUGAR.language.get('ModuleBuilder', 'LBL_CONFIRM_DONT_SAVE'),
-                 bodyStyle: "padding:5px",
-                 buttons: [{
-                    text: SUGAR.language.get('ModuleBuilder', 'LBL_BTN_DONT_SAVE'),
-                    handler: ModuleBuilder.state.onDontSaveClick
-                 }, {
-                    text: SUGAR.language.get('ModuleBuilder', 'LBL_BTN_CANCEL'),
-                    isDefault:true,
-                    handler: function(){
-                        ModuleBuilder.state.popup_window.hide()
-                    }
-                 },{
-                    text: SUGAR.language.get('ModuleBuilder', 'LBL_BTN_SAVE_CHANGES'),
-                    handler: ModuleBuilder.state.onSaveClick
-                    }]
-                });
-                ModuleBuilder.state.popup_window.setHeader(SUGAR.language.get('ModuleBuilder', 'LBL_CONFIRM_DONT_SAVE_TITLE'));
+                if(false == YAHOO.lang.isObject(ModuleBuilder.state.popup_window) || ModuleBuilder.state.popup_window.id != 'confirmUnsaved'){
+                    ModuleBuilder.state.popup_window = new YAHOO.widget.SimpleDialog("confirmUnsaved", {
+                     width: "400px",
+                     draggable: true,
+                     constraintoviewport: true,
+                     modal: true,
+                     fixedcenter: true,
+                     text: SUGAR.language.get('ModuleBuilder', 'LBL_CONFIRM_DONT_SAVE'),
+                     bodyStyle: "padding:5px",
+                     buttons: [{
+                        text: SUGAR.language.get('ModuleBuilder', 'LBL_BTN_DONT_SAVE'),
+                        handler: ModuleBuilder.state.onDontSaveClick
+                     }, {
+                        text: SUGAR.language.get('ModuleBuilder', 'LBL_BTN_CANCEL'),
+                        isDefault:true,
+                        handler: function(){
+                            ModuleBuilder.state.popup_window.hide()
+                        }
+                     },{
+                        text: SUGAR.language.get('ModuleBuilder', 'LBL_BTN_SAVE_CHANGES'),
+                        handler: ModuleBuilder.state.onSaveClick
+                        }]
+                    });
+                    ModuleBuilder.state.popup_window.setHeader(SUGAR.language.get('ModuleBuilder', 'LBL_CONFIRM_DONT_SAVE_TITLE'));
+                }
                 if(ModuleBuilder.disablePopupPrompt != 1){
                     ModuleBuilder.state.popup_window.render(document.body);
                 }else{
@@ -1005,7 +1008,7 @@ if (typeof(ModuleBuilder) == 'undefined') {
 		paramsToUrl : function (params) {
 			url = "";
 			for (i in params) {
-				url += i + "=" + params[i] + "&";
+                url += i + "=" + params[i] + "&";
 			}
 			return url;
 		},

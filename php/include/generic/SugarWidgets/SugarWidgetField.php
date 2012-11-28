@@ -3,7 +3,7 @@ if(!defined('sugarEntry') || !sugarEntry)
 	die('Not A Valid Entry Point');
 /*********************************************************************************
  * SugarCRM Community Edition is a customer relationship management program developed by
- * SugarCRM, Inc. Copyright (C) 2004-2011 SugarCRM Inc.
+ * SugarCRM, Inc. Copyright (C) 2004-2012 SugarCRM Inc.
  * 
  * This program is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Affero General Public License version 3 as published by the
@@ -39,7 +39,7 @@ if(!defined('sugarEntry') || !sugarEntry)
 
 
 
-require_once ('include/generic/SugarWidgets/SugarWidget.php');
+
 
 class SugarWidgetField extends SugarWidget {
 
@@ -134,7 +134,6 @@ class SugarWidgetField extends SugarWidget {
 
 		$header_cell = "<a class=\"listViewThLinkS1\" href=\"".$start.$this->base_URL.$subpanel_module.'&'.$sort_by.$end."\">";
 		$header_cell .= $header_cell_text;
-		$header_cell .= "</a>";
 
 		$imgArrow = '';
 
@@ -144,7 +143,7 @@ class SugarWidgetField extends SugarWidget {
 
 		$arrow_start = ListView::getArrowUpDownStart($imgArrow);
 		$arrow_end = ListView::getArrowUpDownEnd($imgArrow);
-		$header_cell .= " ".$arrow_start.$arrow_end;
+		$header_cell .= " ".$arrow_start.$arrow_end."</a>";
 
 		return $header_cell;
 

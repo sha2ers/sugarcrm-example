@@ -2,7 +2,7 @@
 if(!defined('sugarEntry') || !sugarEntry) die('Not A Valid Entry Point');
 /*********************************************************************************
  * SugarCRM Community Edition is a customer relationship management program developed by
- * SugarCRM, Inc. Copyright (C) 2004-2011 SugarCRM Inc.
+ * SugarCRM, Inc. Copyright (C) 2004-2012 SugarCRM Inc.
  * 
  * This program is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Affero General Public License version 3 as published by the
@@ -44,11 +44,8 @@ if(!defined('sugarEntry') || !sugarEntry) die('Not A Valid Entry Point');
 require_once('include/JSON.php');
 require_once('include/upload_file.php');
 
-$GLOBALS['log']->debug(print_r($_FILES, true));
-         $file_ext_allow = FALSE;	
-
-if (!is_dir($GLOBALS['sugar_config']['cache_dir'].'images/'))
-    mkdir_recursive($GLOBALS['sugar_config']['cache_dir'].'images/');
+if (!is_dir($cachedir = sugar_cached('images/')))
+    mkdir_recursive($cachedir);
 
 // cn: bug 11012 - fixed some MIME types not getting picked up.  Also changed array iterator.
 $imgType = array('image/gif', 'image/png', 'image/x-png', 'image/bmp', 'image/jpeg', 'image/jpg', 'image/pjpeg');
@@ -56,19 +53,27 @@ $imgType = array('image/gif', 'image/png', 'image/x-png', 'image/bmp', 'image/jp
 $ret = array();
 
 foreach($_FILES as $k => $file) {
-	if(in_array(strtolower($_FILES[$k]['type']), $imgType)) {
-		$dest = $GLOBALS['sugar_config']['cache_dir'].'images/'.$_FILES[$k]['name'];
-		if(is_uploaded_file($_FILES[$k]['tmp_name'])) {
-			move_uploaded_file($_FILES[$k]['tmp_name'], $dest);
-		    $ret[] = $dest;
+	if(in_array(strtolower($_FILES[$k]['type']), $imgType) && $_FILES[$k]['size'] > 0) {
+	    $upload_file = new UploadFile($k);
+		// check the file
+		if($upload_file->confirm_upload()) {
+		    $dest = $cachedir.basename($upload_file->get_stored_file_name()); // target name
+		    $guid = create_guid();
+		    if($upload_file->final_move($guid)) { // move to uploads
+		        $path = $upload_file->get_upload_path($guid);
+		        // if file is OK, copy to cache
+		        if(verify_uploaded_image($path) && copy($path, $dest)) {
+		            $ret[] = $dest;
+		        }
+		        // remove temp file
+		        unlink($path);
+		    }
 		}
 	}
 }
 
-if (!empty($ret)) {	
+if (!empty($ret)) {
 	$json = getJSONobj();
-	echo $json->encode($ret);	
+	echo $json->encode($ret);
 	//return the parameters
 }
-
-?>

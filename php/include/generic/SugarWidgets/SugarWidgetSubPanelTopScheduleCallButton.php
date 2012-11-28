@@ -2,7 +2,7 @@
 if(!defined('sugarEntry') || !sugarEntry) die('Not A Valid Entry Point');
 /*********************************************************************************
  * SugarCRM Community Edition is a customer relationship management program developed by
- * SugarCRM, Inc. Copyright (C) 2004-2011 SugarCRM Inc.
+ * SugarCRM, Inc. Copyright (C) 2004-2012 SugarCRM Inc.
  * 
  * This program is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Affero General Public License version 3 as published by the
@@ -38,7 +38,7 @@ if(!defined('sugarEntry') || !sugarEntry) die('Not A Valid Entry Point');
 
 
 
-require_once('include/generic/SugarWidgets/SugarWidgetSubPanelTopButtonQuickCreate.php');
+
 
 class SugarWidgetSubPanelTopScheduleCallButton extends SugarWidgetSubPanelTopButtonQuickCreate
 {
@@ -144,7 +144,7 @@ class SugarWidgetSubPanelTopScheduleCallButton extends SugarWidgetSubPanelTopBut
 				$button .= '<input type="hidden" name="' . $key . '" value="' . $value . '" />' . "\n";
 			}
 		}
-		$button .='<script type="text/javascript" src="include/SugarFields/Fields/Datetimecombo/Datetimecombo.js"></script>'."\n";
+		$button .= getVersionedScript('include/SugarFields/Fields/Datetimecombo/Datetimecombo.js')."\n";
 		return $button;
 	}
 
@@ -154,7 +154,7 @@ class SugarWidgetSubPanelTopScheduleCallButton extends SugarWidgetSubPanelTopBut
 		if ( !$focus->ACLAccess('EditView') ) {
 		    return '';
 	    }
-		
+
 		return parent::display($defines, $additionalFormFields);
 	}
 }

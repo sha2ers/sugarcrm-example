@@ -1,6 +1,6 @@
 /*********************************************************************************
  * SugarCRM Community Edition is a customer relationship management program developed by
- * SugarCRM, Inc. Copyright (C) 2004-2011 SugarCRM Inc.
+ * SugarCRM, Inc. Copyright (C) 2004-2012 SugarCRM Inc.
  * 
  * This program is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Affero General Public License version 3 as published by the
@@ -189,7 +189,7 @@ var AjaxObject = {
 		// apply attachment values
 		SUGAR.email2.composeLayout.loadAttachments(a.attachments);
 
-		setTimeout("callbackReplyForward.finish(globalA);", 500);
+		setTimeout("callbackReplyForward.finish(globalA,0,1);", 500);
 	},
 
 	/**
@@ -398,6 +398,7 @@ var AjaxObject = {
 		document.getElementById('email_attachment').value = '';
 		
 		var ret = YAHOO.lang.JSON.parse(o.responseText);
+		ret.name = escape(ret.name);
 		var idx = SUGAR.email2.composeLayout.currentInstanceId;
 		var overall = document.getElementById('addedFiles' + idx);
 		var index = overall.childNodes.length;
@@ -676,7 +677,7 @@ AjaxObject.detailView = {
 		var ret = YAHOO.lang.JSON.parse(o.responseText);
 
 		if(!SED.quickCreateDialog) {
-			SED.quickCreateDialog = new YAHOO.widget.Dialog("quickCreate", {
+			SED.quickCreateDialog = new YAHOO.widget.Dialog("quickCreateForEmail", {
 				modal:true,
 				visible:true,
             	fixedcenter:true,
@@ -726,18 +727,27 @@ AjaxObject.detailView = {
 		if (editForm) {
 		  editForm.module.value = 'Emails';
 		  var count = SUGAR.EmailAddressWidget.count[ret.module] ? SUGAR.EmailAddressWidget.count[ret.module] : 0;
-		  var tableId = YAHOO.util.Dom.getElementsByClassName('emailaddresses', 'table', editForm)[0].id;
-		  var instId = ret.module + count;
+          var tableId = YAHOO.util.Dom.getElementsByClassName('emailaddresses', 'table', editForm)[0];
+          tableId = tableId ? tableId.id : tableId;
+		  var instId = ret.module + (count - 1);
 		  SED.quickCreateEmailsToAdd = ret.emailAddress;
 		  SED.quickCreateEmailCallback = function(instId, tableId) {
-			  var eaw = SUGAR.EmailAddressWidget.instances[instId];
-			  if (typeof(eaw) == "undefined")
-				  window.setTimeout("SUGAR.email2.detailView.quickCreateEmailCallback('"
-					  	+ instId + "','" + tableId + "');", 100);
-			  eaw.prefillEmailAddresses(tableId, SUGAR.email2.detailView.quickCreateEmailsToAdd);
+              //try to fill up the email address if and only if emailwidget is existed in the form
+              if(tableId) {
+                  var eaw = SUGAR.EmailAddressWidget.instances[instId];
+                  if (eaw) {
+                      eaw.prefillEmailAddresses(tableId, SUGAR.email2.detailView.quickCreateEmailsToAdd);
+                  } else {
+                      window.setTimeout(function() {
+                          SUGAR.email2.detailView.quickCreateEmailCallback(instId, tableId);
+                      }, 100);
+
+                  }
+              }
 		  }
-		  window.setTimeout("SUGAR.email2.detailView.quickCreateEmailCallback('"
-				  	+ instId + "','" + tableId + "');", 100);
+		  window.setTimeout(function() {
+              SUGAR.email2.detailView.quickCreateEmailCallback(instId, tableId);
+            }, 100);
 		}
 	},
 
@@ -1481,18 +1491,26 @@ var callbackRefreshSugarFolders = {
 };
 var callbackReplyForward = {
 	success	: AjaxObject.handleReplyForward,
-	finish : function(a, retryCount) {
+	finish : function(a, retryCount,isReOrFwDraft) {
 		if (typeof(retryCount) == 'undefined') {
 			retryCount = 0;
 		} else {
 			retryCount++;
+		}
+		if (typeof(isReOrFwDraft) == 'undefined') {
+			isReOrFwDraft = 0;
 		}
 		var idx = SUGAR.email2.composeLayout.currentInstanceId;
 		var t = tinyMCE.getInstanceById('htmleditor' + idx);
         try {
 			var html = t.getContent();
 
-            html = "&nbsp;<div><hr></div>" + a.description;
+            html = "&nbsp;";
+            //add hr tag if this is not a reply draft or forward draft
+            if(!isReOrFwDraft){
+                html += "<div><hr></div>";
+            }
+            html +=  a.description;
 
 			t.setContent(html);//
 

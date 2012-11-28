@@ -1,7 +1,7 @@
 <!--
 /*********************************************************************************
  * SugarCRM Community Edition is a customer relationship management program developed by
- * SugarCRM, Inc. Copyright (C) 2004-2011 SugarCRM Inc.
+ * SugarCRM, Inc. Copyright (C) 2004-2012 SugarCRM Inc.
  * 
  * This program is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Affero General Public License version 3 as published by the
@@ -44,15 +44,15 @@
 -->
 
 <!-- BEGIN: main -->
-<html>
+<html {$langHeader}>
 <head>
-<script type="text/javascript" src="modules/InboundEmail/InboundEmail.js"></script>
-<script type="text/javascript" src="include/javascript/sugar_3.js"></script>
-<script type="text/javascript" src="include/javascript/sugar_grp1_yui.js"></script>
-<script type="text/javascript" src="include/SugarFields/Teamset/Teamset.js"></script>
+<script type="text/javascript" src="modules/InboundEmail/InboundEmail.js?v={VERSION_MARK}"></script>
+<script type="text/javascript" src="include/javascript/sugar_3.js?v={VERSION_MARK}"></script>
+<script type="text/javascript" src="cache/include/javascript/sugar_grp1_yui.js?v={VERSION_MARK}"></script>
+<script type="text/javascript" src="include/SugarFields/Teamset/Teamset.js?v={VERSION_MARK}"></script>
 {$languageStrings}
-<script type="text/javascript" src="include/javascript/sugar_grp1_yui.js?s={$sugar_version}&c={$js_custom_version}"></script>
-<script type="text/javascript" src="include/javascript/sugar_grp1.js?s={$sugar_version}&c={$js_custom_version}"></script>
+<script type="text/javascript" src="cache/include/javascript/sugar_grp1_yui.js??v={VERSION_MARK}"></script>
+<script type="text/javascript" src="cache/include/javascript/sugar_grp1.js??v={VERSION_MARK}"></script>
 <script type="text/javascript" language="Javascript">
 currentFolders = {$group_folder_array};
 {literal}
@@ -69,26 +69,26 @@ currentFolders = {$group_folder_array};
         }
         return true;
 	}
-	
+
 	function checkTeamSetData() {
 		return true
 	} // fn
-	
+
 	function addNewGroupFolder() {
 	    var newFolder = document.getElementById('groupFolderAddName').value;
         if (checkFolderName(newFolder) && checkTeamSetData()) {
 		  document.getElementById('EditView').submit();
-		}		
-	} 
-	
+		}
+	}
+
 	function editGroupFolder() {
         var newFolder = document.getElementById('groupFolderAddName').value;
         if (checkFolderName(newFolder) && checkTeamSetData()) {
           document.getElementById('EditView').submit();
-        }	
+        }
 	} // fn
-	
-	
+
+
 {/literal}
 </script>
 {$CSS}
@@ -105,7 +105,7 @@ currentFolders = {$group_folder_array};
 	<input type="hidden" name="return_action">
 	<input type="hidden" name="return_id">
 	<input type="hidden" name="groupFoldersUser" value="">
-	
+
 
 	<table width="100%" border="0" align="center" cellspacing="{$GRIDLINE}" cellpadding="0">
 		<tr>

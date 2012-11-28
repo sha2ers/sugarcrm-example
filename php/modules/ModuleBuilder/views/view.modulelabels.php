@@ -1,7 +1,7 @@
 <?php
 /*********************************************************************************
  * SugarCRM Community Edition is a customer relationship management program developed by
- * SugarCRM, Inc. Copyright (C) 2004-2011 SugarCRM Inc.
+ * SugarCRM, Inc. Copyright (C) 2004-2012 SugarCRM Inc.
  * 
  * This program is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Affero General Public License version 3 as published by the
@@ -78,6 +78,7 @@ class ViewModulelabels extends SugarView
 	    	$selected_lang = $GLOBALS['sugar_config']['default_language'];
 		}
 	        //need to change the following to interface with MBlanguage.
+
         $smarty->assign('MOD', $mbModule->getModStrings($selected_lang));
 		$smarty->assign('APP', $GLOBALS['app_strings']);
 		$smarty->assign('selected_lang', $selected_lang);

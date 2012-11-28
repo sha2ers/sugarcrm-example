@@ -2,7 +2,7 @@
 if(!defined('sugarEntry') || !sugarEntry) die('Not A Valid Entry Point');
 /*********************************************************************************
  * SugarCRM Community Edition is a customer relationship management program developed by
- * SugarCRM, Inc. Copyright (C) 2004-2011 SugarCRM Inc.
+ * SugarCRM, Inc. Copyright (C) 2004-2012 SugarCRM Inc.
  * 
  * This program is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Affero General Public License version 3 as published by the
@@ -41,6 +41,11 @@ if(empty($_REQUEST['record'])) {
 } else {
 	
 	$focus = new InboundEmail();
+
+	// retrieve the focus in order to populate it with ID. otherwise this
+	// instance will be marked as deleted and than replaced by another instance,
+	// which will be saved and tracked (bug #47552)
+	$focus->retrieve($_REQUEST['record']);
 	$focus->mark_deleted($_REQUEST['record']);
 	header("Location: index.php?module=".$_REQUEST['return_module']."&action=".$_REQUEST['return_action']."&record=".$_REQUEST['return_id']);
 }

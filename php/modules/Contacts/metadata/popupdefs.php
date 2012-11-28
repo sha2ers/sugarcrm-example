@@ -2,7 +2,7 @@
 if(!defined('sugarEntry') || !sugarEntry) die('Not A Valid Entry Point');
 /*********************************************************************************
  * SugarCRM Community Edition is a customer relationship management program developed by
- * SugarCRM, Inc. Copyright (C) 2004-2011 SugarCRM Inc.
+ * SugarCRM, Inc. Copyright (C) 2004-2012 SugarCRM Inc.
  * 
  * This program is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Affero General Public License version 3 as published by the
@@ -48,12 +48,12 @@ $popupMeta = array(
 				'account_name' => 'accounts.name',
 				'account_id' => 'accounts.id'),
 	'searchInputs' =>
-		array('first_name', 'last_name', 'account_name'),
+		array('first_name', 'last_name', 'account_name', 'email'),
 	'create' =>
 		array('formBase' => 'ContactFormBase.php',
 				'formBaseClass' => 'ContactFormBase',
 				'getFormBodyParams' => array('','','ContactSave'),
-				'createButton' => $mod_strings['LNK_NEW_CONTACT']			
+				'createButton' => 'LNK_NEW_CONTACT'
 			  ),
 	'listviewdefs' => array(
 		'NAME' => array(
@@ -86,6 +86,7 @@ $popupMeta = array(
 		array('name' => 'account_name', 'type' => 'varchar',),
 		'title',
 		'lead_source',
+		'email',
 		array('name' => 'campaign_name', 'displayParams' => array('hideButtons'=>'true', 'size'=>30, 'class'=>'sqsEnabled sqsNoAutofill')),
 		array('name' => 'assigned_user_id', 'type' => 'enum', 'label' => 'LBL_ASSIGNED_TO', 'function' => array('name' => 'get_user_array', 'params' => array(false))),
 	  )

@@ -2,7 +2,7 @@
 
 /*********************************************************************************
  * SugarCRM Community Edition is a customer relationship management program developed by
- * SugarCRM, Inc. Copyright (C) 2004-2011 SugarCRM Inc.
+ * SugarCRM, Inc. Copyright (C) 2004-2012 SugarCRM Inc.
  * 
  * This program is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Affero General Public License version 3 as published by the
@@ -253,7 +253,7 @@ class VardefBrowser{
 	static function getModules(){
 		$modules = array();
 		foreach($GLOBALS['beanList'] as $module=>$object){
-			if($object == 'aCase')$object = 'Case';
+			$object = BeanFactory::getObjectName($module);
 			VardefManager::loadVardef($module, $object);
 			if(empty($GLOBALS['dictionary'][$object]['fields'] ))continue;
 			$modules[] = $module;

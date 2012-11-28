@@ -1,7 +1,7 @@
 <?php
 /*********************************************************************************
  * SugarCRM Community Edition is a customer relationship management program developed by
- * SugarCRM, Inc. Copyright (C) 2004-2011 SugarCRM Inc.
+ * SugarCRM, Inc. Copyright (C) 2004-2012 SugarCRM Inc.
  * 
  * This program is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Affero General Public License version 3 as published by the
@@ -132,7 +132,7 @@ class ViewModulefield extends SugarView
         //C.L. - Add support to mark related module id columns as reserved keywords
         require_once 'modules/ModuleBuilder/parsers/relationships/DeployedRelationships.php';
         $relatedModules = array_keys(DeployedRelationships::findRelatableModules()) ;
-        global $beanList;
+        global $beanList, $current_language;
         foreach($relatedModules as $relModule)
         {
             if(isset($beanList[$relModule]))
@@ -141,22 +141,15 @@ class ViewModulefield extends SugarView
             }
         }
 
-        if(! isset($_REQUEST['view_package']) || $_REQUEST['view_package'] == 'studio' || empty ( $_REQUEST [ 'view_package' ] ) ) {
-            $module = new stdClass;
+        if(empty($_REQUEST['view_package']) || $_REQUEST['view_package'] == 'studio') {
             $moduleName = $_REQUEST['view_module'];
+            $objectName = BeanFactory::getObjectName($moduleName);
+            $module = BeanFactory::getBean($moduleName);
 
-            $objectName = $beanList[$moduleName];
-            $className = $objectName;
-            if($objectName == 'aCase') // Bug 17614 - renamed aCase as Case in vardefs for backwards compatibililty with 451 modules
-                $objectName = 'Case';
-			
-			$module = new $className();
-            
             VardefManager::loadVardef($moduleName, $objectName,true);
             global $dictionary;
             $module->mbvardefs->vardefs =  $dictionary[$objectName];
 			
-//          $GLOBALS['log']->debug('vardefs from dictionary = '.print_r($module->mbvardefs->vardefs,true));
             $module->name = $moduleName;
             if(!$ac){
                 $ac = new AjaxCompose();
@@ -185,18 +178,26 @@ class ViewModulefield extends SugarView
             $tf->module = $module;
             $tf->populateFromRow($vardef);
 			$vardef = array_merge($vardef, $tf->get_field_def());
-            
+
             //          $GLOBALS['log']->debug('vardefs after loading = '.print_r($vardef,true));
            
             
             //Check if autoincrement fields are allowed
             $allowAutoInc = true;
+            $enumFields = array();
             foreach($module->field_defs as $field => $def)
             {
             	if (!empty($def['type']) && $def['type'] == "int" && !empty($def['auto_increment'])) {
             	   $allowAutoInc = false;
-            	   break;
+            	   continue;
             	}
+                if (!empty($def['type']) && $def['type'] == "enum" && $field != $vardef['name'])
+                {
+                    if(!empty($def['studio']) && $def['studio'] == "false") continue; //bug51866 
+                    $enumFields[$field] = translate($def['vname'], $moduleName);
+                    if (substr($enumFields[$field], -1) == ":")
+                        $enumFields[$field] = substr($enumFields[$field], 0, strlen($enumFields[$field]) - 1);
+                }
             }
             $fv->ss->assign( 'allowAutoInc', $allowAutoInc);   
 
@@ -214,13 +215,15 @@ class ViewModulefield extends SugarView
         {
             require_once('modules/ModuleBuilder/MB/ModuleBuilder.php');
             $mb = new ModuleBuilder();
-            $module =& $mb->getPackageModule($_REQUEST['view_package'], $_REQUEST['view_module']);
+            $moduleName = $_REQUEST['view_module'];
+            $module =& $mb->getPackageModule($_REQUEST['view_package'], $moduleName);
             $package =& $mb->packages[$_REQUEST['view_package']];
             $module->getVardefs();
             if(!$ac){
                 $ac = new AjaxCompose();
             }
             $vardef = (!empty($module->mbvardefs->vardefs['fields'][$field_name]))? $module->mbvardefs->vardefs['fields'][$field_name]: array();
+
             if($isClone){
                 unset($vardef['name']);
             }
@@ -255,6 +258,21 @@ class ViewModulefield extends SugarView
 			if(empty($module->mbvardefs->vardefs['fields']['parent_name']) || (isset($vardef['type']) && $vardef['type'] == 'parent'))
 				$field_types['parent'] = $GLOBALS['mod_strings']['parent'];
 
+            $enumFields = array();
+            if (!empty($module->mbvardefs->vardefs['fields']))
+            {
+                foreach($module->mbvardefs->vardefs['fields'] as $field => $def)
+                {
+                    if (!empty($def['type']) && $def['type'] == "enum" && $field != $vardef['name'])
+                    {
+                        $enumFields[$field] = isset($module->mblanguage->strings[$current_language][$def['vname']]) ?
+                            $this->mbModule->mblanguage->strings[$current_language][$def['vname']] : translate($field);
+                        if (substr($enumFields[$field], -1) == ":")
+                            $enumFields[$field] = substr($enumFields[$field], 0, strlen($enumFields[$field]) -1);
+                    }
+                }
+            }
+
             $edit_or_add = 'mbeditField';
         }
 
@@ -267,7 +285,7 @@ class ViewModulefield extends SugarView
             $fv->ss->assign('lbl_value', htmlentities($_REQUEST['labelValue'], ENT_QUOTES, 'UTF-8'));
         }
 
-        foreach(array("formula", "default", "comments", "help") as $toEscape)
+        foreach(array("formula", "default", "comments", "help", "visiblityGrid") as $toEscape)
 		{
 			if (!empty($vardef[$toEscape]) && is_string($vardef[$toEscape])) {
 	        	$vardef[$toEscape] = htmlentities($vardef[$toEscape], ENT_QUOTES, 'UTF-8');
@@ -275,18 +293,21 @@ class ViewModulefield extends SugarView
 		}
 		
         if((!empty($vardef['studio']) && is_array($vardef['studio']) && !empty($vardef['studio']['no_duplicate']) && $vardef['studio']['no_duplicate'] == true)
-           || (strcmp($field_name, "name") == 0)) // bug #35767, do not allow cloning of name field
+           || (strcmp($field_name, "name") == 0) || (isset($vardef['type']) && $vardef['type'] == 'name')) // bug #35767, do not allow cloning of name field
             {
                $fv->ss->assign('no_duplicate', true);
             }
 
         $fv->ss->assign('action',$action);
         $fv->ss->assign('isClone', ($isClone ? 1 : 0));
+        $fv->ss->assign("module_dd_fields", $enumFields);
         $json = getJSONobj();
 
         $fv->ss->assign('field_name_exceptions', $json->encode($field_name_exceptions));
         ksort($field_types);
         $fv->ss->assign('field_types',$field_types);
+
+
         $fv->ss->assign('importable_options', $GLOBALS['app_list_strings']['custom_fields_importable_dom']);
         $fv->ss->assign('duplicate_merge_options', $GLOBALS['app_list_strings']['custom_fields_merge_dup_dom']);
 
@@ -313,21 +334,39 @@ class ViewModulefield extends SugarView
 
 		// jchi #24880
 		// end
+
+
         $layout = $fv->getLayout($vardef);
 
         $fv->ss->assign('fieldLayout', $layout);
         if(empty($vardef['type']))
+        {
             $vardef['type'] = 'varchar';
-        $fv->ss->assign('vardef', $vardef);
+        }
 
+        $fv->ss->assign('vardef', $vardef);
 
         if(empty($_REQUEST['field'])){
             $edit_or_add = 'addField';
         }
 
         $fv->ss->assign('help_group', $edit_or_add);
-        $body = $fv->ss->fetch('modules/ModuleBuilder/tpls/MBModule/field.tpl');
+        $body = $this->fetchTemplate($fv, 'modules/ModuleBuilder/tpls/MBModule/field.tpl');
         $ac->addSection('east', translate('LBL_SECTION_FIELDEDITOR','ModuleBuilder'), $body );
         return $ac;
+    }
+
+    /**
+     * fetchTemplate
+     * This function overrides fetchTemplate from SugarView.  For view.modulefield.php we go through the FieldViewer
+     * class to fetch the display contents.
+     *
+     * @param FieldViewer $mixed the FieldViewer instance
+     * @param string $template the file to fetch
+     * @return string contents from calling the fetch method on the FieldViewer Sugar_Smarty instance
+     */
+    protected function fetchTemplate($fv, $template)
+    {
+        return $fv->ss->fetch($this->getCustomFilePathIfExists($template));
     }
 }

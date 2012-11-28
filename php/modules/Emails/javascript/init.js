@@ -1,6 +1,6 @@
 /*********************************************************************************
  * SugarCRM Community Edition is a customer relationship management program developed by
- * SugarCRM, Inc. Copyright (C) 2004-2011 SugarCRM Inc.
+ * SugarCRM, Inc. Copyright (C) 2004-2012 SugarCRM Inc.
  * 
  * This program is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Affero General Public License version 3 as published by the
@@ -50,6 +50,7 @@ function email2init() {
  	 tinyMCE.init({
  		 convert_urls : false,
          theme_advanced_toolbar_align : tinyConfig.theme_advanced_toolbar_align,
+         valid_children : tinyConfig.valid_children,
          width: tinyConfig.width,
          theme: tinyConfig.theme,
          theme_advanced_toolbar_location : tinyConfig.theme_advanced_toolbar_location,
@@ -348,6 +349,10 @@ function addChildNodes(parentNode, parentData) {
                 // Default behavior is to wrap in span if no href property, and since this href
                 // doesn't do anything, remove it so that it will be wrapped in spans.
                 // nodes[i].href = "#";
+				
+				// URL Decode the text, so it shows properly
+				nodes[i].text = unescape(nodes[i].text);
+				
 				if (nodes[i].text) nodes[i].label = nodes[i].text;
 				//Override YUI child node creation
 				if (nodes[i].children) {

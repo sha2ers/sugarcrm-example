@@ -2,7 +2,7 @@
 if(!defined('sugarEntry') || !sugarEntry) die('Not A Valid Entry Point');
 /*********************************************************************************
  * SugarCRM Community Edition is a customer relationship management program developed by
- * SugarCRM, Inc. Copyright (C) 2004-2011 SugarCRM Inc.
+ * SugarCRM, Inc. Copyright (C) 2004-2012 SugarCRM Inc.
  * 
  * This program is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Affero General Public License version 3 as published by the
@@ -36,18 +36,23 @@ if(!defined('sugarEntry') || !sugarEntry) die('Not A Valid Entry Point');
  ********************************************************************************/
 
 
-
+require_once('include/EditView/EditView2.php');
 
 /**
  * MassUpdate class for updating multiple records at once
+ * @api
  */
- require_once('include/EditView/EditView2.php');
 class MassUpdate
 {
 	/*
 	 * internal sugarbean reference
 	 */
 	var $sugarbean = null;
+
+	/**
+	 * where clauses used to filter rows that have to be updated
+	 */
+	var $where_clauses = '';
 
 	/**
 	  * set the sugar bean to its internal member
@@ -160,10 +165,9 @@ eoq;
 				  $_POST[$post] = '';
 				}else{
 				  unset($_POST[$post]);
-			        }
-                        }elseif ( $value == '--null--'){  //Bug36693 MassUpdate for ENUM with Option '0'
-				$_POST[$post] = '';	
-			}
+			    }
+            }
+
 			if(is_string($value) && isset($this->sugarbean->field_defs[$post])) {
 		        if(($this->sugarbean->field_defs[$post]['type'] == 'bool'
 				 	|| (!empty($this->sugarbean->field_defs[$post]['custom_type']) && $this->sugarbean->field_defs[$post]['custom_type'] == 'bool'
@@ -174,7 +178,10 @@ eoq;
 				 			if(strcmp($value, '2') == 0)$_POST[$post] = 'off';
 				 		}
     			}
-			    if($this->sugarbean->field_defs[$post]['type'] == 'radioenum' && isset($_POST[$post]) && strlen($value) == 0){
+
+			    if( ($this->sugarbean->field_defs[$post]['type'] == 'radioenum' && isset($_POST[$post]) && strlen($value) == 0)
+			    || ($this->sugarbean->field_defs[$post]['type'] == 'enum' && $value == '__SugarMassUpdateClearField__') // Set to '' if it's an explicit clear
+			    ){
 				    $_POST[$post] = '';
 			    }
                 if ($this->sugarbean->field_defs[$post]['type'] == 'bool') {
@@ -189,8 +196,8 @@ eoq;
 			    if($this->sugarbean->field_defs[$post]['type'] == 'datetimecombo' && !empty($_POST[$post])){
 			        $_POST[$post] = $timedate->to_db($_POST[$post]);
 			    }
-			}
-		}
+            }
+         }
 
 		//We need to disable_date_format so that date values for the beans remain in database format
 		//notice we make this call after the above section since the calls to TimeDate class there could wind up
@@ -202,14 +209,13 @@ eoq;
 		if(!empty($_REQUEST['uid'])) $_POST['mass'] = explode(',', $_REQUEST['uid']); // coming from listview
 		elseif(isset($_REQUEST['entire']) && empty($_POST['mass'])) {
 			if(empty($order_by))$order_by = '';
-			$ret_array = create_export_query_relate_link_patch($_REQUEST['module'], $this->searchFields, $this->where_clauses);
-			if(!isset($ret_array['join'])) {
-				$ret_array['join'] = '';
-			}
-			$query = $this->sugarbean->create_export_query($order_by, $ret_array['where'], $ret_array['join']);
+
+            // TODO: define filter array here to optimize the query
+            // by not joining the unneeded tables
+            $query = $this->sugarbean->create_new_list_query($order_by, $this->where_clauses, array(), array(), 0, '', false, $this, true, true);
 			$result = $db->query($query,true);
 			$new_arr = array();
-			while($val = $db->fetchByAssoc($result,-1,false))
+			while($val = $db->fetchByAssoc($result,false))
 			{
 				array_push($new_arr, $val['id']);
 			}
@@ -227,14 +233,7 @@ eoq;
 				if(isset($_POST['Delete'])){
 					$this->sugarbean->retrieve($id);
 					if($this->sugarbean->ACLAccess('Delete')){
-					//Martin Hu Bug #20872
-						if($this->sugarbean->object_name == 'EmailMan'){
-							$query = "DELETE FROM emailman WHERE id = '" . $this->sugarbean->id . "'";
-							$db->query($query);
-						} else {
-
-							$this->sugarbean->mark_deleted($id);
-						}
+						$this->sugarbean->mark_deleted($id);
 					}
 				}
 				else {
@@ -353,7 +352,7 @@ eoq;
 		if($this->sugarbean->bean_implements('ACL') && ( !ACLController::checkAccess($this->sugarbean->module_dir, 'edit', true) || !ACLController::checkAccess($this->sugarbean->module_dir, 'massupdate', true) ) ){
 			return '';
 		}
-		
+
 		$lang_delete = translate('LBL_DELETE');
 		$lang_update = translate('LBL_UPDATE');
 		$lang_confirm= translate('NTC_DELETE_CONFIRMATION_MULTIPLE');
@@ -364,12 +363,12 @@ eoq;
 		$lang_optout_primaryemail = $app_strings['LBL_OPT_OUT_FLAG_PRIMARY'];
 
 		$field_count = 0;
-		
+
 		$html = "<div id='massupdate_form' style='display:none;'><table width='100%' cellpadding='0' cellspacing='0' border='0' class='formHeader h3Row'><tr><td nowrap><h3><span>" . $app_strings['LBL_MASS_UPDATE']."</h3></td></tr></table>";
 		$html .= "<div id='mass_update_div'><table cellpadding='0' cellspacing='1' border='0' width='100%' class='edit view' id='mass_update_table'>";
 
 		$even = true;
-		
+
 		if($this->sugarbean->object_name == 'Contact')
 		{
 			$html .= "<tr><td width='15%' scope='row'>$lang_sync</td><td width='35%' class='dataField'><select name='Sync'><option value=''>{$GLOBALS['app_strings']['LBL_NONE']}</option><option value='false'>{$GLOBALS['app_list_strings']['checkbox_dom']['2']}</option><option value='true'>{$GLOBALS['app_list_strings']['checkbox_dom']['1']}</option></select></td>";
@@ -385,35 +384,35 @@ eoq;
 
 		//These fields should never appear on mass update form
 		static $banned = array('date_modified'=>1, 'date_entered'=>1, 'created_by'=>1, 'modified_user_id'=>1, 'deleted'=>1,'modified_by_name'=>1,);
-		
+
 		foreach($this->sugarbean->field_defs as $field)
 		{
 			 if(!isset($banned[$field['name']]) && (!isset($field['massupdate']) || !empty($field['massupdate'])))
 			 {
 				$newhtml = '';
-				
+
 				if($even)
 				{
 					$newhtml .= "<tr>";
 				}
-				
+
 				if(isset($field['vname']))
 				{
 					$displayname = translate($field['vname']);
 				}else{
 					$displayname = '';
 				}
-				
+
 				if(isset($field['type']) && $field['type'] == 'relate' && isset($field['id_name']) && $field['id_name'] == 'assigned_user_id')
 				{
 					$field['type'] = 'assigned_user_name';
 				}
-				
+
 				if(isset($field['custom_type']))
 				{
 					$field['type'] = $field['custom_type'];
 				}
-				
+
 				if(isset($field['type']))
 				{
 					switch($field["type"])
@@ -421,7 +420,7 @@ eoq;
 						case "relate":
     						    // bug 14691: avoid laying out an empty cell in the <table>
     							$handleRelationship = $this->handleRelationship($displayname, $field);
-    							if ($handleRelationship != '') 
+    							if ($handleRelationship != '')
     							{
     								$even = !$even;
     								$newhtml .= $handleRelationship;
@@ -457,16 +456,19 @@ eoq;
 						$even = !$even; $newhtml .= $this->addDatetime($displayname,  $field["name"]); break;
 						case "datetime":
 						case "date":$even = !$even; $newhtml .= $this->addDate($displayname,  $field["name"]); break;
+                        default:
+                            $newhtml .= $this->addDefault($displayname,  $field, $even); break;
+                            break;
 					}
 				}
-				
+
 				if($even)
 				{
 					$newhtml .="</tr>";
 				}
-					
+
 				$field_count++;
-				
+
 				if(!in_array($newhtml, array('<tr>', '</tr>', '<tr></tr>', '<tr><td></td></tr>'))){
 					$html.=$newhtml;
 				}
@@ -538,9 +540,9 @@ EOJS;
 			if(!empty($vardef['function']['include'])){
 				require_once($vardef['function']['include']);
 			}
-			return $function($focus, $vardef['name'], '', 'MassUpdate');
+			return call_user_func($function, $focus, $vardef['name'], '', 'MassUpdate');
 		}else{
-			return $function($focus, $vardef['name'], '', 'MassUpdate');
+			return call_user_func($function, $focus, $vardef['name'], '', 'MassUpdate');
 		}
 	}
 
@@ -629,8 +631,10 @@ EOJS;
 			//
 			///////////////////////////////////////
 
-			$change_parent_button = "<span class='id-ff'><button title='".$app_strings['LBL_SELECT_BUTTON_TITLE']."' accessKey='".$app_strings['LBL_SELECT_BUTTON_KEY']."'  type='button' class='button' value='".$app_strings['LBL_SELECT_BUTTON_LABEL']
-			."' name='button_parent_name' onclick='open_popup(document.MassUpdate.{$field['type_name']}.value, 600, 400, \"\", true, false, {$encoded_popup_request_data});'><img src='".SugarThemeRegistry::current()->getImageURL('id-ff-select.png')."'></button></span>";
+			$change_parent_button = "<span class='id-ff'><button title='".$app_strings['LBL_SELECT_BUTTON_TITLE']."'  type='button' class='button' value='".$app_strings['LBL_SELECT_BUTTON_LABEL']
+			."' name='button_parent_name' onclick='open_popup(document.MassUpdate.{$field['type_name']}.value, 600, 400, \"\", true, false, {$encoded_popup_request_data});'>
+			".SugarThemeRegistry::current()->getImage("id-ff-select", '', null, null, ".png", $app_strings['LBL_ID_FF_SELECT'])."
+			</button></span>";
 			$parent_type = $field['parent_type'];
             $parent_types = $app_list_strings[$parent_type];
             $disabled_parent_types = ACLController::disabledModuleList($parent_types,false, 'list');
@@ -705,6 +709,8 @@ EOHTML;
 	  * @param field_name name of the field
 	  */
 	function addInputType($displayname, $varname){
+		//letrium ltd
+		$displayname = addslashes($displayname);
 		$html = <<<EOQ
 	<td scope="row" width="20%">$displayname</td>
 	<td class='dataField' width="30%"><input type="text" name='$varname' size="12" id='{$varname}' maxlength='10' value=""></td>
@@ -762,7 +768,6 @@ EOQ;
     <input name='{$varname}' id='mass_{$varname}' class='sqsEnabled' autocomplete='off' type='text' value=''>
     <input name='{$id_name}' id='mass_{$id_name}' type='hidden' value=''>&nbsp;
     <input title='{$app_strings['LBL_SELECT_BUTTON_TITLE']}'
-        accessKey='{$app_strings['LBL_SELECT_BUTTON_KEY']}'
         type='button' class='button' value='{$app_strings['LBL_SELECT_BUTTON_LABEL']}' name='button'
         onclick='open_popup("$mod_type", 600, 400, "", true, false, {$encoded_popup_request_data});'
         />
@@ -832,10 +837,9 @@ EOHTML;
     <input name='{$id_name}' id='mass_{$id_name}' type='hidden' value=''>
 	<span class="id-ff multiple">
     <button title='{$app_strings['LBL_SELECT_BUTTON_TITLE']}'
-        accessKey='{$app_strings['LBL_SELECT_BUTTON_KEY']}'
         type='button' class='button' value='{$app_strings['LBL_SELECT_BUTTON_LABEL']}' name='button'
         onclick='open_popup("$mod_type", 600, 400, "", true, false, {$encoded_popup_request_data});'
-        /><img src="$img"></button></span>
+        /><img alt="$img" src="$img"></button></span>
 </td>
 <script type="text/javascript">
 <!--
@@ -898,9 +902,8 @@ EOHTML;
 							$html = '<td scope="row">' . $displayname . " </td>\n"
 							. '<td><input class="sqsEnabled" type="text" autocomplete="off" id="mass_' . $varname .'" name="' . $varname . '" value="" /><input id="mass_' . $id_name . '" type="hidden" name="'
 							. $id_name . '" value="" />&nbsp;<span class="id-ff multiple"><button type="button" name="btn1" class="button" title="'
-							. $app_strings['LBL_SELECT_BUTTON_LABEL'] . '" accesskey="'
-							. $app_strings['LBL_SELECT_BUTTON_KEY'] . '" value="' . $app_strings['LBL_SELECT_BUTTON_LABEL'] . '" onclick='
-							. "'open_popup(\"Accounts\",600,400,\"\",true,false,{$encoded_popup_request_data});' /><img src=\"$img\"></button></span></td>\n";
+							. $app_strings['LBL_SELECT_BUTTON_LABEL'] . '"  value="' . $app_strings['LBL_SELECT_BUTTON_LABEL'] . '" onclick='
+							. "'open_popup(\"Accounts\",600,400,\"\",true,false,{$encoded_popup_request_data});' /><img alt=\"$img\" src=\"$img\"></button></span></td>\n";
 							$html .= '<script type="text/javascript" language="javascript">if(typeof sqs_objects == \'undefined\'){var sqs_objects = new Array;}sqs_objects[\'MassUpdate_' . $varname . '\'] = ' .
 							$json->encode($qsParent) . '; registerSingleSmartInputListener(document.getElementById(\'mass_' . $varname . '\'));
 					addToValidateBinaryDependency(\'MassUpdate\', \''.$varname.'\', \'alpha\', false, \'' . $app_strings['ERR_SQS_NO_MATCH_FIELD'] . $app_strings['LBL_ACCOUNT'] . '\',\''.$id_name.'\');
@@ -941,7 +944,7 @@ EOHTML;
 						$html = <<<EOQ
 		<td width="15%" scope="row">$displayname</td>
 		<td ><input class="sqsEnabled" autocomplete="off" id="mass_assigned_user_name" name='assigned_user_name' type="text" value=""><input id='mass_assigned_user_id' name='assigned_user_id' type="hidden" value="" />
-		<span class="id-ff multiple"><button title="{$app_strings['LBL_SELECT_BUTTON_TITLE']}" accessKey="{$app_strings['LBL_SELECT_BUTTON_KEY']}" type="button" class="button" value='{$app_strings['LBL_SELECT_BUTTON_LABEL']}' name=btn1
+		<span class="id-ff multiple"><button id="mass_assigned_user_name_btn" title="{$app_strings['LBL_SELECT_BUTTON_TITLE']}" type="button" class="button" value='{$app_strings['LBL_SELECT_BUTTON_LABEL']}' name=btn1
 				onclick='open_popup("Users", 600, 400, "", true, false, $encoded_popup_request_data);' /><img src="$img"></button></span>
 		</td>
 EOQ;
@@ -961,7 +964,7 @@ EOQ;
 	function addStatus($displayname, $varname, $options){
 		global $app_strings, $app_list_strings;
 
-		// cn: added "mass_" to the id tag to diffentieate from the status id in StoreQuery
+		// cn: added "mass_" to the id tag to differentiate from the status id in StoreQuery
 		$html = '<td scope="row" width="15%">'.$displayname.'</td><td>';
 		if(is_array($options)){
 			if(!isset($options['']) && !isset($options['0'])){
@@ -971,13 +974,6 @@ EOQ;
 			   	   $new_options[$key] = $value;
 			   }
 			   $options = $new_options;
-			}else{  #Bug36693 MassUpdate for ENUM with Option '0'
-				$new_options[''] = '';
-				$new_options['--null--'] = isset($options['']) ? $options[''] : $options['0'];
-				foreach($options as $key=>$value) {
-			   	   $new_options[$key] = $value;
-			    }
-			    $options = $new_options;
 			}
 			$options = get_select_options_with_id_separate_key($options, $options, '', true);;
 			$html .= '<select id="mass_'.$varname.'" name="'.$varname.'">'.$options.'</select>';
@@ -1011,7 +1007,7 @@ EOQ;
 		}
 		$options = get_select_options_with_id_separate_key($options, $options, '', true);;
 
-		// cn: added "mass_" to the id tag to diffentieate from the status id in StoreQuery
+		// cn: added "mass_" to the id tag to differentiate from the status id in StoreQuery
 		$html = '<td scope="row" width="15%">'.$displayname.'</td>
 			 <td><select id="mass_'.$varname.'" name="'.$varname.'[]" size="5" MULTIPLE>'.$options.'</select></td>';
 		return $html;
@@ -1023,6 +1019,8 @@ EOQ;
 	  */
 	function addDate($displayname, $varname){
 		global $timedate;
+		//letrium ltd
+		$displayname = addslashes($displayname);
 		$userformat = '('. $timedate->get_user_date_format().')';
 		$cal_dateformat = $timedate->get_cal_date_format();
 		global $app_strings, $app_list_strings, $theme;
@@ -1093,7 +1091,7 @@ EOQ;
 		});
 		</script>
 EOQ;
-
+        $dtscript = getVersionedScript('include/SugarFields/Fields/Datetimecombo/Datetimecombo.js');
 		$html = <<<EOQ
 		<td scope="row" width="20%">$displayname</td>
 		<td class='dataField' width="30%"><input onblur="parseDate(this, '$cal_dateformat')" type="text" name='$varname' size="12" id='{$varname}_date' maxlength='10' value="">
@@ -1102,7 +1100,7 @@ EOQ;
 		<span id="{$varname}_time_section"></span>
 		</td>
 		<input type="hidden" id="{$varname}" name="{$varname}">
-		<script type="text/javascript" src="include/SugarFields/Fields/Datetimecombo/Datetimecombo.js"></script>
+		$dtscript
 		<script type="text/javascript">
 		var combo_{$varname} = new Datetimecombo(" ", "$varname", "$userformat", '','','',1);
 		//Render the remaining widget fields
@@ -1219,30 +1217,16 @@ EOQ;
                 require('modules/'.$module.'/metadata/metafiles.php');
             }
 
-            if (file_exists('custom/modules/'.$module.'/metadata/searchdefs.php'))
-            {
-                require_once('custom/modules/'.$module.'/metadata/searchdefs.php');
-            }
-            elseif (!empty($metafiles[$module]['searchdefs']))
-            {
-                require_once($metafiles[$module]['searchdefs']);
-            }
-            elseif (file_exists('modules/'.$module.'/metadata/searchdefs.php'))
-            {
-                require_once('modules/'.$module.'/metadata/searchdefs.php');
-            }
+            $searchFields = $this->getSearchFields($module);
+            $searchdefs = $this->getSearchDefs($module);
 
-
-            if(!empty($metafiles[$module]['searchfields']))
-                require_once($metafiles[$module]['searchfields']);
-            elseif(file_exists('modules/'.$module.'/metadata/SearchFields.php'))
-                require_once('modules/'.$module.'/metadata/SearchFields.php');
             if(empty($searchdefs) || empty($searchFields)) {
                $this->where_clauses = ''; //for some modules, such as iframe, it has massupdate, but it doesn't have search function, the where sql should be empty.
                return;
             }
+
             $searchForm = new SearchForm($seed, $module);
-            $searchForm->setup($searchdefs, $searchFields, 'include/SearchForm/tpls/SearchFormGeneric.tpl');
+            $searchForm->setup($searchdefs, $searchFields, 'SearchFormGeneric.tpl');
         }
 	/* bug 31271: using false to not add all bean fields since some beans - like SavedReports
 	   can have fields named 'module' etc. which may break the query */
@@ -1257,6 +1241,41 @@ EOQ;
         }
     }
 
+    protected function getSearchDefs($module, $metafiles = array())
+    {
+        if (file_exists('custom/modules/'.$module.'/metadata/searchdefs.php'))
+        {
+            require_once('custom/modules/'.$module.'/metadata/searchdefs.php');
+        }
+        elseif (!empty($metafiles[$module]['searchdefs']))
+        {
+            require_once($metafiles[$module]['searchdefs']);
+        }
+        elseif (file_exists('modules/'.$module.'/metadata/searchdefs.php'))
+        {
+            require_once('modules/'.$module.'/metadata/searchdefs.php');
+        }
+
+        return isset($searchdefs) ? $searchdefs : array();
+    }
+
+    protected function getSearchFields($module, $metafiles = array())
+    {
+        if (file_exists('custom/modules/' . $module . '/metadata/SearchFields.php'))
+        {
+            require_once('custom/modules/' . $module . '/metadata/SearchFields.php');
+        }
+        elseif(!empty($metafiles[$module]['searchfields']))
+        {
+            require_once($metafiles[$module]['searchfields']);
+        }
+        elseif(file_exists('modules/'.$module.'/metadata/SearchFields.php'))
+        {
+            require_once('modules/'.$module.'/metadata/SearchFields.php');
+        }
+
+        return isset($searchFields) ? $searchFields : array();
+    }
     /**
      * This is kinda a hack how it is implimented, but will tell us whether or not a focus has
      * fields for Mass Update
@@ -1296,6 +1315,18 @@ EOQ;
         }
 
         return false;
+    }
+
+     /**
+     * Have to be overridden in children
+     * @param string $displayname field label
+     * @param string $field field name
+     * @param bool $even even or odd
+     * @return string html field data
+     */
+    protected function addDefault($displayname,  $field, & $even)
+    {
+        return '';
     }
 }
 

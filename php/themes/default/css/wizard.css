@@ -1,6 +1,6 @@
 /*********************************************************************************
  * SugarCRM Community Edition is a customer relationship management program developed by
- * SugarCRM, Inc. Copyright (C) 2004-2011 SugarCRM Inc.
+ * SugarCRM, Inc. Copyright (C) 2004-2012 SugarCRM Inc.
  * 
  * This program is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Affero General Public License version 3 as published by the
@@ -57,13 +57,12 @@ color: #C60C30;
 }
 
 .dashletPanelMenu .bd .screen {
-
-	border: 0px none;
 	background-color: transparent;
     display: none;
     width: 820px;
 	margin: 0px;
 	padding: 0px; 
+	border: 0px none;
 }
 
 .edit td[scope="row"] 
@@ -170,5 +169,5 @@ div.screen .view td a
     font-size: 14px;
 }
 .userWizWelcome {margin: 10px -30px 0pt 0pt; width: 770px;}
->>>>>>> Stashed changes
+
 #userWizFrame {width: 770px; height: 325px; border: none;}

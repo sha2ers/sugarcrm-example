@@ -1,7 +1,7 @@
 <?php
 /*********************************************************************************
  * SugarCRM Community Edition is a customer relationship management program developed by
- * SugarCRM, Inc. Copyright (C) 2004-2011 SugarCRM Inc.
+ * SugarCRM, Inc. Copyright (C) 2004-2012 SugarCRM Inc.
  * 
  * This program is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Affero General Public License version 3 as published by the
@@ -257,6 +257,7 @@ $viewdefs['Calls']['ConvertLead'] = array(
 $viewdefs['Meetings']['ConvertLead'] = array(
     'copyData' => false,
     'required' => false,
+    'relationship' => 'meetings_users',
     'templateMeta' => array(
         'form'=>array(
             'hidden'=>array(

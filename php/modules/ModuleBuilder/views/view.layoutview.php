@@ -4,7 +4,7 @@ if (! defined ( 'sugarEntry' ) || ! sugarEntry)
 
 /*********************************************************************************
  * SugarCRM Community Edition is a customer relationship management program developed by
- * SugarCRM, Inc. Copyright (C) 2004-2011 SugarCRM Inc.
+ * SugarCRM, Inc. Copyright (C) 2004-2012 SugarCRM Inc.
  * 
  * This program is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Affero General Public License version 3 as published by the
@@ -60,11 +60,14 @@ class ViewLayoutView extends ViewEdit
         if ($this->fromModuleBuilder)
         {
             $this->package = $_REQUEST [ 'view_package' ] ;
+            $this->type = $this->editLayout;
         } else
         {
             global $app_list_strings ;
             $moduleNames = array_change_key_case ( $app_list_strings [ 'moduleList' ] ) ;
             $this->translatedEditModule = $moduleNames [ strtolower ( $this->editModule ) ] ;
+            $this->sm = StudioModuleFactory::getStudioModule($this->editModule);
+            $this->type = $this->sm->getViewType($this->editLayout);
         }
     }
 
@@ -105,7 +108,7 @@ class ViewLayoutView extends ViewEdit
         $images = array ( 'icon_save' => 'studio_save' , 'icon_publish' => 'studio_publish' , 'icon_address' => 'icon_Address' , 'icon_emailaddress' => 'icon_EmailAddress' , 'icon_phone' => 'icon_Phone' ) ;
         foreach ( $images as $image => $file )
         {
-            $smarty->assign ( $image, SugarThemeRegistry::current()->getImage($file) ) ;
+            $smarty->assign ( $image, SugarThemeRegistry::current()->getImage($file,'',null,null,'.gif',$file) ) ;
         }
 
         $requiredFields = implode($parser->getRequiredFields () , ',');
@@ -120,6 +123,7 @@ class ViewLayoutView extends ViewEdit
         {
             $smarty->assign ( 'layouttitle', translate ( 'LBL_CURRENT_LAYOUT', 'ModuleBuilder' ) ) ;
 
+            //Check if we need to synch edit view to other layouts
             if($this->editLayout == MB_DETAILVIEW || $this->editLayout == MB_QUICKCREATE){
 		        $parser2 = ParserFactory::getParser(MB_EDITVIEW,$this->editModule,$this->package);
                 if($this->editLayout == MB_DETAILVIEW){
@@ -130,6 +134,7 @@ class ViewLayoutView extends ViewEdit
                     $parser->_viewdefs [ 'panels' ] = $editViewPanels;
                     $parser->_fielddefs = $parser2->_fielddefs;
                     $parser->setUseTabs($parser2->getUseTabs());
+                    $parser->setTabDefs($parser2->getTabDefs());
                 }
 		    }
 
@@ -224,6 +229,7 @@ class ViewLayoutView extends ViewEdit
         $smarty->assign ( 'maxColumns', $parser->getMaxColumns() ) ;
         $smarty->assign ( 'nextPanelId', $parser->getFirstNewPanelId() ) ;
         $smarty->assign ( 'displayAsTabs', $parser->getUseTabs() ) ;
+        $smarty->assign ( 'tabDefs', $parser->getTabDefs() ) ;
         $smarty->assign ( 'syncDetailEditViews', $parser->getSyncDetailEditViews() ) ;
         $smarty->assign ( 'fieldwidth', 150 ) ;
         $smarty->assign ( 'translate', $this->fromModuleBuilder ? false : true ) ;
@@ -245,11 +251,30 @@ class ViewLayoutView extends ViewEdit
 
 
         $ajax = new AjaxCompose ( ) ;
-        $viewType;
 
         $translatedViewType = '' ;
 		if ( isset ( $labels [ strtolower ( $this->editLayout ) ] ) )
 			$translatedViewType = translate ( $labels [ strtolower( $this->editLayout ) ] , 'ModuleBuilder' ) ;
+        else if (isset($this->sm))
+        {
+            foreach($this->sm->sources as $file => $def)
+            {
+                if (!empty($def['view']) && $def['view'] == $this->editLayout && !empty($def['name']))
+                {
+                    $translatedViewType = $def['name'];
+                }
+            }
+            if(empty($translatedViewType))
+            {
+                $label = "LBL_" . strtoupper($this->editLayout);
+                $translated = translate($label, $this->editModule);
+                if ($translated != $label)
+                    $translatedViewType =  $translated;
+            }
+        }
+
+
+
 
         if ($this->fromModuleBuilder)
         {

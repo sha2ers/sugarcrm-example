@@ -2,7 +2,7 @@
 if(!defined('sugarEntry') || !sugarEntry) die('Not A Valid Entry Point');
 /*********************************************************************************
  * SugarCRM Community Edition is a customer relationship management program developed by
- * SugarCRM, Inc. Copyright (C) 2004-2011 SugarCRM Inc.
+ * SugarCRM, Inc. Copyright (C) 2004-2012 SugarCRM Inc.
  * 
  * This program is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Affero General Public License version 3 as published by the
@@ -47,7 +47,7 @@ class FeedLinkHandlerImage extends FeedLinkHandlerLink {
             // Set it to a max width of 425 px, and include a tweak so that IE 6 can actually handle it.
             $image_style = 'width: expression(this.scrollWidth > 425 ? \'425px\':\'auto\'); max-width: 425px;';
         }
-        return '<div style="padding-left:10px"><img src="'. $imageData['url']. '" style="'.$image_style.'"></div>';
+        return '<div style="padding-left:10px"><!--not_in_theme!--><img src="'. $imageData['url']. '" style="'.$image_style.'"></div>';
     }
 
     function handleInput($feed, $link_type, $link_url) {

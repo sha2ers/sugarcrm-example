@@ -2,7 +2,7 @@
 if(!defined('sugarEntry') || !sugarEntry) die('Not A Valid Entry Point');
 /*********************************************************************************
  * SugarCRM Community Edition is a customer relationship management program developed by
- * SugarCRM, Inc. Copyright (C) 2004-2011 SugarCRM Inc.
+ * SugarCRM, Inc. Copyright (C) 2004-2012 SugarCRM Inc.
  * 
  * This program is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Affero General Public License version 3 as published by the
@@ -142,7 +142,7 @@ echo /*'
 		<table width="100%" cellpadding="0" cellspacing="0" border="0">
 			<tr>
 				<td>
-					<img src="'.SugarThemeRegistry::current()->getImageURL('h3Arrow.gif').'" width="11" height="11" border="0" alt="'.$mod_strings['LBL_POPUP_TITLE'].'">
+					'.SugarThemeRegistry::current()->getImage('h3Arrow', 'border="0"', 11, 11, ".gif", $mod_strings['LBL_POPUP_TITLE']).'
 				</td>
 				<td>
 					<h3>&nbsp;'.$title.'</h3>

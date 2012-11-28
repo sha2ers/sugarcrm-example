@@ -2,7 +2,7 @@
 if(!defined('sugarEntry') || !sugarEntry) die('Not A Valid Entry Point');
 /*********************************************************************************
  * SugarCRM Community Edition is a customer relationship management program developed by
- * SugarCRM, Inc. Copyright (C) 2004-2011 SugarCRM Inc.
+ * SugarCRM, Inc. Copyright (C) 2004-2012 SugarCRM Inc.
  * 
  * This program is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Affero General Public License version 3 as published by the
@@ -167,22 +167,22 @@ class ImportMap extends SugarBean
         }
         $this->default_values = implode("&", $output);
     }
-    
+
     /**
      * @see SugarBean::retrieve()
      */
     public function retrieve($id = -1, $encode=true,$deleted=true)
 	{
 	    $returnVal = parent::retrieve($id,$encode,$deleted);
-	    
+
 	    if ( !($returnVal instanceOf $this) ) {
 	        return $returnVal;
 	    }
-	    
+
 	    if ( $this->source == 'tab' && $this->delimiter == '' ) {
 	        $this->delimiter = "\t";
 	    }
-	    
+
 	    return $this;
 	}
 
@@ -337,7 +337,7 @@ class ImportMap extends SugarBean
         $result = $this->db->query($query,true," Error: ");
         $obj_arr = array();
 
-        while ($row = $this->db->fetchByAssoc($result,-1,FALSE) ) {
+        while ($row = $this->db->fetchByAssoc($result,FALSE) ) {
             $focus = new ImportMap();
 
             foreach($this->column_fields as $field) {

@@ -2,7 +2,7 @@
 if(!defined('sugarEntry') || !sugarEntry) die('Not A Valid Entry Point');
 /*********************************************************************************
  * SugarCRM Community Edition is a customer relationship management program developed by
- * SugarCRM, Inc. Copyright (C) 2004-2011 SugarCRM Inc.
+ * SugarCRM, Inc. Copyright (C) 2004-2012 SugarCRM Inc.
  * 
  * This program is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Affero General Public License version 3 as published by the
@@ -50,6 +50,30 @@ if($unzip_dir == null ) {
 	$unzip_dir = $_SESSION['unzip_dir'];
 }
 
+// creating full text search logic hooks
+// this will be merged into application/Ext/LogicHooks/logichooks.ext.php
+// when rebuild_extensions is called
+logThis(' Writing FTS hooks');
+if (!function_exists('createFTSLogicHook')) {
+    $customFileLoc = create_custom_directory('Extension/application/Ext/LogicHooks/SugarFTSHooks.php');
+    $fp = sugar_fopen($customFileLoc, 'wb');
+    $contents = <<<CIA
+<?php
+if (!isset(\$hook_array) || !is_array(\$hook_array)) {
+    \$hook_array = array();
+}
+if (!isset(\$hook_array['after_save']) || !is_array(\$hook_array['after_save'])) {
+    \$hook_array['after_save'] = array();
+}
+\$hook_array['after_save'][] = array(1, 'fts', 'include/SugarSearchEngine/SugarSearchEngineQueueManager.php', 'SugarSearchEngineQueueManager', 'populateIndexQueue');
+CIA;
+
+    fwrite($fp,$contents);
+    fclose($fp);
+} else {
+    createFTSLogicHook('Extension/application/Ext/LogicHooks/SugarFTSHooks.php');
+}
+
 //First repair the databse to ensure it is up to date with the new vardefs/tabledefs
 logThis('About to repair the database.', $path);
 //Use Repair and rebuild to update the database.
@@ -82,7 +106,10 @@ foreach ($beanFiles as $bean => $file) {
 			if(!isset($repairedTables[$focus->table_name]))
 			{
 				$sql = $GLOBALS['db']->repairTable($focus, true);
-				logThis('Running sql:' . $sql, $path);
+                if(trim($sql) != '')
+                {
+				    logThis('Running sql:' . $sql, $path);
+                }
 				$repairedTables[$focus->table_name] = true;
 			}
 
@@ -105,7 +132,10 @@ foreach ($dictionary as $meta) {
 	$fielddefs = $meta['fields'];
 	$indices = $meta['indices'];
 	$sql = $GLOBALS['db']->repairTableParams($tablename, $fielddefs, $indices, true);
-	logThis('Running sql:' . $sql, $path);
+    if(trim($sql) != '')
+    {
+	    logThis('Running sql:' . $sql, $path);
+    }
 	$repairedTables[$tablename] = true;
 }
 
@@ -129,7 +159,7 @@ if(!isset($sugar_config['logger'])){
 		      'dateFormat' => '%c',
 		      'maxSize' => '10MB',
 		      'maxLogs' => 10,
-		      'suffix' => '%m_%Y',
+		      'suffix' => '', // bug51583, change default suffix to blank for backwards comptability
 	  	  ),
 	);
 }
@@ -149,8 +179,10 @@ set_upgrade_progress('end','in_progress');
 if(isset($_SESSION['current_db_version']) && isset($_SESSION['target_db_version'])){
 	if($_SESSION['current_db_version'] != $_SESSION['target_db_version']){
 		logThis("Upgrading multienum data", $path);
-        require_once("$unzip_dir/scripts/upgrade_multienum_data.php");
-        upgrade_multienum_data();
+        if(file_exists("$unzip_dir/scripts/upgrade_multienum_data.php")) {
+            require_once("$unzip_dir/scripts/upgrade_multienum_data.php");
+            upgrade_multienum_data();
+        }
 	 }
 
 
@@ -198,28 +230,32 @@ if(file_exists('include/SugarLogger/LoggerManager.php')){
 
 
 //Upgrade connectors
-if($_SESSION['current_db_version'] < '610' && function_exists('upgrade_connectors'))
-{
-   upgrade_connectors($path);
-}
+logThis('Begin upgrade_connectors', $path);
+upgrade_connectors();
+logThis('End upgrade_connectors', $path);
+
 
 // Enable the InsideView connector by default
 if($_SESSION['current_db_version'] < '621' && function_exists('upgradeEnableInsideViewConnector')) {
     upgradeEnableInsideViewConnector();
 }
 
+/*
 if ($_SESSION['current_db_version'] < '620' && ($sugar_config['dbconfig']['db_type'] == 'mssql' || $sugar_config['dbconfig']['db_type'] == 'oci8'))
 {
     repair_long_relationship_names($path);
 }
+*/
 
 //Global search support
+/*
 if($_SESSION['current_db_version'] < '620' && function_exists('add_unified_search_to_custom_modules_vardefs'))
 {
    logThis('Add global search for custom modules start .', $path);
    add_unified_search_to_custom_modules_vardefs();
    logThis('Add global search for custom modules finished .', $path);
 }
+*/
 
 //Upgrade system displayed tabs and subpanels
 if(function_exists('upgradeDisplayedTabsAndSubpanels'))
@@ -227,6 +263,15 @@ if(function_exists('upgradeDisplayedTabsAndSubpanels'))
 	upgradeDisplayedTabsAndSubpanels($_SESSION['current_db_version']);
 }
 
+if ($_SESSION['current_db_version'] < '650')
+{
+    // Bug 53650 - Workflow Type Templates not saving Type upon upgrade to 6.5.0, usable as Email Templates
+    $db->query("UPDATE email_templates SET type = 'workflow' WHERE
+        coalesce(" . $db->convert("base_module", "length") . ",0) > 0
+        AND
+        coalesce(" . $db->convert("type", "length") . ",0) = 0
+    ");
+}
 
 //Unlink files that have been removed
 if(function_exists('unlinkUpgradeFiles'))
@@ -234,15 +279,29 @@ if(function_exists('unlinkUpgradeFiles'))
 	unlinkUpgradeFiles($_SESSION['current_db_version']);
 }
 
+if(function_exists('rebuildSprites') && function_exists('imagecreatetruecolor'))
+{
+    rebuildSprites(true);
+}
+
+//Run repairUpgradeHistoryTable
+if($_SESSION['current_db_version'] < '650' && function_exists('repairUpgradeHistoryTable'))
+{
+    repairUpgradeHistoryTable();
+}
+
 require_once('modules/Administration/upgrade_custom_relationships.php');
 upgrade_custom_relationships();
 
 require_once('modules/UpgradeWizard/uw_utils.php');
+
+/*
 if($_SESSION['current_db_version'] < '620')
 {
 	upgradeDateTimeFields($path);
 	upgradeDocumentTypeFields($path);
 }
+*/
 
 //Update the license
 logThis('Start Updating the license ', $path);
@@ -255,7 +314,7 @@ logThis('End Updating the license ', $path);
 set_upgrade_progress('end','done');
 
 logThis('Cleaning up the session.  Goodbye.');
-unlinkTempFiles();
+unlinkUWTempFiles();
 logThis('Cleaning up the session.  Goodbye.');
 resetUwSession();
 // flag to say upgrade has completed
@@ -310,6 +369,10 @@ else{
 }
 $path			= $parsedSiteUrl['path'];
 $cleanUrl		= "{$parsedSiteUrl['scheme']}://{$host}{$port}{$path}/index.php";
+
+ob_start();
+check_now(get_sugarbeat());
+ob_end_clean();
 
 $uwMain =<<<eoq
 <table cellpadding="3" cellspacing="0" border="0">

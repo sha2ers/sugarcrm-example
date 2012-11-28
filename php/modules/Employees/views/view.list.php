@@ -2,7 +2,7 @@
 if(!defined('sugarEntry') || !sugarEntry) die('Not A Valid Entry Point');
 /*********************************************************************************
  * SugarCRM Community Edition is a customer relationship management program developed by
- * SugarCRM, Inc. Copyright (C) 2004-2011 SugarCRM Inc.
+ * SugarCRM, Inc. Copyright (C) 2004-2012 SugarCRM Inc.
  * 
  * This program is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Affero General Public License version 3 as published by the
@@ -50,6 +50,17 @@ class EmployeesViewList extends ViewList
         }
  	}
 
+    /**
+     * Overridden from ViewList prepareSearchForm so we can tack on some additional where clauses
+     *
+     */
+    function prepareSearchForm() {
+        parent::prepareSearchForm();
+        require_once('modules/Employees/EmployeesSearchForm.php');
+        $newForm = new EmployeesSearchForm($this->searchForm);
+        $this->searchForm = $newForm;
+    }
+
    /**
     * Return the "breadcrumbs" to display at the top of the page
     *
@@ -72,14 +83,19 @@ class EmployeesViewList extends ViewList
 			$params = array_reverse($params);
 		}
 
-        foreach($params as $parm){
-            $index++;
-            $theTitle .= $parm;
-            if($index < $count){
-                $theTitle .= $this->getBreadCrumbSymbol();
-            }
-        }
-        $theTitle .= "</h2>\n";
+           $paramString = '';
+           foreach($params as $parm){
+               $index++;
+               $paramString .= $parm;
+               if($index < $count){
+                   $paramString .= $this->getBreadCrumbSymbol();
+               }
+           }
+
+           if(!empty($paramString)){
+               $theTitle .= "<h2> $paramString </h2>\n";
+           }
+
 
         if ($show_help) {
             $theTitle .= "<span class='utils'>";
@@ -118,7 +134,7 @@ EOHTML;
 			if(!empty($this->where)){
 			    $this->where .= " AND ";
 			}
-                        $this->where .= "(users.status != 'Reserved' or users.status is null) ";
+            $this->where .= "(users.status <> 'Reserved' or users.status is null) ";
 			$this->lv->setup($this->seed, $tplFile, $this->where, $this->params);
 			$savedSearchName = empty($_REQUEST['saved_search_select_name']) ? '' : (' - ' . $_REQUEST['saved_search_select_name']);
 			echo $this->lv->display();

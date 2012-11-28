@@ -2,7 +2,7 @@
 if(!defined('sugarEntry') || !sugarEntry) die('Not A Valid Entry Point');
 /*********************************************************************************
  * SugarCRM Community Edition is a customer relationship management program developed by
- * SugarCRM, Inc. Copyright (C) 2004-2011 SugarCRM Inc.
+ * SugarCRM, Inc. Copyright (C) 2004-2012 SugarCRM Inc.
  * 
  * This program is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Affero General Public License version 3 as published by the
@@ -40,7 +40,7 @@ $dictionary['EmailTemplate'] = array(
 	'fields' => array(
 		'id' => array(
 			'name' => 'id',
-			'vname' => 'LBL_NAME',
+			'vname' => 'LBL_ID',
 			'type' => 'id',
 			'required' => true,
 			'reportable'=>false,
@@ -117,7 +117,7 @@ $dictionary['EmailTemplate'] = array(
 		'body_html' => array(
 			'name' => 'body_html',
 			'vname' => 'LBL_PLAIN_TEXT',
-			'type' => 'text',
+			'type' => 'html',
 			'comment' => 'HTML formatted email body to be used in resulting email'
 		),
 		'deleted' => array(
@@ -142,7 +142,7 @@ $dictionary['EmailTemplate'] = array(
 			'dbType' => 'id',
 			'audited'=>true,
 			'comment' => 'User ID assigned to record',
-            'duplicate_merge'=>'disabled'           
+            'duplicate_merge'=>'disabled'
 		),
     	 'assigned_user_name' => array (
         	 'name' => 'assigned_user_name',
@@ -179,6 +179,15 @@ $dictionary['EmailTemplate'] = array(
             'reportable'=>false,
             'comment' => 'Should be checked if email template is to be sent in text only'
         ),
+        'type' => array(
+            'name' => 'type',
+            'vname' => 'LBL_TYPE',
+            'type' => 'enum',
+            'required' => false,
+            'reportable'=> false,
+            'options' => 'emailTemplates_type_list',
+            'comment' => 'Type of the email template'
+       ),
 	),
 	'indices' => array(
 		array(
@@ -202,4 +211,3 @@ $dictionary['EmailTemplate'] = array(
 
 VardefManager::createVardef('EmailTemplates','EmailTemplate', array(
 ));
-?>

@@ -2,7 +2,7 @@
 
 /*********************************************************************************
  * SugarCRM Community Edition is a customer relationship management program developed by
- * SugarCRM, Inc. Copyright (C) 2004-2011 SugarCRM Inc.
+ * SugarCRM, Inc. Copyright (C) 2004-2012 SugarCRM Inc.
  * 
  * This program is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Affero General Public License version 3 as published by the
@@ -50,7 +50,7 @@
 		</td>
 	
 		<td rowspan="3">
-				<img src='{sugar_getimagepath file='blank.gif'}' width='15' height='1' border='0'>
+				{sugar_getimage alt=$app_strings.LBL_BLANK name="blank" ext=".gif" width="15" height="1" other_attributes='border="0" '}
 		</td>
 		{/if}
 		{if $numCols > 1}
@@ -58,7 +58,7 @@
 
 		</td>
 		<td rowspan="3">
-				<img src='{sugar_getimagepath file='blank.gif'}' width='15' height='1' border='0'>
+				{sugar_getimage alt=$app_strings.LBL_BLANK name="blank" ext=".gif" width="15" height="1" other_attributes='border="0" '}
 		</td>
 		{/if}	
 	</tr>

@@ -1,7 +1,7 @@
 <?php
 /*********************************************************************************
  * SugarCRM Community Edition is a customer relationship management program developed by
- * SugarCRM, Inc. Copyright (C) 2004-2011 SugarCRM Inc.
+ * SugarCRM, Inc. Copyright (C) 2004-2012 SugarCRM Inc.
  * 
  * This program is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Affero General Public License version 3 as published by the
@@ -45,7 +45,8 @@ class CampaignsViewModulelistmenu extends ViewModulelistmenu
         foreach ( $history as $key => $row ) {
             $history[$key]['item_summary_short'] = getTrackerSubstring($row['item_summary']);
             $history[$key]['image'] = SugarThemeRegistry::current()
-                ->getImage($row['module_name'],'border="0" align="absmiddle" alt="'.$row['item_summary'].'"');
+                ->getImage($row['module_name'],'border="0" align="absmiddle"', null,null,'.gif',$row['item_summary']);
+
         }
         $this->ss->assign('LAST_VIEWED',$history);
  	    

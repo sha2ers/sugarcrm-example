@@ -2,7 +2,7 @@
 if(!defined('sugarEntry') || !sugarEntry) die('Not A Valid Entry Point');
 /*********************************************************************************
  * SugarCRM Community Edition is a customer relationship management program developed by
- * SugarCRM, Inc. Copyright (C) 2004-2011 SugarCRM Inc.
+ * SugarCRM, Inc. Copyright (C) 2004-2012 SugarCRM Inc.
  * 
  * This program is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Affero General Public License version 3 as published by the
@@ -43,9 +43,7 @@ if(!defined('sugarEntry') || !sugarEntry) die('Not A Valid Entry Point');
  * Contributor(s): ______________________________________..
  ********************************************************************************/
 
-// Call is used to store customer information.
-class Call extends SugarBean
-{
+class Call extends SugarBean {
 	var $field_name_map;
 	// Stored fields
 	var $id;
@@ -72,6 +70,9 @@ class Call extends SugarBean
 	var $reminder_time;
 	var $reminder_time_options;
 	var $reminder_checked;
+	var $email_reminder_time;
+	var $email_reminder_checked;
+	var $email_reminder_sent;
 	var $required;
 	var $accept_status;
 	var $created_by;
@@ -102,6 +103,8 @@ class Call extends SugarBean
 	var $object_name = "Call";
 	var $new_schema = true;
 	var $importable = true;
+	var $syncing = false;
+	var $recurring_source;
 
 	// This is used to retrieve related fields from form posts.
 	var $additional_column_fields = array('assigned_user_name', 'assigned_user_id', 'contact_id', 'user_id', 'contact_name');
@@ -112,6 +115,7 @@ class Call extends SugarBean
 										'user_id'			=> 'users',
 										'assigned_user_id'	=> 'users',
 										'note_id'			=> 'notes',
+                                        'lead_id'			=> 'leads',
 								);
 
 	function Call() {
@@ -124,27 +128,48 @@ class Call extends SugarBean
 			$this->field_name_map[$field['name']] = $field;
 		}
 
-		
-		
+
+
 
          if(!empty($GLOBALS['app_list_strings']['duration_intervals']))
         	$this->minutes_values = $GLOBALS['app_list_strings']['duration_intervals'];
 	}
 
+	/**
+	 * Disable edit if call is recurring and source is not Sugar. It should be edited only from Outlook.
+	 * @param $view string
+	 * @param $is_owner bool
+	 */
+	function ACLAccess($view,$is_owner = 'not_set'){
+		// don't check if call is being synced from Outlook
+		if($this->syncing == false){
+			$view = strtolower($view);
+			switch($view){
+				case 'edit':
+				case 'save':
+				case 'editview':
+				case 'delete':
+					if(!empty($this->recurring_source) && $this->recurring_source != "Sugar"){
+						return false;
+					}
+			}
+		}
+		return parent::ACLAccess($view,$is_owner);
+	}
     // save date_end by calculating user input
     // this is for calendar
 	function save($check_notify = FALSE) {
 		global $timedate,$current_user;
 
-	    if(isset($this->date_start) && isset($this->duration_hours) && isset($this->duration_minutes)) 
+	    if(isset($this->date_start) && isset($this->duration_hours) && isset($this->duration_minutes))
         {
     	    $td = $timedate->fromDb($this->date_start);
     	    if($td)
     	    {
 	        	$this->date_end = $td->modify("+{$this->duration_hours} hours {$this->duration_minutes} mins")->asDb();
-    	    }	
+    	    }
         }
-        		
+
 		if(!empty($_REQUEST['send_invites']) && $_REQUEST['send_invites'] == '1') {
 			$check_notify = true;
         } else {
@@ -158,7 +183,9 @@ class Call extends SugarBean
 			}
 			if((empty($this->id) && isset($_REQUEST['assigned_user_id']) && !empty($_REQUEST['assigned_user_id']) && $GLOBALS['current_user']->id != $_REQUEST['assigned_user_id']) || (isset($old_assigned_user_id) && !empty($old_assigned_user_id) && isset($_REQUEST['assigned_user_id']) && !empty($_REQUEST['assigned_user_id']) && $old_assigned_user_id != $_REQUEST['assigned_user_id']) ){
 				$this->special_notification = true;
-				$check_notify = true;
+				if(!isset($GLOBALS['resavingRelatedBeans']) || $GLOBALS['resavingRelatedBeans'] == false) {
+					$check_notify = true;
+				}
                 if(isset($_REQUEST['assigned_user_name'])) {
                     $this->new_assigned_user_name = $_REQUEST['assigned_user_name'];
                 }
@@ -167,6 +194,11 @@ class Call extends SugarBean
         if (empty($this->status) ) {
             $this->status = $this->getDefaultStatus();
         }
+
+		// prevent a mass mailing for recurring meetings created in Calendar module
+		if (empty($this->id) && !empty($_REQUEST['module']) && $_REQUEST['module'] == "Calendar" && !empty($_REQUEST['repeat_type']) && !empty($this->repeat_parent_id)) {
+			$check_notify = false;
+		}
 		/*nsingh 7/3/08  commenting out as bug #20814 is invalid
 		if($current_user->getPreference('reminder_time')!= -1 &&  isset($_POST['reminder_checked']) && isset($_POST['reminder_time']) && $_POST['reminder_checked']==0  && $_POST['reminder_time']==-1){
 			$this->reminder_checked = '1';
@@ -229,24 +261,13 @@ class Call extends SugarBean
 			}
 			$query .= " FROM calls ";
 
-			/*
-			if ( $this->db->dbType == 'mssql' )
-			{
-				$query .= ", calls.date_start ";
-				if ( preg_match("/contacts/",$where)){
-					$query .= ", contacts.first_name, contacts.last_name";
-					$query .= ", contacts.assigned_user_id contact_name_owner";
-				}
-				$query .= " FROM calls ";
-			}
-			*/
 			if ( preg_match("/contacts/",$where)){
 				$query .=	"LEFT JOIN calls_contacts
 	                    ON calls.id=calls_contacts.call_id
 	                    LEFT JOIN contacts
 	                    ON calls_contacts.contact_id=contacts.id ";
 			}
-			if ( preg_match("/calls_users\.user_id/",$where))
+			if ( preg_match('/calls_users\.user_id/',$where))
 			{
 		$query .= "LEFT JOIN calls_users
 			ON calls.id=calls_users.call_id and calls_users.deleted=0 ";
@@ -385,8 +406,17 @@ class Call extends SugarBean
 		}
 		$this->reminder_checked = $this->reminder_time == -1 ? false : true;
 
+		if (empty($this->email_reminder_time)) {
+			$this->email_reminder_time = -1;
+		}
+		if(empty($this->id)){
+			$reminder_t = $GLOBALS['current_user']->getPreference('email_reminder_time');
+			if(isset($reminder_t))
+		    		$this->email_reminder_time = $reminder_t;
+		}
+		$this->email_reminder_checked = $this->email_reminder_time == -1 ? false : true;
 
-		if (isset ($_REQUEST['parent_type'])) {
+		if (isset ($_REQUEST['parent_type']) && (!isset($_REQUEST['action']) || $_REQUEST['action'] != 'SubpanelEdits')) {
 			$this->parent_type = $_REQUEST['parent_type'];
 		} elseif (is_null($this->parent_type)) {
 			$this->parent_type = $app_list_strings['record_type_default_key'];
@@ -408,8 +438,12 @@ class Call extends SugarBean
 			if(empty($action))
 			    $action = "index";
 
-            $setCompleteUrl = "<a onclick='SUGAR.util.closeActivityPanel.show(\"{$this->module_dir}\",\"{$this->id}\",\"Held\",\"listview\",\"1\");'>";
-			$call_fields['SET_COMPLETE'] = $setCompleteUrl . SugarThemeRegistry::current()->getImage("close_inline","title=".translate('LBL_LIST_CLOSE','Calls')." border='0'")."</a>";
+            $setCompleteUrl = "<a id='{$this->id}' onclick='SUGAR.util.closeActivityPanel.show(\"{$this->module_dir}\",\"{$this->id}\",\"Held\",\"listview\",\"1\");'>";
+			if ($this->ACLAccess('edit')) {
+                $call_fields['SET_COMPLETE'] = $setCompleteUrl . SugarThemeRegistry::current()->getImage("close_inline"," border='0'",null,null,'.gif',translate('LBL_CLOSEINLINE'))."</a>";
+            } else {
+                $call_fields['SET_COMPLETE'] = '';
+            }
 		}
 		global $timedate;
 		$today = $timedate->nowDb();
@@ -427,26 +461,19 @@ class Call extends SugarBean
 
 		//make sure we grab the localized version of the contact name, if a contact is provided
 		if (!empty($this->contact_id)) {
-			global $locale;
-			$query  = "SELECT first_name, last_name, salutation, title FROM contacts ";
-			$query .= "WHERE id='$this->contact_id' AND deleted=0";
-			$result = $this->db->limitQuery($query,0,1,true," Error filling in contact name fields: ");
-
-			// Get the contact name.
-			$row = $this->db->fetchByAssoc($result);
-
-			if($row != null)
-			{
-				$this->contact_name = $locale->getLocaleFormattedName($row['first_name'], $row['last_name'], $row['salutation'], $row['title']);
-			}
+           // Bug# 46125 - make first name, last name, salutation and title of Contacts respect field level ACLs
+            $contact_temp = BeanFactory::getBean("Contacts", $this->contact_id);
+            if(!empty($contact_temp)) {
+                $contact_temp->_create_proper_name_field();
+                $this->contact_name = $contact_temp->full_name;
+            }
 		}
 
         $call_fields['CONTACT_ID'] = $this->contact_id;
         $call_fields['CONTACT_NAME'] = $this->contact_name;
-
 		$call_fields['PARENT_NAME'] = $this->parent_name;
-
         $call_fields['REMINDER_CHECKED'] = $this->reminder_time==-1 ? false : true;
+	    $call_fields['EMAIL_REMINDER_CHECKED'] = $this->email_reminder_time==-1 ? false : true;
 
 		return $call_fields;
 	}
@@ -460,7 +487,7 @@ class Call extends SugarBean
 
         // rrs: bug 42684 - passing a contact breaks this call
 		$notifyUser =($call->current_notify_user->object_name == 'User') ? $call->current_notify_user : $current_user;
-		        
+
 
 		// Assumes $call dates are in user format
 		$calldate = $timedate->fromDb($call->date_start);
@@ -661,14 +688,27 @@ class Call extends SugarBean
 
 	function save_relationship_changes($is_update) {
 		$exclude = array();
-		if(empty($this->in_workflow)) {
-           //if the global soap_server_object variable is not empty (as in from a soap/OPI call), then process the assigned_user_id relationship, otherwise
-           //add assigned_user_id to exclude list and let the logic from MeetingFormBase determine whether assigned user id gets added to the relationship
-           	if(!empty($GLOBALS['soap_server_object'])){
-           		$exclude = array('lead_id', 'contact_id', 'user_id');
-           	}else{
-	            $exclude = array('lead_id', 'contact_id', 'user_id', 'assigned_user_id');
-           	}
+		if(empty($this->in_workflow))
+        {
+            if(empty($this->in_import))
+            {
+                //if the global soap_server_object variable is not empty (as in from a soap/OPI call), then process the assigned_user_id relationship, otherwise
+                //add assigned_user_id to exclude list and let the logic from MeetingFormBase determine whether assigned user id gets added to the relationship
+                if(!empty($GLOBALS['soap_server_object']))
+                {
+           		    $exclude = array('lead_id', 'contact_id', 'user_id');
+           	    }
+                else
+                {
+	                $exclude = array('lead_id', 'contact_id', 'user_id', 'assigned_user_id');
+           	    }
+            }
+            else
+            {
+                $exclude = array('user_id');
+            }
+
+
         }
 		parent::save_relationship_changes($is_update, $exclude);
 	}
@@ -686,5 +726,13 @@ class Call extends SugarBean
             }
         }
         return '';
+    }
+
+    public function mark_deleted($id)
+    {
+        require_once("modules/Calendar/CalendarUtils.php");
+        CalendarUtils::correctRecurrences($this, $id);
+
+        parent::mark_deleted($id);
     }
 }

@@ -1,6 +1,6 @@
 /*********************************************************************************
  * SugarCRM Community Edition is a customer relationship management program developed by
- * SugarCRM, Inc. Copyright (C) 2004-2011 SugarCRM Inc.
+ * SugarCRM, Inc. Copyright (C) 2004-2012 SugarCRM Inc.
  * 
  * This program is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Affero General Public License version 3 as published by the
@@ -41,7 +41,7 @@ var uploads_count_map=new Object();
 var uploads_count = -1;
 var current_uploads_id = -1;
 var append = false; // Ed has method InsertHTML which inserts at cursor point - plain does not
-//following varaibles store references to input fields grouped with the clicked email selection button (select).
+//following variables store references to input fields grouped with the clicked email selection button (select).
 var current_contact = '';
 var current_contact_id = '';
 var current_contact_email = '';
@@ -298,7 +298,7 @@ function multiFiles( list_target){
 		new_row_button_remove.onclick = function() {
 			var filePathComponents = this.parentNode.element.value.split("\\"),
                 fileName = (filePathComponents[filePathComponents.length - 1]),
-            
+
                 // tinymce related
                 tiny = tinyMCE.getInstanceById('body_text'),
                 currValTiny = tiny.getContent();
@@ -336,7 +336,7 @@ function multiFiles( list_target){
 
                 // constants
                 allowedTypes = ['gif', 'bmp', 'png', 'jpg', 'jpeg'],
-                imglocation = sugar_cache_dir + 'images/';
+                imglocation = 'cache/images/';
 
             //check if filetype is valid
             if (SUGAR.util.validateFileExt(fileName, allowedTypes)) {
@@ -487,13 +487,9 @@ function docUpload() {
         this.parentNode.childNodes[2].checked='true';
         var documentRevisionId = this.parentNode.childNodes[4].value;
         var mime_type = this.parentNode.childNodes[5].value;
-		if(mime_type == "image/gif" || mime_type == "image/bmp" || mime_type == "image/png" || mime_type == "image/x-png" || mime_type == "image/jpg")
+		if(mime_type == "image/gif" || mime_type == "image/bmp" || mime_type == "image/png" || mime_type == "image/x-png" || mime_type == "image/jpg" || mime_type == "image/jpeg")
         {
-            var imglocation = unescape(document.location.pathname.substr(1));
-            imglocation = imglocation.substring(0,imglocation.lastIndexOf('/')+1);
-            imglocation='/'+imglocation+sugar_upload_dir;
-            embedImage='<img src='+imglocation+documentRevisionId+'>';
-            embedImage1='<img src=cid:'+documentRevisionId+' width="1" height="1" >';
+            embedImage='<img src="index.php?entryPoint=download&type=Documents&id='+documentRevisionId+'">';
             insert_variable(embedImage);
         }
         else{
@@ -713,30 +709,6 @@ function toggle_textarea() {
 
 ///////////////////////////////////////////////////////////////////////////////
 ////	EMAIL TEMPLATE CODE
-function fill_email(id) {
-	var where = "parent_id='" + id + "'";
-	var order = '';
-
-	if(id == '') {
-		// query based on template, contact_id0,related_to
-		if(! append) {
-			document.EditView.name.value  = '';
-			document.EditView.description.value = '';
-			document.EditView.description_html.value = '';
-		}
-		return;
-	}
-	call_json_method('EmailTemplates','retrieve','record='+id,'email_template_object', appendEmailTemplateJSON);
-	args = {"module":"Notes","where":where, "order":order};
-
-	if(typeof(global_rpcClient) == 'undefined') {
-		global_rpcClient = new SugarRPCClient();
-	}
-
-	req_id = global_rpcClient.call_method('get_full_list', args);
-	global_request_registry[req_id] = [ejo, 'display'];
-}
-
 function appendEmailTemplateJSON() {
 	// query based on template, contact_id0,related_to
 	if(document.EditView.name.value == '') { // cn: bug 7743, don't stomp populated Subject Line
@@ -947,8 +919,10 @@ function clear_email_addresses() {
 	}
 }
 
-function quick_create_overlib(id, theme) {
-    return overlib('<a style=\'width: 150px\' class=\'menuItem\' onmouseover=\'hiliteItem(this,"yes");\' onmouseout=\'unhiliteItem(this);\' href=\'index.php?module=Cases&action=EditView&inbound_email_id=' + id + '\'>' +
+function quick_create_overlib(id, theme, el) {
+
+		var $dialog = $('<div></div>')
+		.html('<a style=\'width: 150px\' class=\'menuItem\' onmouseover=\'hiliteItem(this,"yes");\' onmouseout=\'unhiliteItem(this);\' href=\'index.php?module=Cases&action=EditView&inbound_email_id=' + id + '\'>' +
             "<img border='0' src='index.php?entryPoint=getImage&themeName="+SUGAR.themes.theme_name+"&imageName=Cases.gif' style='margin-right:5px'>" + SUGAR.language.get('Emails', 'LBL_LIST_CASE') + '</a>' +
             "<a style='width: 150px' class='menuItem' onmouseover='hiliteItem(this,\"yes\");' onmouseout='unhiliteItem(this);' href='index.php?module=Leads&action=EditView&inbound_email_id=" + id + "'>" +
                     "<img border='0' src='index.php?entryPoint=getImage&themeName="+SUGAR.themes.theme_name+"&imageName=Leads.gif' style='margin-right:5px'>"
@@ -962,9 +936,19 @@ function quick_create_overlib(id, theme) {
              "<a style='width: 150px' class='menuItem' onmouseover='hiliteItem(this,\"yes\");' onmouseout='unhiliteItem(this);' href='index.php?module=Tasks&action=EditView&inbound_email_id=" + id + "'>" +
                     "<img border='0' src='index.php?entryPoint=getImage&themeName="+SUGAR.themes.theme_name+"&imageName=Tasks.gif' style='margin-right:5px'>"
                    + SUGAR.language.get('Emails', 'LBL_LIST_TASK') + "</a>"
-            , CAPTION, SUGAR.language.get('Emails', 'LBL_QUICK_CREATE')
-            , STICKY, MOUSEOFF, 3000, CLOSETEXT, '<img border=0  style="margin-left:2px; margin-right: 2px;" src="index.php?entryPoint=getImage&themeName='+SUGAR.themes.theme_name+'&imageName=close.gif">', WIDTH, 150, CLOSETITLE, SUGAR.language.get('app_strings', 'LBL_ADDITIONAL_DETAILS_CLOSE_TITLE'), CLOSECLICK, FGCLASS, 'olOptionsFgClass',
-            CGCLASS, 'olOptionsCgClass', BGCLASS, 'olBgClass', TEXTFONTCLASS, 'olFontClass', CAPTIONFONTCLASS, 'olOptionsCapFontClass', CLOSEFONTCLASS, 'olOptionsCloseFontClass');
+                   )
+		.dialog({
+			autoOpen: false,
+			title:  SUGAR.language.get('Emails', 'LBL_QUICK_CREATE'),
+			width: 150,
+			position: {
+				    my: 'right top',
+				    at: 'left top',
+				    of: $(el)
+			  }
+		});
+		$dialog.dialog('open');
+
 }
 
 

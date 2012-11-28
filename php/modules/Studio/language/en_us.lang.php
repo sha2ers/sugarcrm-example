@@ -2,7 +2,7 @@
 if(!defined('sugarEntry') || !sugarEntry) die('Not A Valid Entry Point');
 /*********************************************************************************
  * SugarCRM Community Edition is a customer relationship management program developed by
- * SugarCRM, Inc. Copyright (C) 2004-2011 SugarCRM Inc.
+ * SugarCRM, Inc. Copyright (C) 2004-2012 SugarCRM Inc.
  * 
  * This program is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Affero General Public License version 3 as published by the
@@ -58,7 +58,7 @@ $mod_strings = array (
 'LBL_SUGAR_FIELDS_STAGE' => 'Sugar Fields (click items to add to staging area)',
 'LBL_SUGAR_BIN_STAGE' => 'Sugar Bin (click items to add to staging area)',
 'LBL_VIEW_SUGAR_FIELDS' => 'View Sugar Fields',
-'LBL_VIEW_SUGAR_BIN' => 'View Sugar Bin', 
+'LBL_VIEW_SUGAR_BIN' => 'View Sugar Bin',
 'LBL_FAILED_TO_SAVE' => 'Failed To Save',
 'LBL_CONFIRM_UNSAVE' => 'Any changes will go unsaved. Are you sure you would like to continue?',
 'LBL_PUBLISHING' => 'Publishing ...',
@@ -150,14 +150,14 @@ $mod_strings = array (
 'LBL_MODULES'=>'Modules',
 //nsingh: begin bug#15095 fix
 'LBL_MODULE_NAME' => 'Administration',
-'LBL_CONFIGURE_GROUP_TABS' => 'Configure Grouped Modules',
+'LBL_CONFIGURE_GROUP_TABS' => 'Configure Module Menu Filters',
  //end bug #15095 fix
-'LBL_GROUP_TAB_WELCOME'=>'The groups below will be displayed in the navigation bar for users who choose to view Grouped Modules. Drag and drop modules to and from the Groups to configure which modules appear under the groups. Note: Empty groups will not be displayed in the navigation bar.',
+'LBL_GROUP_TAB_WELCOME'=>'The filters below will be displayed in the More list in the module menu for users to use to view groups of modules within the menu. Drag and drop modules to and from the filters. Note: Empty filters will not be displayed in the menu.',
 'LBL_RENAME_TAB_WELCOME'=>'Click on any tab\'s Display Value in the table below to rename the tab.',
-'LBL_DELETE_MODULE'=>'Remove&nbsp;Module<br />From&nbsp;Group',
+'LBL_DELETE_MODULE'=>'Remove&nbsp;module<br />from&nbsp;filter',
 'LBL_DISPLAY_OTHER_TAB_HELP' => 'Select to display the "Other" tab in the navigation bar.  By default, the "Other" tab displays any modules not already included in other groups.',
 'LBL_TAB_GROUP_LANGUAGE_HELP' => 'Select an available language, edit the Group labels and click Save & Deploy to apply the labels in the selected language.',
-'LBL_ADD_GROUP'=>'Add Group',
+'LBL_ADD_GROUP'=>'Add Filter',
 'LBL_NEW_GROUP'=>'New Group',
 'LBL_RENAME_TABS'=>'Rename Modules',
 'LBL_DISPLAY_OTHER_TAB' => 'Display \'Other\' Tab',
@@ -166,7 +166,7 @@ $mod_strings = array (
 'LBL_DEFAULT'=>'Default',
 'LBL_ADDITIONAL'=>'Additional',
 'LBL_AVAILABLE'=>'Available',
-'LBL_LISTVIEW_DESCRIPTION'=>'There are three columns displayed below. The default column contains the fields that are displayed in a list view by default, the additional column contains fields that a user may choose to use for creating a custom view, and the available columns are columns availabe for you as an admin to either add to the default or additional columns for use by users but are currently not used.', 
+'LBL_LISTVIEW_DESCRIPTION'=>'There are three columns displayed below. The default column contains the fields that are displayed in a list view by default, the additional column contains fields that a user may choose to use for creating a custom view, and the available columns are columns availabe for you as an admin to either add to the default or additional columns for use by users but are currently not used.',
 'LBL_LISTVIEW_EDIT'=>'List View Editor',
 
 //ERRORS
@@ -185,9 +185,24 @@ $mod_strings = array (
 'LBL_SP_UPLOADED'=> 'Uploaded',
 'ERROR_SP_UPLOADED'=>'Please ensure that you are uploading a css style sheet.',
 'LBL_SP_PREVIEW'=>'Here is a preview of what your style sheet will look like',
+
+	'LBL_SAVE' => 'Save' /*for 508 compliance fix*/,
+	'LBL_UNDO' => 'Undo' /*for 508 compliance fix*/,
+	'LBL_REDO' => 'Redo' /*for 508 compliance fix*/,
+	'LBL_INLINE' => 'Inline' /*for 508 compliance fix*/,
+	'LBL_DELETE' => 'Delete' /*for 508 compliance fix*/,
+	'LBL_ADD_FIELD' => 'Add Field' /*for 508 compliance fix*/,
+	'LBL_MAXIMIZE' => 'Maximize' /*for 508 compliance fix*/,
+	'LBL_MINIMIZE' => 'Minimize' /*for 508 compliance fix*/,
+	'LBL_PUBLISH' => 'Publish' /*for 508 compliance fix*/,
+	'LBL_ADDROWS' => 'Add Rows' /*for 508 compliance fix*/,
+	'LBL_ADDFIELD' => 'Add Field' /*for 508 compliance fix*/,
+	'LBL_EDIT' => 'Edit' /*for 508 compliance fix*/,
+
 'LBL_LANGUAGE_TOOLTIP' => 'Select the language to edit.',
 'LBL_SINGULAR' => 'Singular Label',
 'LBL_PLURAL' => 'Plural Label',
 'LBL_RENAME_MOD_SAVE_HELP' => 'Click <b>Save</b> to apply the changes.'
+
 );
 ?>

@@ -1,7 +1,7 @@
 <?php
 /*********************************************************************************
  * SugarCRM Community Edition is a customer relationship management program developed by
- * SugarCRM, Inc. Copyright (C) 2004-2011 SugarCRM Inc.
+ * SugarCRM, Inc. Copyright (C) 2004-2012 SugarCRM Inc.
  * 
  * This program is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Affero General Public License version 3 as published by the
@@ -48,7 +48,7 @@ $viewdefs['Documents']['QuickCreate'] = array(
                             'includes' => 
                               array (
                                 array('file' => 'include/javascript/popup_parent_helper.js'),
-                                array('file' => 'include/javascript/sugar_grp_jsolait.js'),
+                                array('file' => 'cache/include/javascript/sugar_grp_jsolait.js'),
                                 array('file' => 'modules/Documents/documents.js'),
                               ),
 ),
@@ -67,7 +67,9 @@ $viewdefs['Documents']['QuickCreate'] = array(
     
     array (
       'document_name',
-      'revision'
+       array('name'=>'revision',
+            'customCode' => '<input name="revision" type="text" value="{$fields.revision.value}" {$DISABLED}>'
+           ),
     ),    
     
     array (

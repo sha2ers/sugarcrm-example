@@ -2,7 +2,7 @@
 if(!defined('sugarEntry') || !sugarEntry) die('Not A Valid Entry Point');
 /*********************************************************************************
  * SugarCRM Community Edition is a customer relationship management program developed by
- * SugarCRM, Inc. Copyright (C) 2004-2011 SugarCRM Inc.
+ * SugarCRM, Inc. Copyright (C) 2004-2012 SugarCRM Inc.
  * 
  * This program is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Affero General Public License version 3 as published by the
@@ -45,8 +45,7 @@ if(!defined('sugarEntry') || !sugarEntry) die('Not A Valid Entry Point');
  *
  */
 
-if(empty($_REQUEST['user_name']))$_REQUEST['user_name'] = 'onelogin';
-if(empty($_REQUEST['user_password']))$_REQUEST['user_password'] = 'onelogin';
+
 require_once('modules/Users/authentication/SugarAuthenticate/SugarAuthenticate.php');
 class SAMLAuthenticate extends SugarAuthenticate {
 	var $userAuthenticateClass = 'SAMLAuthenticateUser';
@@ -61,4 +60,32 @@ class SAMLAuthenticate extends SugarAuthenticate {
 		parent::SugarAuthenticate();
 	}
 
+    /**
+     * pre_login
+     * 
+     * Override the pre_login function from SugarAuthenticate so that user is
+     * redirected to SAML entry point if other is not specified
+     */
+    function pre_login()
+    {
+        parent::pre_login();
+
+        if (empty($_REQUEST['no_saml']))
+        {
+            SugarApplication::redirect('?entryPoint=SAML');
+        }
+    }
+
+    /**
+     * Called when a user requests to logout
+     *
+     * Override default behavior. Redirect user to special "Logged Out" page in
+     * order to prevent automatic logging in.
+     */
+    public function logout() {
+        session_destroy();
+        ob_clean();
+        header('Location: index.php?module=Users&action=LoggedOut');
+        sugar_cleanup(true);
+    }
 }

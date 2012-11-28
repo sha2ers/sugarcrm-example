@@ -1,7 +1,7 @@
 <?php
 /*********************************************************************************
  * SugarCRM Community Edition is a customer relationship management program developed by
- * SugarCRM, Inc. Copyright (C) 2004-2011 SugarCRM Inc.
+ * SugarCRM, Inc. Copyright (C) 2004-2012 SugarCRM Inc.
  * 
  * This program is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Affero General Public License version 3 as published by the
@@ -38,8 +38,8 @@
 require_once 'modules/OAuthTokens/OAuthToken.php';
 require_once 'modules/OAuthKeys/OAuthKey.php';
 /**
- *
  * Sugar OAuth provider implementation
+ * @api
  */
 class SugarOAuthServer
 {
@@ -137,6 +137,10 @@ class SugarOAuthServer
         return Zend_Oauth_Provider::TOKEN_REJECTED;
     }
 
+    /**
+     * Decode POST/GET via from_html()
+     * @return array decoded data
+     */
     protected function decodePostGet()
     {
         $data = $_GET;
@@ -185,6 +189,10 @@ class SugarOAuthServer
         $GLOBALS['log']->debug("OAUTH: requestToken");
         $token = OAuthToken::generate();
         $token->setConsumer($this->consumer);
+        $params = $this->provider->getOAuthParams();
+        if(!empty($params['oauth_callback']) && $params['oauth_callback'] != 'oob') {
+            $token->setCallbackURL($params['oauth_callback']);
+        }
         $token->save();
         return $token->queryString();
     }
@@ -215,7 +223,7 @@ class SugarOAuthServer
      */
     public function authUrl()
     {
-        return urlencode($GLOBALS['sugar_config']['site_url']."index.php?module=OAuthTokens&action=authorize");
+        return urlencode(rtrim($GLOBALS['sugar_config']['site_url'],'/')."/index.php?module=OAuthTokens&action=authorize");
     }
 
     /**

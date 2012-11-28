@@ -2,7 +2,7 @@
 if(!defined('sugarEntry') || !sugarEntry) die('Not A Valid Entry Point');
 /*********************************************************************************
  * SugarCRM Community Edition is a customer relationship management program developed by
- * SugarCRM, Inc. Copyright (C) 2004-2011 SugarCRM Inc.
+ * SugarCRM, Inc. Copyright (C) 2004-2012 SugarCRM Inc.
  * 
  * This program is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Affero General Public License version 3 as published by the
@@ -54,9 +54,9 @@ if(!defined('sugarEntry') || !sugarEntry) die('Not A Valid Entry Point');
                                             array('label' => '10', 'field' => '30')
                                             ),
 'javascript' =>
-	'<script type="text/javascript" src="include/javascript/popup_parent_helper.js?s={$SUGAR_VERSION}&c={$JS_CUSTOM_VERSION}"></script>
-	<script type="text/javascript" src="include/javascript/sugar_grp_jsolait.js?s={$SUGAR_VERSION}&c={$JS_CUSTOM_VERSION}"></script>
-	<script type="text/javascript" src="modules/Documents/documents.js?s={$SUGAR_VERSION}&c={$JS_CUSTOM_VERSION}"></script>',
+	'{sugar_getscript file="include/javascript/popup_parent_helper.js"}
+	{sugar_getscript file="cache/include/javascript/sugar_grp_jsolait.js"}
+	{sugar_getscript file="modules/Documents/documents.js"}',
 ),
  'panels' =>array (
   'default' =>

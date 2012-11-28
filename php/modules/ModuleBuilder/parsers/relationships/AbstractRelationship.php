@@ -2,7 +2,7 @@
 if(!defined('sugarEntry') || !sugarEntry) die('Not A Valid Entry Point');
 /*********************************************************************************
  * SugarCRM Community Edition is a customer relationship management program developed by
- * SugarCRM, Inc. Copyright (C) 2004-2011 SugarCRM Inc.
+ * SugarCRM, Inc. Copyright (C) 2004-2012 SugarCRM Inc.
  * 
  * This program is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Affero General Public License version 3 as published by the
@@ -162,7 +162,21 @@ class AbstractRelationship
         $this->deleted = $this->definition [ 'deleted' ] = true ;
     }
     
-    
+    public function getFromStudio()
+    {
+        return $this->from_studio;
+    }
+
+    public function getLhsModule()
+    {
+        return $this->lhs_module;
+    }
+
+    public function getRhsModule()
+    {
+        return $this->rhs_module;
+    }
+
     public function getType ()
     {
         return $this->relationship_type ;
@@ -246,6 +260,20 @@ class AbstractRelationship
 			return $this->rhs_module.'_R';
 		}
 		return $this->rhs_module;
+    }
+
+    /**
+     * Returns a key=>value set of labels used in this relationship for use when desplaying the relationship in MB
+     * @return array labels used in this relationship
+     */
+    public function getLabels() {
+        $labels = array();
+        $labelDefinitions = $this->buildLabels();
+        foreach($labelDefinitions as $def){
+            $labels[$def['module']][$def['system_label']] = $def['display_label'];
+        }
+
+        return $labels;
     }
 	
     /*
@@ -439,9 +467,11 @@ class AbstractRelationship
      * 3. fields: fields within the join table
      * 4. indicies: indicies on the join table
      * @param string $relationshipType  Cardinality of the relationship, for example, MB_ONETOONE or MB_ONETOMANY or MB_MANYTOMANY
+     * @param bool $checkExisting check if a realtionship with the given name is already depolyed in this instance. If so, we will clones its table and column names to preserve existing data.
      */
-    function getRelationshipMetaData ($relationshipType)
+    function getRelationshipMetaData ($relationshipType, $checkExisting = true)
     {
+        global $dictionary;
         $relationshipName = $this->definition [ 'relationship_name' ] ;
         $lhs_module = $this->lhs_module ;
         $rhs_module = $this->rhs_module ;
@@ -450,30 +480,42 @@ class AbstractRelationship
         $rhs_table = $this->getTablename ( $rhs_module ) ;
         
         $properties = array ( ) ;
-        
-        // first define section 1, the relationship element of the metadata entry
-        
-        $rel_properties = array ( ) ;
-        $rel_properties [ 'lhs_module' ] = $lhs_module ;
-        $rel_properties [ 'lhs_table' ] = $lhs_table ;
-        $rel_properties [ 'lhs_key' ] = 'id' ;
-        $rel_properties [ 'rhs_module' ] = $rhs_module ;
-        $rel_properties [ 'rhs_table' ] = $rhs_table ;
-        $rel_properties [ 'rhs_key' ] = 'id' ;
-        
-        // because the implementation of one-to-many relationships within SugarBean does not use a join table and so requires schema changes to add a foreign key for each new relationship,
-        // we currently implement all new relationships as many-to-many regardless of the real type and enforce cardinality through the relate fields and subpanels
-        $rel_properties [ 'relationship_type' ] = MB_MANYTOMANY ;
-        // but as we need to display the true cardinality in Studio and ModuleBuilder we also record the actual relationship type
-        // this property is only used by Studio/MB
-        $properties [ 'true_relationship_type' ] = $relationshipType ;
-        if ($this->from_studio)
-            $properties [ 'from_studio' ] = true; 
-        
-        $rel_properties [ 'join_table' ] = $this->getValidDBName ( $relationshipName."_c" ) ;
-        // a and b are in case the module relates to itself
-        $rel_properties [ 'join_key_lhs' ] = $this->getJoinKeyLHS() ;
-        $rel_properties [ 'join_key_rhs' ] = $this->getJoinKeyRHS() ;
+
+        //bug 47903
+        if ($checkExisting && !empty($dictionary[$relationshipName])
+            && !empty($dictionary[$relationshipName][ 'true_relationship_type' ])
+            && $dictionary[$relationshipName][ 'true_relationship_type' ]  == $relationshipType
+            && !empty($dictionary[$relationshipName]['relationships'][$relationshipName]))
+        {
+            //bug 51336
+            $properties [ 'true_relationship_type' ] = $relationshipType ;
+            $rel_properties = $dictionary[$relationshipName]['relationships'][$relationshipName];
+        } else
+        {
+            // first define section 1, the relationship element of the metadata entry
+
+            $rel_properties = array ( ) ;
+            $rel_properties [ 'lhs_module' ] = $lhs_module ;
+            $rel_properties [ 'lhs_table' ] = $lhs_table ;
+            $rel_properties [ 'lhs_key' ] = 'id' ;
+            $rel_properties [ 'rhs_module' ] = $rhs_module ;
+            $rel_properties [ 'rhs_table' ] = $rhs_table ;
+            $rel_properties [ 'rhs_key' ] = 'id' ;
+
+            // because the implementation of one-to-many relationships within SugarBean does not use a join table and so requires schema changes to add a foreign key for each new relationship,
+            // we currently implement all new relationships as many-to-many regardless of the real type and enforce cardinality through the relate fields and subpanels
+            $rel_properties [ 'relationship_type' ] = MB_MANYTOMANY ;
+            // but as we need to display the true cardinality in Studio and ModuleBuilder we also record the actual relationship type
+            // this property is only used by Studio/MB
+            $properties [ 'true_relationship_type' ] = $relationshipType ;
+            if ($this->from_studio)
+                $properties [ 'from_studio' ] = true;
+
+            $rel_properties [ 'join_table' ] = $this->getValidDBName ( $relationshipName."_c" ) ;
+            // a and b are in case the module relates to itself
+            $rel_properties [ 'join_key_lhs' ] = $this->getJoinKeyLHS() ;
+            $rel_properties [ 'join_key_rhs' ] = $this->getJoinKeyRHS() ;
+        }
         
         // set the extended properties if they exist = for now, many-to-many definitions do not have to contain a role_column even if role_column_value is set; we'll just create a likely name if missing
         if (isset ( $this->definition [ 'relationship_role_column_value' ] ))
@@ -557,7 +599,7 @@ class AbstractRelationship
      * @param string $ensureUnique 
      * @return string Valid column name trimmed to right length and with invalid characters removed
      */
-    static function getValidDBName ($name, $ensureUnique = false)
+    static function getValidDBName ($name, $ensureUnique = true)
     {
 
         require_once 'modules/ModuleBuilder/parsers/constants.php' ;

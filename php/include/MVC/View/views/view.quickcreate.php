@@ -3,7 +3,7 @@
 if(!defined('sugarEntry') || !sugarEntry) die('Not A Valid Entry Point');
 /*********************************************************************************
  * SugarCRM Community Edition is a customer relationship management program developed by
- * SugarCRM, Inc. Copyright (C) 2004-2011 SugarCRM Inc.
+ * SugarCRM, Inc. Copyright (C) 2004-2012 SugarCRM Inc.
  * 
  * This program is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Affero General Public License version 3 as published by the
@@ -42,16 +42,29 @@ require_once('include/EditView/EditView2.php');
 
 class ViewQuickcreate extends ViewAjax
 {
-    /**
-     * $var true if this form is used in the Dashlet Container
-     */
 	protected $_isDCForm = false;
 	
 	/**
 	 * @var EditView object
 	 */
 	protected $ev;
-	
+
+    /**
+     * @var headerTpl String variable of the Smarty template file used to render the header portion
+     */
+    protected $headerTpl = 'include/EditView/header.tpl';
+
+    /**
+     * @var footerTpl String variable of the Smarty template file used to render the footer portion
+     */
+    protected $footerTpl = 'include/EditView/footer.tpl';
+
+
+    /**
+     * @var defaultButtons Array of default buttons assigned to the form (see function.sugar_button.php)
+     */
+    protected $defaultButtons = array('DCMENUSAVE', 'DCMENUCANCEL', 'DCMENUFULLFORM');
+
     /**
      * @see SugarView::preDisplay()
      */
@@ -92,7 +105,7 @@ class ViewQuickcreate extends ViewAjax
      * @see SugarView::display()
      */
     public function display()
-    {	    
+    {
     	$view = (!empty($_REQUEST['target_view']))?$_REQUEST['target_view']: 'QuickCreate';
 		$module = $_REQUEST['module'];
 		
@@ -114,7 +127,7 @@ class ViewQuickcreate extends ViewAjax
 			}
 		}
 
-		$this->ev = new EditView();
+        $this->ev = $this->getEditView();
 		$this->ev->view = $view;
 		$this->ev->ss = new Sugar_Smarty();
 		
@@ -122,9 +135,9 @@ class ViewQuickcreate extends ViewAjax
 		//$_REQUEST['return_action'] = 'SubPanelViewer';
 		$this->ev->setup($module, null, $source);
 		$this->ev->showSectionPanelsTitles = false;
-	    $this->ev->defs['templateMeta']['form']['headerTpl'] = 'include/EditView/header.tpl';
-		$this->ev->defs['templateMeta']['form']['footerTpl'] = 'include/EditView/footer.tpl';
-		$this->ev->defs['templateMeta']['form']['buttons'] = array('DCMENUSAVE', 'DCMENUCANCEL', 'DCMENUFULLFORM');
+	    $this->ev->defs['templateMeta']['form']['headerTpl'] = $this->headerTpl;
+		$this->ev->defs['templateMeta']['form']['footerTpl'] = $this->footerTpl;
+		$this->ev->defs['templateMeta']['form']['buttons'] = $this->defaultButtons;
 		$this->ev->defs['templateMeta']['form']['button_location'] = 'bottom';
 		$this->ev->defs['templateMeta']['form']['hidden'] = '<input type="hidden" name="is_ajax_call" value="1" />';
 		$this->ev->defs['templateMeta']['form']['hidden'] .= '<input type="hidden" name="from_dcmenu" value="1" />';
@@ -170,4 +183,13 @@ class ViewQuickcreate extends ViewAjax
 		   echo $this->ev->display(false, true);
 		}
 	}
+
+    /**
+     * Get EditView object
+     * @return EditView
+     */
+    protected function getEditView()
+    {
+        return new EditView();
+    }
 }

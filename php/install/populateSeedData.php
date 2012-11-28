@@ -2,7 +2,7 @@
 if(!defined('sugarEntry') || !sugarEntry) die('Not A Valid Entry Point');
 /*********************************************************************************
  * SugarCRM Community Edition is a customer relationship management program developed by
- * SugarCRM, Inc. Copyright (C) 2004-2011 SugarCRM Inc.
+ * SugarCRM, Inc. Copyright (C) 2004-2012 SugarCRM Inc.
  * 
  * This program is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Affero General Public License version 3 as published by the
@@ -231,6 +231,10 @@ for($i = 0; $i < $number_companies; $i++) {
 	$call->account_id =$account->id;
 	$call->status='Planned';
 	$call->save();
+
+    //Set the user to accept the call
+    $seed_user->id = $call->assigned_user_id;
+    $call->set_accept_status($seed_user,'accept');
 
 	//Create new opportunities
 	$opp = new Opportunity();

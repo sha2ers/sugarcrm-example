@@ -2,7 +2,7 @@
 if(!defined('sugarEntry') || !sugarEntry) die('Not A Valid Entry Point');
 /*********************************************************************************
  * SugarCRM Community Edition is a customer relationship management program developed by
- * SugarCRM, Inc. Copyright (C) 2004-2011 SugarCRM Inc.
+ * SugarCRM, Inc. Copyright (C) 2004-2012 SugarCRM Inc.
  * 
  * This program is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Affero General Public License version 3 as published by the
@@ -158,6 +158,12 @@ class RenameModules
             array('name' => 'LBL_OPPORTUNITY_AMOUNT', 'type' => 'singular', 'source' => 'Opportunities'),
             array('name' => 'LBL_OPPORTUNITY_ID', 'type' => 'singular', 'source' => 'Opportunities'),
             array('name' => 'LBL_OPPORTUNITY_NAME', 'type' => 'singular', 'source' => 'Opportunities'),
+            array('name' => 'LBL_CONVERTED_ACCOUNT', 'type' => 'singular', 'source' => 'Accounts'),
+            array('name' => 'LNK_SELECT_ACCOUNTS', 'type' => 'singular', 'source' => 'Accounts'),
+            array('name' => 'LNK_NEW_ACCOUNT', 'type' => 'singular', 'source' => 'Accounts'),
+            array('name' => 'LBL_CONVERTED_CONTACT', 'type' => 'singular', 'source' => 'Contacts'),
+            array('name' => 'LBL_CONVERTED_OPP', 'type' => 'singular', 'source' => 'Opportunities'),
+
         ),
         'Meetings' => array(
             array('name' => 'LBL_LIST_CONTACT', 'type' => 'singular', 'source' => 'Contacts'),
@@ -261,10 +267,10 @@ class RenameModules
     {
         global $app_list_strings, $mod_strings;
 
-        
+
         require_once('modules/Studio/parsers/StudioParser.php');
         $dh = new DropDownHelper();
-        
+
         $smarty = new Sugar_Smarty();
         $smarty->assign('MOD', $GLOBALS['mod_strings']);
         $title=getClassicModuleTitle($mod_strings['LBL_MODULE_NAME'], array("<a href='index.php?module=Administration&action=index'>".$mod_strings['LBL_MODULE_NAME']."</a>", $mod_strings['LBL_RENAME_TABS']), false);
@@ -334,7 +340,7 @@ class RenameModules
 
         //Clear all relevant language caches
         $this->clearLanguageCaches();
-        
+
         //Retrieve changes the user is requesting and store previous values for future use.
         $this->changedModules = $this->getChangedModules();
 
@@ -390,7 +396,7 @@ class RenameModules
         //Get the subpanel def
         $subpanelDefs = $this->getSubpanelDefs($bean);
 
-        if( count($subpanelDefs) <= 0)
+        if(empty($subpanelDefs))
         {
             $GLOBALS['log']->debug("Found empty subpanel defs for $moduleName");
             return;
@@ -407,7 +413,7 @@ class RenameModules
             foreach($this->changedModules as $changedModuleName => $renameFields)
             {
                 if( !( isset($subpanelMetaData['type']) &&  $subpanelMetaData['type'] == 'collection') //Dont bother with collections
-                    && $subpanelMetaData['module'] == $changedModuleName && isset($subpanelMetaData['title_key']) )
+                    && isset($subpanelMetaData['module']) && $subpanelMetaData['module'] == $changedModuleName && isset($subpanelMetaData['title_key']) )
                 {
                     $replaceKey = $subpanelMetaData['title_key'];
                     if( !isset($mod_strings[$replaceKey]) )
@@ -447,6 +453,9 @@ class RenameModules
      */
     private function getSubpanelDefs($bean )
 	{
+        if(empty($bean->module_dir)) {
+            return array();
+        }
 
 		$layout_defs = array();
 
@@ -520,12 +529,15 @@ class RenameModules
 
                     $replaceKey = $linkEntry['vname'];
                     $oldStringValue = $mod_strings[$replaceKey];
-                    //At this point we don't know if we should replace the string with the plural or singular version of the new
-                    //strings so we'll try both but with the plural version first since it should be longer than the singular.
-                    $replacedString = str_replace(html_entity_decode_utf8($renameFields['prev_plural'], ENT_QUOTES), $renameFields['plural'], $oldStringValue);
-                    if ($replacedString == $oldStringValue) {
-                        $replacedString = str_replace(html_entity_decode_utf8($renameFields['prev_singular'], ENT_QUOTES), $renameFields['singular'], $replacedString);
+                   // Use the plural value of the two only if it's longer and the old language string contains it,
+                   // singular otherwise
+                    if (strlen($renameFields['prev_plural']) > strlen($renameFields['prev_singular']) && strpos($oldStringValue, $renameFields['prev_plural']) !== false) {
+                        $key = 'plural';
+                    } else {
+                       $key = 'singular';
+
                     }
+                    $replacedString = str_replace(html_entity_decode_utf8($renameFields['prev_' . $key], ENT_QUOTES), $renameFields[$key], $oldStringValue);
                     $replacementStrings[$replaceKey] = $replacedString;
                 }
             }
@@ -562,13 +574,14 @@ class RenameModules
     private function renameAllDashlets()
     {
         //Load the Dashlet metadata so we know what needs to be changed
-        if(!is_file($GLOBALS['sugar_config']['cache_dir'].'dashlets/dashlets.php'))
+        if(!is_file(sugar_cached('dashlets/dashlets.php')))
         {
             require_once('include/Dashlets/DashletCacheBuilder.php');
             $dc = new DashletCacheBuilder();
             $dc->buildCache();
-		}
-		require_once($GLOBALS['sugar_config']['cache_dir'].'dashlets/dashlets.php');
+	}
+
+        include(sugar_cached('dashlets/dashlets.php'));
 
         foreach($this->changedModules as $moduleName => $replacementLabels)
         {
@@ -592,7 +605,7 @@ class RenameModules
         {
             if( isset($dashletData['module']) && $dashletData['module'] == $moduleName && file_exists($dashletData['meta']) )
             {
-                require_once( $dashletData['meta'] );
+                require( $dashletData['meta'] );
                 $dashletTitle = $dashletMeta[$dashletName]['title'];
                 $currentModuleStrings = return_module_language($this->selectedLanguage, $moduleName);
                 $modStringKey = array_search($dashletTitle,$currentModuleStrings);
@@ -770,7 +783,17 @@ class RenameModules
             $replace = call_user_func($modifier, $replace);
         }
         
-        return str_replace($search, $replace, $oldStringValue);
+        // Bug 47957
+        // If nothing was replaced - try to replace original string
+        $result = '';
+        $replaceCount = 0;
+        $result = str_replace($search, $replace, $oldStringValue, $replaceCount);
+        if(!$replaceCount){
+            $replaceKey = 'key_' . $replacementMetaData['type'];
+            $search = html_entity_decode_utf8($replacementLabels[$replaceKey], ENT_QUOTES);
+            $result = str_replace($search, $replace, $oldStringValue, $replaceCount);
+        }
+        return $result;
     }
 
 
@@ -858,9 +881,10 @@ class RenameModules
         while(isset($params['slot_' . $count]))
         {
             $index = $params['slot_' . $count];
-            $key = (isset($params['key_' . $index]))?to_html(remove_xss(from_html($params['key_' . $index]))): 'BLANK';
-            $value = (isset($params['value_' . $index]))?to_html(remove_xss(from_html($params['value_' . $index]))): '';
-            $svalue = (isset($params['svalue_' . $index]))?to_html(remove_xss(from_html($params['svalue_' . $index]))): $value;
+
+            $key = (isset($params['key_' . $index]))?SugarCleaner::stripTags($params['key_' . $index]): 'BLANK';
+            $value = (isset($params['value_' . $index]))?SugarCleaner::stripTags($params['value_' . $index]): '';
+            $svalue = (isset($params['svalue_' . $index]))?SugarCleaner::stripTags($params['svalue_' . $index]): $value;
             if($key == 'BLANK')
                $key = '';
 

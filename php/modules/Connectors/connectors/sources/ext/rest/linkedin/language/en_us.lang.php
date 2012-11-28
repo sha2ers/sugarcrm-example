@@ -2,7 +2,7 @@
 if(!defined('sugarEntry') || !sugarEntry) die('Not A Valid Entry Point');
 /*********************************************************************************
  * SugarCRM Community Edition is a customer relationship management program developed by
- * SugarCRM, Inc. Copyright (C) 2004-2011 SugarCRM Inc.
+ * SugarCRM, Inc. Copyright (C) 2004-2012 SugarCRM Inc.
  * 
  * This program is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Affero General Public License version 3 as published by the
@@ -45,12 +45,14 @@ if(!defined('sugarEntry') || !sugarEntry) die('Not A Valid Entry Point');
 
 $connector_strings = array (
     //licensing information shown in config screen
-    'LBL_LICENSING_INFO' => '', //'LinkedIn&#169; licensing info...',
+    'LBL_LICENSING_INFO' => '<table border="0" cellspacing="1"><tr><td valign="top" width="35%" class="dataLabel">This is the URL for the Company Insider plug-in that is used to display LinkedIn&#169; company information. You will not need to change the URL unless LinkedIn&#169; changes the URL for the plug-in.</td></tr></table>',
 
     'LBL_NAME' => 'Company Name',
 
 	//Configuration labels
 	'company_url' => 'URL',
+    'oauth_consumer_key' => 'API Key',
+    'oauth_consumer_secret' => 'Secret Key'
 );
 
 ?>

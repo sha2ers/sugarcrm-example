@@ -2,7 +2,7 @@
 if(!defined('sugarEntry') || !sugarEntry) die('Not A Valid Entry Point');
 /*********************************************************************************
  * SugarCRM Community Edition is a customer relationship management program developed by
- * SugarCRM, Inc. Copyright (C) 2004-2011 SugarCRM Inc.
+ * SugarCRM, Inc. Copyright (C) 2004-2012 SugarCRM Inc.
  * 
  * This program is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Affero General Public License version 3 as published by the
@@ -39,7 +39,7 @@ if(!defined('sugarEntry') || !sugarEntry) die('Not A Valid Entry Point');
 
 //this widget is used only by the contracts module..
 
-require_once('include/generic/SugarWidgets/SugarWidgetField.php');
+
 class SugarWidgetSubPanelGetLatestButton extends SugarWidgetField
 {
 	function displayHeaderCell(&$layout_def)
@@ -68,8 +68,7 @@ class SugarWidgetSubPanelGetLatestButton extends SugarWidgetField
 			. '&return_id=' . $_REQUEST['record']
 			. '&get_latest_for_id=' . $layout_def['fields']['LINKED_ID'];
 
-		$edit_icon_html = SugarThemeRegistry::current()->getImage( 'getLatestDocument',
-			'align="absmiddle" alt="' . $app_strings['LNK_GET_LATEST'] . '" border="0"');
+		$edit_icon_html = SugarThemeRegistry::current()->getImage( 'getLatestDocument','align="absmiddle" border="0"',null,null,'.gif',$app_strings['LNK_GET_LATEST']);
 		if($layout_def['EditView']){
 			return '<a href="' . $href . '"' . "title ='". $app_strings['LNK_GET_LATEST_TOOLTIP']  ."'"
 			. 'class="listViewTdToolsS1">' . $edit_icon_html . '&nbsp;' . $app_strings['LNK_GET_LATEST'] .'</a>&nbsp;';

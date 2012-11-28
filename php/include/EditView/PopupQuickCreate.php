@@ -2,7 +2,7 @@
 if(!defined('sugarEntry') || !sugarEntry) die('Not A Valid Entry Point');
 /*********************************************************************************
  * SugarCRM Community Edition is a customer relationship management program developed by
- * SugarCRM, Inc. Copyright (C) 2004-2011 SugarCRM Inc.
+ * SugarCRM, Inc. Copyright (C) 2004-2012 SugarCRM Inc.
  * 
  * This program is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Affero General Public License version 3 as published by the
@@ -36,14 +36,18 @@ if(!defined('sugarEntry') || !sugarEntry) die('Not A Valid Entry Point');
  ********************************************************************************/
 
 require_once('include/EditView/SubpanelQuickCreate.php');
+/**
+ * Quick create form as a pop-up window
+ * @api
+ */
 class PopupQuickCreate extends SubpanelQuickCreate{
-	
+
 	function PopupQuickCreate($module, $view='QuickCreate'){
 		$this->defaultProcess = false;
 		parent::SubpanelQuickCreate($module, $view, true);
 		$this->ev->defs['templateMeta']['form']['buttons'] = array('POPUPSAVE', 'POPUPCANCEL');
 	}
-	
+
 	function process($module){
         $form_name = 'form_QuickCreate_' . $module;
         $this->ev->formName = $form_name;

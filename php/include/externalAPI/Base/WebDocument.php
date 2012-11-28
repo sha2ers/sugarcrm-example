@@ -1,7 +1,7 @@
 <?php
 /*********************************************************************************
  * SugarCRM Community Edition is a customer relationship management program developed by
- * SugarCRM, Inc. Copyright (C) 2004-2011 SugarCRM Inc.
+ * SugarCRM, Inc. Copyright (C) 2004-2012 SugarCRM Inc.
  * 
  * This program is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Affero General Public License version 3 as published by the
@@ -35,10 +35,14 @@
  ********************************************************************************/
 
 
+/**
+ * External API to document storage
+ * @api
+ */
 interface WebDocument {
 	public function uploadDoc($bean, $fileToUpload, $docName, $mineType);
-    public function downloadDoc($documentId, $documentFormat);	
-	public function shareDoc($documentId, $emails);	
+    public function downloadDoc($documentId, $documentFormat);
+	public function shareDoc($documentId, $emails);
 	public function deleteDoc($documentId);
     public function searchDoc($keywords, $flushDocCache = false);
 }

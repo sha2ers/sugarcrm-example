@@ -1,7 +1,7 @@
 {*
 /*********************************************************************************
  * SugarCRM Community Edition is a customer relationship management program developed by
- * SugarCRM, Inc. Copyright (C) 2004-2011 SugarCRM Inc.
+ * SugarCRM, Inc. Copyright (C) 2004-2012 SugarCRM Inc.
  * 
  * This program is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Affero General Public License version 3 as published by the
@@ -35,8 +35,7 @@
  ********************************************************************************/
 
 *}
-<div style="visibility:hidden;" id="linkedin_popup_div"></div>
-<script src="{{$config.properties.company_url}}" type="text/javascript"></script>
+<script src="{if $smarty.server.HTTPS === 'on'}index.php?entryPoint=get_url&type=linkedin{else}{{$config.properties.company_url}}{/if}" type="text/javascript"></script>
 <script type="text/javascript" src="{sugar_getjspath file='include/connectors/formatters/default/company_detail.js'}"></script>
 {literal}
 <style type="text/css">

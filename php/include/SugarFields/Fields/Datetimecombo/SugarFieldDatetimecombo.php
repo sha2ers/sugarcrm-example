@@ -1,7 +1,7 @@
 <?php
 /*********************************************************************************
  * SugarCRM Community Edition is a customer relationship management program developed by
- * SugarCRM, Inc. Copyright (C) 2004-2011 SugarCRM Inc.
+ * SugarCRM, Inc. Copyright (C) 2004-2012 SugarCRM Inc.
  * 
  * This program is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Affero General Public License version 3 as published by the
@@ -139,12 +139,72 @@ class SugarFieldDatetimecombo extends SugarFieldBase {
         }
 
         if(strpos($inputData[$prefix.$field], ' ') > 0) {
-	        $bean->$field = $timedate->to_db($inputData[$prefix.$field]);
+            if ($timedate->check_matching_format($inputData[$prefix.$field], TimeDate::DB_DATETIME_FORMAT)) {
+	            $bean->$field = $inputData[$prefix.$field];
+            } else {
+                $bean->$field = $timedate->to_db($inputData[$prefix.$field]);
+            }
         } else {
         	$GLOBALS['log']->error('Field ' . $prefix.$field . ' expecting datetime format, but got value: ' . $inputData[$prefix.$field]);
 	        //Default to assume date format value
-        	$bean->$field = $timedate->to_db_date($inputData[$prefix.$field]);
+        	if ($timedate->check_matching_format($inputData[$prefix.$field], TimeDate::DB_DATE_FORMAT)) {
+                $bean->$field = $inputData[$prefix.$field];
+            } else {
+                $bean->$field = $timedate->to_db_date($inputData[$prefix.$field]);
+            }
         }
+    }
+
+    /**
+     * @see SugarFieldBase::importSanitize()
+     */
+    public function importSanitize(
+        $value,
+        $vardef,
+        $focus,
+        ImportFieldSanitize $settings
+        )
+    {
+        global $timedate;
+
+        $format = $timedate->merge_date_time($settings->dateformat, $settings->timeformat);
+
+        if ( !$timedate->check_matching_format($value, $format) ) {
+            $parts = $timedate->split_date_time($value);
+            if(empty($parts[0])) {
+               $datepart = $timedate->getNow()->format($settings->dateformat);
+            }
+            else {
+               $datepart = $parts[0];
+            }
+            if(empty($parts[1])) {
+                $timepart = $timedate->fromTimestamp(0)->format($settings->timeformat);
+            } else {
+                $timepart = $parts[1];
+                // see if we can get by stripping the seconds
+                if(strpos($settings->timeformat, 's') === false) {
+                    $sep = $timedate->timeSeparatorFormat($settings->timeformat);
+                    // We are assuming here seconds are the last component, which
+                    // is kind of reasonable - no sane time format puts seconds first
+                    $timeparts = explode($sep, $timepart);
+                    if(!empty($timeparts[2])) {
+                        $timepart = join($sep, array($timeparts[0], $timeparts[1]));
+                    }
+                }
+            }
+
+            $value = $timedate->merge_date_time($datepart, $timepart);
+            if ( !$timedate->check_matching_format($value, $format) ) {
+                return false;
+            }
+        }
+
+        try {
+            $date = SugarDateTime::createFromFormat($format, $value, new DateTimeZone($settings->timezone));
+        } catch(Exception $e) {
+            return false;
+        }
+        return $date->asDb();
     }
 }
 ?>

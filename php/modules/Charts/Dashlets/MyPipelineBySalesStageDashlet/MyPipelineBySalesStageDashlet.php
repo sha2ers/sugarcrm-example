@@ -2,7 +2,7 @@
 if(!defined('sugarEntry') || !sugarEntry) die('Not A Valid Entry Point');
 /*********************************************************************************
  * SugarCRM Community Edition is a customer relationship management program developed by
- * SugarCRM, Inc. Copyright (C) 2004-2011 SugarCRM Inc.
+ * SugarCRM, Inc. Copyright (C) 2004-2012 SugarCRM Inc.
  * 
  * This program is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Affero General Public License version 3 as published by the
@@ -94,7 +94,7 @@ class MyPipelineBySalesStageDashlet extends DashletGenericChart
      */
     public function display()
     {
-		global $sugar_config, $current_user;
+        global $sugar_config, $current_user, $timedate;
 
         require_once('include/SugarCharts/SugarChartFactory.php');
 		$sugarChart = SugarChartFactory::getInstance();
@@ -126,10 +126,28 @@ class MyPipelineBySalesStageDashlet extends DashletGenericChart
 			$pipeline_total_string = translate('LBL_TOTAL_PIPELINE', 'Charts') . $sugarChart->currency_symbol . $total . $sugarChart->thousands_symbol;
 			$sugarChart->setProperties($pipeline_total_string, $subtitle, 'horizontal bar chart');
 
+        // Bug #53753 We have to add values for filter based on "Expected Close Date" field
+        if (!empty($this->mypbss_date_start) && !empty($this->mypbss_date_end))
+        {
+            $sugarChart->url_params['date_closed_advanced_range_choice'] = 'between';
+            $sugarChart->url_params['start_range_date_closed_advanced'] = $timedate->to_display_date($this->mypbss_date_start, false);
+            $sugarChart->url_params['end_range_date_closed_advanced'] = $timedate->to_display_date($this->mypbss_date_end, false);
+        }
+        elseif (!empty($this->mypbss_date_start))
+        {
+            $sugarChart->url_params['date_closed_advanced_range_choice'] = 'greater_than';
+            $sugarChart->url_params['range_date_closed_advanced'] = $timedate->to_display_date($this->mypbss_date_start, false);
+        }
+        elseif (!empty($this->mypbss_date_end))
+        {
+            $sugarChart->url_params['date_closed_advanced_range_choice'] = 'less_than';
+            $sugarChart->url_params['range_date_closed_advanced'] = $timedate->to_display_date($this->mypbss_date_end, false);
+        }
+
         $xmlFile = $sugarChart->getXMLFileName($this->id);
         $sugarChart->saveXMLFile($xmlFile, $sugarChart->generateXML());
-		
-        return $this->getTitle('') . 
+
+        return $this->getTitle('') .
             '<div align="center">' .$sugarChart->display($this->id, $xmlFile, '100%', '480', false) . '</div><br />'. $this->processAutoRefresh();
     }
 
@@ -166,11 +184,11 @@ class MyPipelineBySalesStageDashlet extends DashletGenericChart
         }
 
         $result = $db->query($query);
-        $row = $db->fetchByAssoc($result, -1, false);
+        $row = $db->fetchByAssoc($result, false);
 
         while($row != null){
         	$temp_data[] = $row;
-        	$row = $db->fetchByAssoc($result, -1, false);
+        	$row = $db->fetchByAssoc($result, false);
         }
 
 		// reorder and set the array based on the order of selected_datax
@@ -227,12 +245,12 @@ class MyPipelineBySalesStageDashlet extends DashletGenericChart
         $query = "SELECT opportunities.sales_stage,
                         users.user_name,
                         opportunities.assigned_user_id,
-                        count( * ) AS opp_count,
+                        count(*) AS opp_count,
                         sum(amount_usdollar/1000) AS total
                     FROM users,opportunities  ";
         $query .= " WHERE opportunities.assigned_user_id IN ('{$GLOBALS['current_user']->id}') " .
-                        " AND opportunities.date_closed >= ". db_convert("'".$this->mypbss_date_start."'",'datetime').
-                        " AND opportunities.date_closed <= ".db_convert("'".$this->mypbss_date_end."'",'datetime') .
+                        " AND opportunities.date_closed >= ". db_convert("'".$this->mypbss_date_start."'",'date').
+                        " AND opportunities.date_closed <= ".db_convert("'".$this->mypbss_date_end."'",'date') .
                         " AND opportunities.assigned_user_id = users.id  AND opportunities.deleted=0 ";
         if ( count($this->mypbss_sales_stages) > 0 )
             $query .= " AND opportunities.sales_stage IN ('" . implode("','",$this->mypbss_sales_stages) . "') ";

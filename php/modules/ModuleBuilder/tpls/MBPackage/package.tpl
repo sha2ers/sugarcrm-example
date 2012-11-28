@@ -1,7 +1,7 @@
 {*
 /*********************************************************************************
  * SugarCRM Community Edition is a customer relationship management program developed by
- * SugarCRM, Inc. Copyright (C) 2004-2011 SugarCRM Inc.
+ * SugarCRM, Inc. Copyright (C) 2004-2012 SugarCRM Inc.
  * 
  * This program is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Affero General Public License version 3 as published by the
@@ -83,7 +83,7 @@
 	</tr>
 
 	<tr>	
-		<td></td><td id='readme'><img id="options" border="0"  alt="Hide Options" src="{sugar_getimagepath file='advanced_search.gif'}"><a style="text-decoration:none" href="javascript: void(0)" onclick ="toggleEl('readmefield');"><b>{$mod_strings.LBL_ADD_README}</b></a></td>
+		<td></td><td id='readme'>{sugar_getimage name="advanced_search" ext=".gif" alt=$mod_strings.LBL_HIDEOPTIONS other_attributes='border="0" id="options" '}<a style="text-decoration:none" href="javascript: void(0)" onclick ="toggleEl('readmefield');"><b>{$mod_strings.LBL_ADD_README}</b></a></td>
 	</tr>
 	<tr>
 		<td height='100%'>&nbsp;</td><td>&nbsp;</td>
@@ -148,7 +148,7 @@
 addForm('CreatePackage');
 addToValidate('CreatePackage', 'name', 'DBName', true, '{/literal}{$mod_strings.LBL_JS_VALIDATE_NAME}{literal}');
 addToValidateIsInArray('CreatePackage', 'name', 'in_array', false, '{/literal}{$mod_strings.LBL_JS_VALIDATE_PACKAGE_NAME}','{$package_labels}'{literal}, 'u==');
-addToValidate('CreatePackage', 'key', 'DBName', true, '{/literal}{$mod_strings.LBL_JS_VALIDATE_KEY}{literal}');
+addToValidate('CreatePackage', 'key', 'DBNameRaw', true, '{/literal}{$mod_strings.LBL_JS_VALIDATE_KEY}{literal}');
 
 ModuleBuilder.helpRegister('CreatePackage');
 ModuleBuilder.helpRegisterByID('CreatePackage','td');

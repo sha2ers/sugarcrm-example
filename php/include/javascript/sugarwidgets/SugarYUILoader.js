@@ -1,6 +1,6 @@
 /*********************************************************************************
  * SugarCRM Community Edition is a customer relationship management program developed by
- * SugarCRM, Inc. Copyright (C) 2004-2011 SugarCRM Inc.
+ * SugarCRM, Inc. Copyright (C) 2004-2012 SugarCRM Inc.
  *
  * This program is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Affero General Public License version 3 as published by the
@@ -32,5 +32,5 @@
  * technical reasons, the Appropriate Legal Notices must display the words
  * "Powered by SugarCRM".
  ********************************************************************************/
-SUGAR.yui={loader:new YAHOO.util.YUILoader()}
+SUGAR.yui={loader:new YAHOO.util.YUILoader({skin:{base:'blank',defaultSkin:''}})}
 SUGAR.yui.loader.addModule({name:'sugarwidgets',type:'js',path:'SugarYUIWidgets.js',requires:['yahoo','layout','dragdrop','treeview','json','datatable','container','button','tabview'],varname:YAHOO.SUGAR});

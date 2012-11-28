@@ -2,7 +2,7 @@
 if(!defined('sugarEntry') || !sugarEntry) die('Not A Valid Entry Point');
 /*********************************************************************************
  * SugarCRM Community Edition is a customer relationship management program developed by
- * SugarCRM, Inc. Copyright (C) 2004-2011 SugarCRM Inc.
+ * SugarCRM, Inc. Copyright (C) 2004-2012 SugarCRM Inc.
  * 
  * This program is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Affero General Public License version 3 as published by the
@@ -74,8 +74,7 @@ $button  = "<form action='index.php' method='post' name='form' id='form'>\n";
 if(!$hide_clear_button)
 {
 	$button .= "<input type='button' name='button' class='button' onclick=\"send_back('','');\" title='"
-		.$app_strings['LBL_CLEAR_BUTTON_TITLE']."' accesskey='"
-		.$app_strings['LBL_CLEAR_BUTTON_KEY']."' value='  "
+		.$app_strings['LBL_CLEAR_BUTTON_TITLE']."' value='  "
 		.$app_strings['LBL_CLEAR_BUTTON_LABEL']."  ' />\n";
 }
 $button .= "<input type='submit' name='button' class='button' onclick=\"window.close();\" title='"
@@ -92,7 +91,9 @@ $form->assign('THEME', $theme);
 $form->assign('MODULE_NAME', $currentModule);
 $form->assign('NAME', $name);
 $form->assign('DOCUMENT_NAME', $document_name);
-$form->assign('DOCUMENT_TARGET', $_REQUEST['target']);
+if(isset($_REQUEST['target'])) $form->assign('DOCUMENT_TARGET', $_REQUEST['target']);
+else $form->assign('DOCUMENT_TARGET', '');
+
 $form->assign('DOCUMENT_REVISION_ID', $document_revision_id);
 
 $form->assign("CATEGORY_OPTIONS", get_select_options_with_id($app_list_strings['document_category_dom'], $category_id));

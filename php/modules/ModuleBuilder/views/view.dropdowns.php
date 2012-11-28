@@ -1,7 +1,7 @@
 <?php
 /*********************************************************************************
  * SugarCRM Community Edition is a customer relationship management program developed by
- * SugarCRM, Inc. Copyright (C) 2004-2011 SugarCRM Inc.
+ * SugarCRM, Inc. Copyright (C) 2004-2012 SugarCRM Inc.
  * 
  * This program is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Affero General Public License version 3 as published by the
@@ -72,8 +72,8 @@ class ViewDropdowns extends SugarView
         
         $smarty->assign('LBL_BTN_ADDDROPDOWN',translate('LBL_BTN_ADDDROPDOWN'));
         $smarty->assign('dropdowns', $dd->getNodes());
-		$smarty->assign('deleteImage', SugarThemeRegistry::current()->getImage( 'delete_inline', ''));
-		$smarty->assign('editImage', SugarThemeRegistry::current()->getImage( 'edit_inline', ''));
+		$smarty->assign('deleteImage', SugarThemeRegistry::current()->getImage( 'delete_inline', '',null,null,'.gif',$mod_strings['LBL_MB_DELETE']));
+		$smarty->assign('editImage', SugarThemeRegistry::current()->getImage( 'edit_inline', '',null,null,'.gif',$mod_strings['LBL_EDIT']));
 		$smarty->assign('action', 'savedropdown');
 		
 

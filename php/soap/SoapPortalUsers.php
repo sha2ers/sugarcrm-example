@@ -2,7 +2,7 @@
 if(!defined('sugarEntry') || !sugarEntry) die('Not A Valid Entry Point');
 /*********************************************************************************
  * SugarCRM Community Edition is a customer relationship management program developed by
- * SugarCRM, Inc. Copyright (C) 2004-2011 SugarCRM Inc.
+ * SugarCRM, Inc. Copyright (C) 2004-2012 SugarCRM Inc.
  * 
  * This program is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Affero General Public License version 3 as published by the
@@ -231,7 +231,7 @@ function portal_get_entry_list_filter($session, $module_name, $order_by, $select
     }else if($module_name == 'Contacts'){
         $sugar = new Contact();
     }else if($module_name == 'Accounts'){
-        $sugar = new Account(); 
+        $sugar = new Account();
     } else if($module_name == 'Bugs'){
         $sugar = new Bug();
     } else if($module_name == 'KBDocuments' || $module_name == 'FAQ') {
@@ -260,7 +260,7 @@ function portal_get_entry_list_filter($session, $module_name, $order_by, $select
 
                         $where .=  "$sugar->table_name$cstm.$name $operator ";
                         if($sugar->field_defs['name']['type'] == 'datetime'){
-                            $where .= db_convert("'$value'", 'datetime');
+                            $where .= db_convert("'".$GLOBALS['db']->quote($value)."'", 'datetime');
                         }else{
                             if(empty($value)) {
                                 $tmp = array();
@@ -293,15 +293,15 @@ $server->register(
 function portal_get_entry($session, $module_name, $id,$select_fields ){
     global  $beanList, $beanFiles;
     $error = new SoapError();
-    
+
     if(!portal_validate_authenticated($session)){
         $error->set_error('invalid_session');
         return array('result_count'=>-1, 'entry_list'=>array(), 'error'=>$error->get_soap_array());
     }
-    
+
     //set the working module
     set_module_in(array('list'=>array($id=>$id), 'in'=>'('.$id.')'), $module_name);
-    
+
     if($_SESSION['type'] == 'lead'){
         $error->set_error('no_access');
         return array('result_count'=>-1, 'entry_list'=>array(), 'error'=>$error->get_soap_array());
@@ -409,7 +409,7 @@ function portal_set_entry($session,$module_name, $name_value_list){
         $seed->portal_viewable = true;
     }
     $id = $seed->save();
-    set_module_in(array('in'=>"('$id')", 'list'=>array($id)), $module_name);
+    set_module_in(array('in'=>"('".$GLOBALS['db']->quote($id)."')", 'list'=>array($id)), $module_name);
     if($_SESSION['type'] == 'contact' && $module_name != 'Contacts' && !$is_update){
         if($module_name == 'Notes'){
             $seed->contact_id = $_SESSION['user_id'];
@@ -483,7 +483,7 @@ function portal_remove_note_attachment($session, $id)
         $error->set_error('no_access');
         return array('result_count'=>-1, 'entry_list'=>array(), 'error'=>$error->get_soap_array());
     }
-    
+
     $focus = new Note();
     $focus->retrieve($id);
     $result = $focus->deleteAttachment();
@@ -510,7 +510,7 @@ function portal_get_note_attachment($session,$id)
         return array('result_count'=>-1, 'entry_list'=>array(), 'error'=>$error->get_soap_array());
     }
     $current_user = $seed_user;
-    
+
     $note = new Note();
     $note->retrieve($id);
     require_once('modules/Notes/NoteSoap.php');
@@ -595,9 +595,9 @@ function portal_get_related_notes($session,$module_name, $module_id, $select_fie
             $error->set_error('no_access');
             return array('result_count'=>-1, 'entry_list'=>array(), 'error'=>$error->get_soap_array());
         }
-        $list = get_notes_in_contacts("('$module_id')", $order_by);
+        $list = get_notes_in_contacts("('".$GLOBALS['db']->quote($module_id)."')", $order_by);
     }else{
-        $list = get_notes_in_module("('$module_id')", $module_name, $order_by);
+        $list = get_notes_in_module("('".$GLOBALS['db']->quote($module_id)."')", $module_name, $order_by);
     }
 
 
@@ -645,7 +645,7 @@ function portal_get_related_list($session, $module_name, $rel_module, $module_id
         return array('result_count'=>-1, 'entry_list'=>array(), 'error'=>$error->get_soap_array());
     }
 
-    $list = get_related_in_module("('$module_id')", $module_name, $rel_module, $order_by, $offset, $limit);
+    $list = get_related_in_module("('".$GLOBALS['db']->quote($module_id)."')", $module_name, $rel_module, $order_by, $offset, $limit);
 
     $output_list = Array();
     $field_list = Array();

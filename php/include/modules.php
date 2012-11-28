@@ -2,7 +2,7 @@
 if(!defined('sugarEntry') || !sugarEntry) die('Not A Valid Entry Point');
 /*********************************************************************************
  * SugarCRM Community Edition is a customer relationship management program developed by
- * SugarCRM, Inc. Copyright (C) 2004-2011 SugarCRM Inc.
+ * SugarCRM, Inc. Copyright (C) 2004-2012 SugarCRM Inc.
  * 
  * This program is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Affero General Public License version 3 as published by the
@@ -130,6 +130,7 @@ $beanList['SavedSearch']            = 'SavedSearch';
 $beanList['UserPreferences']        = 'UserPreference';
 $beanList['MergeRecords'] = 'MergeRecord';
 $beanList['EmailAddresses'] = 'EmailAddress';
+$beanList['EmailText'] = 'EmailText';
 $beanList['Relationships'] = 'Relationship';
 $beanList['Employees']      = 'Employee';
 
@@ -203,6 +204,7 @@ $beanFiles['SavedSearch']  = 'modules/SavedSearch/SavedSearch.php';
 $beanFiles['UserPreference']  = 'modules/UserPreferences/UserPreference.php';
 $beanFiles['MergeRecord']  = 'modules/MergeRecords/MergeRecord.php';
 $beanFiles['EmailAddress'] = 'modules/EmailAddresses/EmailAddress.php';
+$beanFiles['EmailText'] = 'modules/EmailText/EmailText.php';
 
 
 
@@ -220,7 +222,7 @@ $modInvisList = array('Administration', 'Currencies', 'CustomFields', 'Connector
     'UpgradeWizard', 'Trackers', 'Connectors', 'Employees', 'Calendar',
     'Releases','Sync',
     'Users',  'Versions', 'LabelEditor','Roles','EmailMarketing'
-    ,'OptimisticLock', 'TeamMemberships', 'TeamSets', 'TeamSetModule', 'Audit', 'MailMerge', 'MergeRecords', 'EmailAddresses',
+    ,'OptimisticLock', 'TeamMemberships', 'TeamSets', 'TeamSetModule', 'Audit', 'MailMerge', 'MergeRecords', 'EmailAddresses','EmailText',
     'Schedulers','Schedulers_jobs', /*'Queues',*/ 'EmailTemplates',
     'CampaignTrackers', 'CampaignLog', 'EmailMan', 'Prospects', 'ProspectLists',
     'Groups','InboundEmail',
@@ -243,6 +245,7 @@ $adminOnlyList = array(
                     'ACLRoles'=>array('all'=>1),
                     'UpgradeWizard' => array('all' => 1),
                     'Studio' => array('all' => 1),
+                    'Schedulers' => array('all' => 1),
                     );
 
 
@@ -300,6 +303,15 @@ $beanFiles['OAuthToken'] = 'modules/OAuthTokens/OAuthToken.php';
 $modules_exempt_from_availability_check['OAuthTokens'] = 'OAuthTokens';
 $modInvisList[] = 'OAuthTokens';
 
+
+
+//Object list is only here to correct for modules that break
+//the bean class name == dictionary entry/object name convention
+//No future module should need an entry here.
+$objectList = array();
+$objectList['Cases'] =  'Case';
+$objectList['Groups'] =  'User';
+$objectList['Users'] =  'User';
 
 if (file_exists('include/modules_override.php'))
 {

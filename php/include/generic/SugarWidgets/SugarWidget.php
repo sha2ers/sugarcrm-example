@@ -2,7 +2,7 @@
 if(!defined('sugarEntry') || !sugarEntry) die('Not A Valid Entry Point');
 /*********************************************************************************
  * SugarCRM Community Edition is a customer relationship management program developed by
- * SugarCRM, Inc. Copyright (C) 2004-2011 SugarCRM Inc.
+ * SugarCRM, Inc. Copyright (C) 2004-2012 SugarCRM Inc.
  * 
  * This program is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Affero General Public License version 3 as published by the
@@ -40,20 +40,26 @@ if(!defined('sugarEntry') || !sugarEntry) die('Not A Valid Entry Point');
 
 
 
+/**
+ * Generic Sugar widget
+ * @api
+ */
 class SugarWidget
 {
 	var $layout_manager = null;
 	var $widget_id;
-	
+    protected $form_value;
+    protected $parent_bean;
+
 	function SugarWidget(&$layout_manager)
 	{
 		$this->layout_manager = $layout_manager;
 	}
 	function display(&$layout_def)
 	{
-		return 'display class undefined'; 
+		return 'display class undefined';
 	}
-	
+
 	/**
 	 * getSubpanelWidgetId
 	 * This is a utility function to return a widget's unique id
@@ -62,7 +68,7 @@ class SugarWidget
 	public function getWidgetId() {
 	   return $this->widget_id;
 	}
-	
+
 	/**
 	 * setSubpanelWidgetId
 	 * This is a utility function to set the id for a widget
@@ -70,8 +76,21 @@ class SugarWidget
 	 */
 	public function setWidgetId($id='') {
 		$this->widget_id = $id;
-	}		
-	
+	}
+
+    public function getDisplayName()
+    {
+        return $this->form_value;
+    }
+    function getParentBean()
+    {
+        return $this->parent_bean;
+    }
+
+    function setParentBean($parent_bean)
+    {
+        $this->parent_bean = $parent_bean;
+    }
    /**
     * getTruncatedColumnAlias
     * This function ensures that a column alias is no more than 28 characters.  Should the column_name
@@ -85,8 +104,8 @@ class SugarWidget
 	  	{
 	  	   return $column_name;
 	  	}
-	    return strtoupper(substr($column_name,0,22) . substr(md5(strtolower($column_name)), 0, 6));  	
-    }	
+	    return strtoupper(substr($column_name,0,22) . substr(md5(strtolower($column_name)), 0, 6));
+    }
 }
 
 ?>

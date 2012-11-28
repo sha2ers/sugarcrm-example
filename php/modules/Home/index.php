@@ -2,7 +2,7 @@
 if(!defined('sugarEntry') || !sugarEntry) die('Not A Valid Entry Point');
 /*********************************************************************************
  * SugarCRM Community Edition is a customer relationship management program developed by
- * SugarCRM, Inc. Copyright (C) 2004-2011 SugarCRM Inc.
+ * SugarCRM, Inc. Copyright (C) 2004-2012 SugarCRM Inc.
  * 
  * This program is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Affero General Public License version 3 as published by the
@@ -42,13 +42,13 @@ global $current_user, $sugar_version, $sugar_config, $beanFiles;
 require_once('include/MySugar/MySugar.php');
 
 // build dashlet cache file if not found
-if(!is_file($GLOBALS['sugar_config']['cache_dir'].'dashlets/dashlets.php')) {
+if(!is_file($cachefile = sugar_cached('dashlets/dashlets.php'))) {
     require_once('include/Dashlets/DashletCacheBuilder.php');
 
     $dc = new DashletCacheBuilder();
     $dc->buildCache();
 }
-require_once($GLOBALS['sugar_config']['cache_dir'].'dashlets/dashlets.php');
+require_once $cachefile;
 
 require('modules/Home/dashlets.php');
 
@@ -101,7 +101,7 @@ if(!$hasUserPreferences){
                                          'module' => 'Home',
                                          'forceColumn' => 0,
                                          'fileLocation' => $dashletsFiles['iFrameDashlet']['file'],
-                                         'options' => array('title' => translate('LBL_DASHLET_DISCOVER_SUGAR_PRO','Home'),
+                                         'options' => array('titleLabel' => 'LBL_DASHLET_DISCOVER_SUGAR_PRO',
                                                             'url' => 'http://www.sugarcrm.com/crm/product/gopro',
                                                             'height' => 315,
                                              ));
@@ -116,7 +116,7 @@ if(!$hasUserPreferences){
                                          'module' => 'Home',
                                          'forceColumn' => 1,
                                          'fileLocation' => $dashletsFiles['iFrameDashlet']['file'],
-                                         'options' => array('title' => translate('LBL_DASHLET_SUGAR_NEWS','Home'),
+                                         'options' => array('titleLabel' => 'LBL_DASHLET_SUGAR_NEWS',
                                                             'url' => 'http://www.sugarcrm.com/crm/product/news',
                                                             'height' => 315,
                                              ));
@@ -187,7 +187,7 @@ if (empty($pages)){
 	$pageIndex = 0;
 	$pages[0]['columns'] = $columns;
 	$pages[0]['numColumns'] = '2';
-	$pages[0]['pageTitle'] = $mod_strings['LBL_HOME_PAGE_1_NAME'];	// "My Sugar"
+	$pages[0]['pageTitleLabel'] = 'LBL_HOME_PAGE_1_NAME';	// "My Sugar"
 	$pageIndex++;
 	$current_user->setPreference('pages', $pages, 0, 'Home');
     $activePage = 0;
@@ -239,13 +239,13 @@ foreach($pages[$activePage]['columns'] as $colNum => $column) {
                 }
 
             	array_push($dashletIds, $id);
-            	
+
 		        $dashlets = $current_user->getPreference('dashlets', 'Home'); // Using hardcoded 'Home' because DynamicAction.php $_REQUEST['module'] value is always Home
 		        $lvsParams = array();
 		        if(!empty($dashlets[$id]['sort_options'])){
 		            $lvsParams = $dashlets[$id]['sort_options'];
     	        }
-		        
+
             	$dashlet->process($lvsParams);
             	try {
 	            	$display[$colNum]['dashlets'][$id]['display'] = $dashlet->display();
@@ -274,7 +274,6 @@ $sugar_smarty->assign('currentLanguage', $GLOBALS['current_language']);
 $sugar_smarty->assign('serverUniqueKey', $GLOBALS['server_unique_key']);
 $sugar_smarty->assign('imagePath', $GLOBALS['image_path']);
 
-$sugar_smarty->assign('jsCustomVersion', $sugar_config['js_custom_version']);
 $sugar_smarty->assign('maxCount', empty($sugar_config['max_dashlets_homepage']) ? 15 : $sugar_config['max_dashlets_homepage']);
 $sugar_smarty->assign('dashletCount', $count);
 $sugar_smarty->assign('dashletIds', '["' . implode('","', $dashletIds) . '"]');
@@ -302,7 +301,12 @@ $resources = $sugarChart->getChartResources();
 $mySugarResources = $sugarChart->getMySugarChartResources();
 $sugar_smarty->assign('chartResources', $resources);
 $sugar_smarty->assign('mySugarChartResources', $mySugarResources);
-echo $sugar_smarty->fetch('include/MySugar/tpls/MySugar.tpl');
+if (file_exists("custom/include/MySugar/tpls/MySugar.tpl")) {
+	echo $sugar_smarty->fetch('custom/include/MySugar/tpls/MySugar.tpl');
+} else {
+	echo $sugar_smarty->fetch('include/MySugar/tpls/MySugar.tpl');
+}
+
 //init the quickEdit listeners after the dashlets have loaded on home page the first time
 echo"<script>if(typeof(qe_init) != 'undefined'){qe_init();}</script>";
 ?>

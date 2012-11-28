@@ -4,7 +4,7 @@ if (! defined ( 'sugarEntry' ) || ! sugarEntry)
 
 /*********************************************************************************
  * SugarCRM Community Edition is a customer relationship management program developed by
- * SugarCRM, Inc. Copyright (C) 2004-2011 SugarCRM Inc.
+ * SugarCRM, Inc. Copyright (C) 2004-2012 SugarCRM Inc.
  * 
  * This program is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Affero General Public License version 3 as published by the
@@ -95,11 +95,12 @@ class DynamicField {
     * Builds the cache for custom fields based on the vardefs
     *
     * @param STRING $module
+    * @param boolean saveCache Boolean value indicating whether or not to pass saveCache value to saveToVardef, defaults to true
     * @return unknown
     */
-    function buildCache($module = false) {
+    function buildCache($module = false, $saveCache=true) {
         //We can't build the cache while installing as the required database tables may not exist.
-        if (!empty($GLOBALS['installing']) && $GLOBALS['installing'] == true|| !$GLOBALS['db'])
+        if (!empty($GLOBALS['installing']) && $GLOBALS['installing'] == true|| empty($GLOBALS['db']))
             return false;
         if($module == '../data')return false;
 
@@ -124,7 +125,7 @@ class DynamicField {
         // retrieve the field definition from the fields_meta_data table
         // using 'encode'=false to fetchByAssoc to prevent any pre-formatting of the base metadata
         // for immediate use in HTML. This metadata will be further massaged by get_field_def() and so should not be pre-formatted
-        while ( $row = $GLOBALS['db']->fetchByAssoc ( $result , -1 ,false ) ) {
+        while ( $row = $GLOBALS['db']->fetchByAssoc ( $result, false ) ) {
             $field = get_widget ( $row ['type'] );
 
             foreach ( $row as $key => $value ) {
@@ -142,15 +143,16 @@ class DynamicField {
         }
         if (empty ( $module )) {
             foreach ( $results as $module => $result ) {
-                $this->saveToVardef ( $module, $result );
+                $this->saveToVardef ( $module, $result, $saveCache);
             }
         } else {
             if (! empty ( $results [$module] )) {
-                $this->saveToVardef ( $module, $results [$module] );
+                $this->saveToVardef ( $module, $results [$module], $saveCache);
             }else{
-                $this->saveToVardef ( $module, false );
+                $this->saveToVardef ( $module, false, $saveCache);
             }
         }
+
         return true;
 
     }
@@ -178,16 +180,14 @@ class DynamicField {
     *
     * @param string $module
     * @param array $result
+    * @param boolean saveCache Boolean value indicating whether or not to call VardefManager::saveCache, defaults to true
     */
-    function saveToVardef($module,$result) {
+    function saveToVardef($module,$result,$saveCache=true) {
+
 
         global $beanList;
         if (! empty ( $beanList [$module] )) {
-            $object = $beanList [$module];
-
-            if ($object == 'aCase') {
-                $object = 'Case';
-            }
+            $object = BeanFactory::getObjectName($module);
 
             if(empty($GLOBALS['dictionary'][$object]['fields'])){
                 //if the vardef isn't loaded let's try loading it.
@@ -223,8 +223,22 @@ class DynamicField {
                     } //if
                 }
             }
-            $manager = new VardefManager ( );
-            $manager->saveCache ( $this->module, $object );
+
+            $manager = new VardefManager();
+            if($saveCache)
+            {
+                $manager->saveCache ($this->module, $object);
+            }
+
+            // Everything works off of vardefs, so let's have it save the users vardefs
+            // to the employees module, because they both use the same table behind
+            // the scenes
+            if ($module == 'Users')
+            {
+                $manager->loadVardef('Employees', 'Employee', true);
+                return;
+            }
+
         }
     }
 
@@ -424,15 +438,17 @@ class DynamicField {
             }
 
             $queryInsert .= " ) VALUES $values )";
+
             if(!$first){
                 if(!$isUpdate){
                     $GLOBALS['db']->query($queryInsert);
                 }else{
                     $checkquery = "SELECT id_c FROM {$this->bean->table_name}_cstm WHERE id_c = '{$this->bean->id}'";
-                    if ( $GLOBALS['db']->getOne($checkquery) )
+                    if ( $GLOBALS['db']->getOne($checkquery) ) {
                         $result = $GLOBALS['db']->query($query);
-                    else
+                    } else {
                         $GLOBALS['db']->query($queryInsert);
+                    }
                 }
             }
         }
@@ -453,8 +469,10 @@ class DynamicField {
         }
         $object_name = $beanList[$this->module];
 
-        if ($object_name == 'aCase') {
-            $object_name = 'Case';
+        //Some modules like cases have a bean name that doesn't match the object name
+        if (empty($GLOBALS['dictionary'][$object_name])) {
+            $newName = BeanFactory::getObjectName($this->module);
+            $object_name = $newName != false ? $newName : $object_name;
         }
 
         $GLOBALS['db']->query("DELETE FROM fields_meta_data WHERE id='" . $this->module . $widget->name . "'");
@@ -483,7 +501,7 @@ class DynamicField {
                 return !empty($vardefs[$name]);
             else if(empty($name)){
                 foreach($vardefs as $def){
-                    if($def['type'] == $type)
+                    if(!empty($def['type']) && $def['type'] == $type)
                         return true;
                 }
                 return false;
@@ -540,8 +558,6 @@ class DynamicField {
         if(!$is_update){
             $fmd->new_with_id=true;
         }
-        $fmd->save();
-        $this->buildCache($this->module);
         if($field){
             if(!$is_update){
                 //Do two SQL calls here in this case
@@ -552,29 +568,27 @@ class DynamicField {
             	$field->default_value = '';
                 // resetting default and default_value does not work for multienum and causes trouble for mssql
                 // so using a temporary variable here to indicate that we don't want default for this query
-                if ($GLOBALS['db']->dbType == 'mssql') {
-                    $field->no_default = 1;
-                }
+                $field->no_default = 1;
                 $query = $field->get_db_add_alter_table($this->bean->table_name . '_cstm');
                 // unsetting temporary member variable
-                if ($GLOBALS['db']->dbType == 'mssql') {
-                    unset($field->no_default);
-                }
+                unset($field->no_default);
                 if(!empty($query)){
-                	$GLOBALS['db']->query($query);
+                	$GLOBALS['db']->query($query, true, "Cannot create column");
 	                $field->default = $fmd->default_value;
 	                $field->default_value = $fmd->default_value;
 	                $query = $field->get_db_modify_alter_table($this->bean->table_name . '_cstm');
 	                if(!empty($query)){
-	                	$GLOBALS['db']->query($query);
+	                	$GLOBALS['db']->query($query, true, "Cannot set default");
 	            	}
                 }
             }else{
                 $query = $field->get_db_modify_alter_table($this->bean->table_name . '_cstm');
                 if(!empty($query)){
-                	$GLOBALS['db']->query($query);
+                	$GLOBALS['db']->query($query, true, "Cannot modify field");
             	}
             }
+            $fmd->save();
+            $this->buildCache($this->module);
             $this->saveExtendedAttributes($field, array_keys($fmd->field_defs));
         }
 
@@ -590,7 +604,7 @@ class DynamicField {
             $to_save = array();
             $base_field = get_widget ( $field->type) ;
         foreach ($field->vardef_map as $property => $fmd_col){
-
+            //Skip over attribes that are either the default or part of the normal attributes stored in the DB
             if (!isset($field->$property) || in_array($fmd_col, $column_fields) || in_array($property, $column_fields)
                 || $this->isDefaultValue($property, $field->$property, $base_field)
                 || $property == "action" || $property == "label_value" || $property == "label"
@@ -726,15 +740,40 @@ class DynamicField {
         $out = "";
         if (!$GLOBALS['db']->tableExists($this->bean->table_name."_cstm")) {
             $GLOBALS['log']->debug('creating custom table for '. $this->bean->table_name);
-            $query = 'CREATE TABLE '.$this->bean->table_name.'_cstm ( ';
-            $query .='id_c ' . $this->bean->dbManager->helper->getColumnType('id') .' NOT NULL';
-            $query .=', PRIMARY KEY ( id_c ) )';
-            if($GLOBALS['db']->dbType == 'mysql'){
-                $query .= ' CHARACTER SET utf8 COLLATE utf8_general_ci';
+            $iddef = array(
+                "id_c" => array(
+                    "name" => "id_c",
+                    "type" => "id",
+                    "required" => 1,
+                )
+            );
+            $ididx = array(
+       			'id'=>array(
+       				'name' =>$this->bean->table_name."_cstm_pk",
+       				'type' =>'primary',
+       				'fields'=>array('id_c')
+                ),
+           );
+
+            $query = $GLOBALS['db']->createTableSQLParams($this->bean->table_name."_cstm", $iddef, $ididx);
+            if(!$GLOBALS['db']->supports("inline_keys")) {
+                $indicesArr = $GLOBALS['db']->getConstraintSql($ididx, $this->bean->table_name."_cstm");
+            } else {
+                $indicesArr = array();
+            }
+            if($execute) {
+                $GLOBALS['db']->query($query);
+                if(!empty($indicesArr)) {
+                    foreach($indicesArr as $idxq) {
+                        $GLOBALS['db']->query($idxq);
+                    }
+                }
             }
             $out = $query . "\n";
-            if ($execute)
-                $GLOBALS['db']->query($query);
+            if(!empty($indicesArr)) {
+                $out .= join("\n", $indicesArr)."\n";
+            }
+
             $out .= $this->add_existing_custom_fields($execute);
         }
 
@@ -781,7 +820,7 @@ class DynamicField {
         //We aren't checking for data types, just that the column exists.
         $db = $GLOBALS['db'];
         $tablename = $this->bean->table_name."_cstm";
-        $compareFieldDefs = $db->getHelper()->get_columns($tablename);
+        $compareFieldDefs = $db->get_columns($tablename);
         foreach($this->bean->field_defs as $name=>$data){
             if(empty($data['source']) || $data['source'] != 'custom_fields')
                 continue;

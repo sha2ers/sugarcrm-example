@@ -1,7 +1,7 @@
 {*
 /*********************************************************************************
  * SugarCRM Community Edition is a customer relationship management program developed by
- * SugarCRM, Inc. Copyright (C) 2004-2011 SugarCRM Inc.
+ * SugarCRM, Inc. Copyright (C) 2004-2012 SugarCRM Inc.
  * 
  * This program is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Affero General Public License version 3 as published by the
@@ -35,7 +35,7 @@
  ********************************************************************************/
 
 *}
-<script type="text/javascript" src="modules/ModuleBuilder/javascript/JSTransaction.js" ></script>
+<script type="text/javascript" src="{sugar_getjspath file='modules/ModuleBuilder/javascript/JSTransaction.js'}" ></script>
 <script>
 	var jstransaction = new JSTransaction();
 	{literal}
@@ -61,7 +61,4 @@
 <script type="text/javascript" src='{sugar_getjspath file ='modules/ModuleBuilder/javascript/JSTransaction.js'}' ></script>
 <script type="text/javascript" src='{sugar_getjspath file ='include/javascript/tiny_mce/tiny_mce.js'}' ></script>
 
-<script src='{sugar_getjspath file='include/javascript/sugar_grp_overlib.js'}' type="text/javascript"></script>
-
-<!-- <script type="text/javascript" language="Javascript" src="modules/Studio/studio.js"></script> -->
 <link rel="stylesheet" type="text/css" href="{sugar_getjspath file="modules/ModuleBuilder/tpls/MB.css"}" />

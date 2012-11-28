@@ -2,7 +2,7 @@
 if(!defined('sugarEntry') || !sugarEntry) die('Not A Valid Entry Point');
 /*********************************************************************************
  * SugarCRM Community Edition is a customer relationship management program developed by
- * SugarCRM, Inc. Copyright (C) 2004-2011 SugarCRM Inc.
+ * SugarCRM, Inc. Copyright (C) 2004-2012 SugarCRM Inc.
  * 
  * This program is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Affero General Public License version 3 as published by the
@@ -47,15 +47,15 @@ if(!defined('sugarEntry') || !sugarEntry) die('Not A Valid Entry Point');
  * @return string the delimiter
  */
 function getDelimiter() {
-	global $sugar_config;
-	global $current_user;
+    global $sugar_config;
+    global $current_user;
 
-	$delimiter = ','; // default to "comma"
-	$userDelimiter = $current_user->getPreference('export_delimiter');
-	$delimiter = empty($sugar_config['export_delimiter']) ? $delimiter : $sugar_config['export_delimiter'];
-	$delimiter = empty($userDelimiter) ? $delimiter : $userDelimiter;
+    $delimiter = ','; // default to "comma"
+    $userDelimiter = $current_user->getPreference('export_delimiter');
+    $delimiter = empty($sugar_config['export_delimiter']) ? $delimiter : $sugar_config['export_delimiter'];
+    $delimiter = empty($userDelimiter) ? $delimiter : $userDelimiter;
 
-	return $delimiter;
+    return $delimiter;
 }
 
 
@@ -66,134 +66,136 @@ function getDelimiter() {
  * @return string delimited string for export
  */
 function export($type, $records = null, $members = false, $sample=false) {
-	global $beanList;
-	global $beanFiles;
-	global $current_user;
-	global $app_strings;
-	global $app_list_strings;
-	global $timedate;
+    global $beanList;
+    global $beanFiles;
+    global $current_user;
+    global $app_strings;
+    global $app_list_strings;
+    global $timedate;
     global $mod_strings;
     global $current_language;
     $sampleRecordNum = 5;
-	$contact_fields = array(
-		"id"=>"Contact ID"
-		,"lead_source"=>"Lead Source"
-		,"date_entered"=>"Date Entered"
-		,"date_modified"=>"Date Modified"
-		,"first_name"=>"First Name"
-		,"last_name"=>"Last Name"
-		,"salutation"=>"Salutation"
-		,"birthdate"=>"Lead Source"
-		,"do_not_call"=>"Do Not Call"
-		,"email_opt_out"=>"Email Opt Out"
-		,"title"=>"Title"
-		,"department"=>"Department"
-		,"birthdate"=>"Birthdate"
-		,"do_not_call"=>"Do Not Call"
-		,"phone_home"=>"Phone (Home)"
-		,"phone_mobile"=>"Phone (Mobile)"
-		,"phone_work"=>"Phone (Work)"
-		,"phone_other"=>"Phone (Other)"
-		,"phone_fax"=>"Fax"
-		,"email1"=>"Email"
-		,"email2"=>"Email (Other)"
-		,"assistant"=>"Assistant"
-		,"assistant_phone"=>"Assistant Phone"
-		,"primary_address_street"=>"Primary Address Street"
-		,"primary_address_city"=>"Primary Address City"
-		,"primary_address_state"=>"Primary Address State"
-		,"primary_address_postalcode"=>"Primary Address Postalcode"
-		,"primary_address_country"=>"Primary Address Country"
-		,"alt_address_street"=>"Other Address Street"
-		,"alt_address_city"=>"Other Address City"
-		,"alt_address_state"=>"Other Address State"
-		,"alt_address_postalcode"=>"Other Address Postalcode"
-		,"alt_address_country"=>"Other Address Country"
-		,"description"=>"Description"
-	);
+    $contact_fields = array(
+        "id"=>"Contact ID"
+        ,"lead_source"=>"Lead Source"
+        ,"date_entered"=>"Date Entered"
+        ,"date_modified"=>"Date Modified"
+        ,"first_name"=>"First Name"
+        ,"last_name"=>"Last Name"
+        ,"salutation"=>"Salutation"
+        ,"birthdate"=>"Lead Source"
+        ,"do_not_call"=>"Do Not Call"
+        ,"email_opt_out"=>"Email Opt Out"
+        ,"title"=>"Title"
+        ,"department"=>"Department"
+        ,"birthdate"=>"Birthdate"
+        ,"do_not_call"=>"Do Not Call"
+        ,"phone_home"=>"Phone (Home)"
+        ,"phone_mobile"=>"Phone (Mobile)"
+        ,"phone_work"=>"Phone (Work)"
+        ,"phone_other"=>"Phone (Other)"
+        ,"phone_fax"=>"Fax"
+        ,"email1"=>"Email"
+        ,"email2"=>"Email (Other)"
+        ,"assistant"=>"Assistant"
+        ,"assistant_phone"=>"Assistant Phone"
+        ,"primary_address_street"=>"Primary Address Street"
+        ,"primary_address_city"=>"Primary Address City"
+        ,"primary_address_state"=>"Primary Address State"
+        ,"primary_address_postalcode"=>"Primary Address Postalcode"
+        ,"primary_address_country"=>"Primary Address Country"
+        ,"alt_address_street"=>"Other Address Street"
+        ,"alt_address_city"=>"Other Address City"
+        ,"alt_address_state"=>"Other Address State"
+        ,"alt_address_postalcode"=>"Other Address Postalcode"
+        ,"alt_address_country"=>"Other Address Country"
+        ,"description"=>"Description"
+    );
 
-	$account_fields = array(
-		"id"=>"Account ID",
-		"name"=>"Account Name",
-		"website"=>"Website",
-		"industry"=>"Industry",
-		"account_type"=>"Type",
-		"ticker_symbol"=>"Ticker Symbol",
-		"employees"=>"Employees",
-		"ownership"=>"Ownership",
-		"phone_office"=>"Phone",
-		"phone_fax"=>"Fax",
-		"phone_alternate"=>"Other Phone",
-		"email1"=>"Email",
-		"email2"=>"Other Email",
-		"rating"=>"Rating",
-		"sic_code"=>"SIC Code",
-		"annual_revenue"=>"Annual Revenue",
-		"billing_address_street"=>"Billing Address Street",
-		"billing_address_city"=>"Billing Address City",
-		"billing_address_state"=>"Billing Address State",
-		"billing_address_postalcode"=>"Billing Address Postalcode",
-		"billing_address_country"=>"Billing Address Country",
-		"shipping_address_street"=>"Shipping Address Street",
-		"shipping_address_city"=>"Shipping Address City",
-		"shipping_address_state"=>"Shipping Address State",
-		"shipping_address_postalcode"=>"Shipping Address Postalcode",
-		"shipping_address_country"=>"Shipping Address Country",
-		"description"=>"Description"
-	);
-	$focus = 0;
-	$content = '';
+    $account_fields = array(
+        "id"=>"Account ID",
+        "name"=>"Account Name",
+        "website"=>"Website",
+        "industry"=>"Industry",
+        "account_type"=>"Type",
+        "ticker_symbol"=>"Ticker Symbol",
+        "employees"=>"Employees",
+        "ownership"=>"Ownership",
+        "phone_office"=>"Phone",
+        "phone_fax"=>"Fax",
+        "phone_alternate"=>"Other Phone",
+        "email1"=>"Email",
+        "email2"=>"Other Email",
+        "rating"=>"Rating",
+        "sic_code"=>"SIC Code",
+        "annual_revenue"=>"Annual Revenue",
+        "billing_address_street"=>"Billing Address Street",
+        "billing_address_city"=>"Billing Address City",
+        "billing_address_state"=>"Billing Address State",
+        "billing_address_postalcode"=>"Billing Address Postalcode",
+        "billing_address_country"=>"Billing Address Country",
+        "shipping_address_street"=>"Shipping Address Street",
+        "shipping_address_city"=>"Shipping Address City",
+        "shipping_address_state"=>"Shipping Address State",
+        "shipping_address_postalcode"=>"Shipping Address Postalcode",
+        "shipping_address_country"=>"Shipping Address Country",
+        "description"=>"Description"
+    );
+    //Array of fields that should not be exported, and are only used for logic
+    $remove_from_members = array("ea_deleted", "ear_deleted", "primary_address");
+    $focus = 0;
+    $content = '';
 
-	$bean = $beanList[$type];
-	require_once($beanFiles[$bean]);
-	$focus = new $bean;
+    $bean = $beanList[$type];
+    require_once($beanFiles[$bean]);
+    $focus = new $bean;
     $searchFields = array();
-	$db = DBManagerFactory::getInstance();
+    $db = DBManagerFactory::getInstance();
 
-	if($records) {
-		$records = explode(',', $records);
-		$records = "'" . implode("','", $records) . "'";
-		$where = "{$focus->table_name}.id in ($records)";
-	} elseif (isset($_REQUEST['all']) ) {
-		$where = '';
-	} else {
-		if(!empty($_REQUEST['current_post'])) {
-			$ret_array = generateSearchWhere($type, $_REQUEST['current_post']);
-			
-			$where = $ret_array['where'];
-			$searchFields = $ret_array['searchFields'];
-		} else {
-			$where = '';
-		}
-	}
-	$order_by = "";
-	if($focus->bean_implements('ACL')){
-		if(!ACLController::checkAccess($focus->module_dir, 'export', true)){
-			ACLController::displayNoAccess();
-			sugar_die('');
-		}
-		if(ACLController::requireOwner($focus->module_dir, 'export')){
-			if(!empty($where)){
-				$where .= ' AND ';
-			}
-			$where .= $focus->getOwnerWhere($current_user->id);
-		}
+    if($records) {
+        $records = explode(',', $records);
+        $records = "'" . implode("','", $records) . "'";
+        $where = "{$focus->table_name}.id in ($records)";
+    } elseif (isset($_REQUEST['all']) ) {
+        $where = '';
+    } else {
+        if(!empty($_REQUEST['current_post'])) {
+            $ret_array = generateSearchWhere($type, $_REQUEST['current_post']);
 
-	}
+            $where = $ret_array['where'];
+            $searchFields = $ret_array['searchFields'];
+        } else {
+            $where = '';
+        }
+    }
+    $order_by = "";
+    if($focus->bean_implements('ACL')){
+        if(!ACLController::checkAccess($focus->module_dir, 'export', true)){
+            ACLController::displayNoAccess();
+            sugar_die('');
+        }
+        if(ACLController::requireOwner($focus->module_dir, 'export')){
+            if(!empty($where)){
+                $where .= ' AND ';
+            }
+            $where .= $focus->getOwnerWhere($current_user->id);
+        }
+
+    }
     // Export entire list was broken because the where clause already has "where" in it
     // and when the query is built, it has a "where" as well, so the query was ill-formed.
     // Eliminating the "where" here so that the query can be constructed correctly.
     if($members == true){
-   		$query = $focus->create_export_members_query($records);
+           $query = $focus->create_export_members_query($records);
     }else{
-		$beginWhere = substr(trim($where), 0, 5);
-	    if ($beginWhere == "where")
-	        $where = substr(trim($where), 5, strlen($where));
+        $beginWhere = substr(trim($where), 0, 5);
+        if ($beginWhere == "where")
+            $where = substr(trim($where), 5, strlen($where));
         $ret_array = create_export_query_relate_link_patch($type, $searchFields, $where);
         if(!empty($ret_array['join'])) {
-        	$query = $focus->create_export_query($order_by,$ret_array['where'],$ret_array['join']);
+            $query = $focus->create_export_query($order_by,$ret_array['where'],$ret_array['join']);
         } else {
-	    	$query = $focus->create_export_query($order_by,$ret_array['where']);
+            $query = $focus->create_export_query($order_by,$ret_array['where']);
         }
     }
 
@@ -204,93 +206,114 @@ function export($type, $records = null, $members = false, $sample=false) {
         if( $focus->_get_num_rows_in_query($query)<1 ){
             $populate = true;
         }
-	}else{
+    }
+    else {
         $result = $db->query($query, true, $app_strings['ERR_EXPORT_TYPE'].$type.": <BR>.".$query);
     }
 
-	
-	$fields_array = $db->getFieldsArray($result,true);
+
+    $fields_array = $db->getFieldsArray($result,true);
 
     //set up the order on the header row
     $fields_array = get_field_order_mapping($focus->module_dir, $fields_array);
 
     //set up labels to be used for the header row
-    $field_labels = $fields_array;
-    foreach($fields_array as $dbname){
+    $field_labels = array();
+    foreach($fields_array as $key=>$dbname){
+        //Remove fields that are only used for logic
+        if($members && (in_array($dbname, $remove_from_members)))
+            continue;
+        
         //default to the db name of label does not exist
-        $field_labels[$dbname] = translateForExport($dbname,$focus);
+        $field_labels[$key] = translateForExport($dbname,$focus);
     }
 
-	// setup the "header" line with proper delimiters
-	$header = implode("\"".getDelimiter()."\"", array_values($field_labels));
-	if($members){
-		$header = str_replace('"ea_deleted"'.getDelimiter().'"ear_deleted"'.getDelimiter().'"primary_address"'.getDelimiter().'','',$header);
-	}
-	$header = "\"" .$header;
-	$header .= "\"\r\n";
-	$content .= $header;
-	$pre_id = '';
+    // setup the "header" line with proper delimiters
+    $content = "\"".implode("\"".getDelimiter()."\"", array_values($field_labels))."\"\r\n";
+    $pre_id = '';
 
     if($populate){
         //this is a sample request with no data, so create fake datarows
-
-            $content .= returnFakeDataRow($focus,$fields_array,$sampleRecordNum);
-
-
+         $content .= returnFakeDataRow($focus,$fields_array,$sampleRecordNum);
     }else{
         //process retrieved record
-    	while($val = $db->fetchByAssoc($result, -1, false)) {
+    	while($val = $db->fetchByAssoc($result, false)) {
 
             //order the values in the record array
             $val = get_field_order_mapping($focus->module_dir,$val);
 
             $new_arr = array();
-            if($members){
-                if($pre_id == $val['id'])
-                    continue;
-                if($val['ea_deleted']==1 || $val['ear_deleted']==1){
-                    $val['primary_email_address'] = '';
-                }
-                unset($val['ea_deleted']);
-                unset($val['ear_deleted']);
-                unset($val['primary_address']);
-            }
-            $pre_id = $val['id'];
+		if($members){
+			if($pre_id == $val['id'])
+				continue;
+			if($val['ea_deleted']==1 || $val['ear_deleted']==1){
+				$val['primary_email_address'] = '';
+			}
+			unset($val['ea_deleted']);
+			unset($val['ear_deleted']);
+			unset($val['primary_address']);
+		}
+		$pre_id = $val['id'];
 
-            foreach ($val as $key => $value) {
-                //if our value is a datetime field, then apply the users locale
-                if(isset($focus->field_name_map[$fields_array[$key]]['type']) && ($focus->field_name_map[$fields_array[$key]]['type'] == 'datetime' || $focus->field_name_map[$fields_array[$key]]['type'] == 'datetimecombo')){
-                    $value = $timedate->to_display_date_time($value);
-                    $value = preg_replace('/([pm|PM|am|AM]+)/', ' \1', $value);
-                }
-                //kbrill Bug #16296
-                if(isset($focus->field_name_map[$fields_array[$key]]['type']) && $focus->field_name_map[$fields_array[$key]]['type'] == 'date'){
-                    $value = $timedate->to_display_date($value, false);
-                }
-                // Bug 32463 - Properly have multienum field translated into something useful for the client
-                if(isset($focus->field_name_map[$fields_array[$key]]['type']) && ( $focus->field_name_map[$fields_array[$key]]['type'] == 'multienum' ||  $focus->field_name_map[$fields_array[$key]]['type'] == 'enum')){
-                    $value = str_replace("^","",$value);
-                    if ( isset($focus->field_name_map[$fields_array[$key]]['options'])
-                            && isset($app_list_strings[$focus->field_name_map[$fields_array[$key]]['options']]) ) {
-                        $valueArray = explode(",",$value);
-                        foreach ( $valueArray as $multikey => $multivalue ) {
-                            if ( isset($app_list_strings[$focus->field_name_map[$fields_array[$key]]['options']][$multivalue]) ) {
-                                $valueArray[$multikey] = $app_list_strings[$focus->field_name_map[$fields_array[$key]]['options']][$multivalue];
+		foreach ($val as $key => $value)
+		{
+            //getting content values depending on their types
+            $fieldNameMapKey = $fields_array[$key];
+
+            if (isset($focus->field_name_map[$fieldNameMapKey])  && $focus->field_name_map[$fieldNameMapKey]['type'])
+            {
+                $fieldType = $focus->field_name_map[$fieldNameMapKey]['type'];
+                switch ($fieldType)
+                {
+                    //if our value is a currency field, then apply the users locale
+                    case 'currency':
+                        require_once('modules/Currencies/Currency.php');
+                        $value = currency_format_number($value);
+                        break;
+
+                    //if our value is a datetime field, then apply the users locale
+                    case 'datetime':
+                    case 'datetimecombo':
+                        $value = $timedate->to_display_date_time($db->fromConvert($value, 'datetime'));
+                        $value = preg_replace('/([pm|PM|am|AM]+)/', ' \1', $value);
+                        break;
+
+                    //kbrill Bug #16296
+                    case 'date':
+                        $value = $timedate->to_display_date($db->fromConvert($value, 'date'), false);
+                        break;
+
+                    // Bug 32463 - Properly have multienum field translated into something useful for the client
+                    case 'multienum':
+                        $value = str_replace("^","",$value);
+                        if (isset($focus->field_name_map[$fields_array[$key]]['options']) && isset($app_list_strings[$focus->field_name_map[$fields_array[$key]]['options']]) )
+                        {
+                            $valueArray = explode(",",$value);
+                            foreach ($valueArray as $multikey => $multivalue )
+                            {
+                                if (isset($app_list_strings[$focus->field_name_map[$fields_array[$key]]['options']][$multivalue]) )
+                                {
+                                    $valueArray[$multikey] = $app_list_strings[$focus->field_name_map[$fields_array[$key]]['options']][$multivalue];
+                                }
                             }
+                            $value = implode(",",$valueArray);
                         }
-                        $value = implode(",",$valueArray);
-                    }
+                        break;
                 }
-                array_push($new_arr, preg_replace("/\"/","\"\"", $value));
             }
-            $line = implode("\"".getDelimiter()."\"", $new_arr);
-            $line = "\"" .$line;
-            $line .= "\"\r\n";
-            $content .= $line;
+
+        array_push($new_arr, preg_replace("/\"/","\"\"", $value));
         }
+        $line = implode("\"".getDelimiter()."\"", $new_arr);
+        $line = "\"" .$line;
+        $line .= "\"\r\n";
+        $content .= $line;
+    }
+
+
     }
 	return $content;
-    
+
 }
 
 function generateSearchWhere($module, $query) {//this function is similar with function prepareSearchForm() in view.list.php
@@ -301,7 +324,7 @@ function generateSearchWhere($module, $query) {//this function is similar with f
             $searchForm = new SearchForm($module, $seed);
         }
         elseif(!empty($_SESSION['export_where'])) { //bug 26026, sometimes some module doesn't have a metadata/SearchFields.php, the searchfrom is generated in the ListView.php.
-        //So currently massupdate will not gernerate the where sql. It will use the sql stored in the SESSION. But this will cause bug 24722, and it cannot be avoided now.
+        // Currently, massupdate will not generate the where sql. It will use the sql stored in the SESSION. But this will cause bug 24722, and it cannot be avoided now.
             $where = $_SESSION['export_where'];
             $whereArr = explode (" ", trim($where));
             if ($whereArr[0] == trim('where')) {
@@ -312,7 +335,7 @@ function generateSearchWhere($module, $query) {//this function is similar with f
             //expects the results in an array, not just a string. So rather than fixing the caller, I felt it would be best for
             //the function to return the results in a standard format.
             $ret_array['where'] = $where;
-    		$ret_array['searchFields'] =array();
+            $ret_array['searchFields'] =array();
             return $ret_array;
         }
         else {
@@ -341,16 +364,26 @@ function generateSearchWhere($module, $query) {//this function is similar with f
             require_once('modules/'.$module.'/metadata/searchdefs.php');
         }
 
-        if(!empty($metafiles[$module]['searchfields']))
+        //fixing bug #48483: Date Range search on custom date field then export ignores range filter
+        // first of all custom folder should be checked
+        if(file_exists('custom/modules/'.$module.'/metadata/SearchFields.php'))
+        {
+            require_once('custom/modules/'.$module.'/metadata/SearchFields.php');
+        }
+        elseif(!empty($metafiles[$module]['searchfields']))
+        {
             require_once($metafiles[$module]['searchfields']);
+        }
         elseif(file_exists('modules/'.$module.'/metadata/SearchFields.php'))
+        {
             require_once('modules/'.$module.'/metadata/SearchFields.php');
+        }
         if(empty($searchdefs) || empty($searchFields)) {
            //for some modules, such as iframe, it has massupdate, but it doesn't have search function, the where sql should be empty.
             return;
         }
         $searchForm = new SearchForm($seed, $module);
-        $searchForm->setup($searchdefs, $searchFields, 'include/SearchForm/tpls/SearchFormGeneric.tpl');
+        $searchForm->setup($searchdefs, $searchFields, 'SearchFormGeneric.tpl');
     }
     $searchForm->populateFromArray(unserialize(base64_decode($query)));
     $where_clauses = $searchForm->generateSearchWhere(true, $module);
@@ -479,7 +512,6 @@ function generateSearchWhere($module, $query) {//this function is similar with f
                          }
 
                      }
-
                     break;
                  case "relate":
                      if($field['name'] == 'team_name'){
@@ -669,7 +701,6 @@ function generateSearchWhere($module, $query) {//this function is similar with f
 //to have the db names as key values, or as labels
 function get_field_order_mapping($name='',$reorderArr = '', $exclude = true){
 
-
     //define the ordering of fields, note that the key value is what is important, and should be the db field name
     $field_order_array = array();
     $field_order_array['accounts'] = array( 'name'=>'Name', 'id'=>'ID', 'website'=>'Website', 'email_address' =>'Email Address', 'phone_office' =>'Office Phone', 'phone_alternate' => 'Alternate Phone', 'phone_fax' => 'Fax', 'billing_address_street' => 'Billing Street', 'billing_address_city' => 'Billing City', 'billing_address_state' => 'Billing State', 'billing_address_postalcode' => 'Billing Postal Code', 'billing_address_country' => 'Billing Country', 'shipping_address_street' => 'Shipping Street', 'shipping_address_city' => 'Shipping City', 'shipping_address_state' => 'Shipping State', 'shipping_address_postalcode' => 'Shipping Postal Code', 'shipping_address_country' => 'Shipping Country', 'description' => 'Description', 'account_type' => 'Type', 'industry' =>'Industry', 'annual_revenue' => 'Annual Revenue', 'employees' => 'Employees', 'sic_code' => 'SIC Code', 'ticker_symbol' => 'Ticker Symbol', 'parent_id' => 'Parent Account ID', 'ownership' =>'Ownership', 'campaign_id' =>'Campaign ID', 'rating' =>'Rating', 'assigned_user_name' =>'Assigned to',  'assigned_user_id' =>'Assigned User ID', 'team_id' =>'Team Id', 'team_name' =>'Teams', 'team_set_id' =>'Team Set ID', 'date_entered' =>'Date Created', 'date_modified' =>'Date Modified', 'modified_user_id' =>'Modified By', 'created_by' =>'Created By', 'deleted' =>'Deleted');
@@ -707,9 +738,14 @@ function get_field_order_mapping($name='',$reorderArr = '', $exclude = true){
         //if module is not defined, lets default the order to another module of the same type
         //this would apply mostly to custom modules
         if(!isset($field_order_array[strtolower($name)]) && isset($_REQUEST['module'])){
+
+            $exemptModuleList = array('ProspectLists');
+            if(in_array($name, $exemptModuleList))
+                return $newReorder;
+
             //get an instance of the bean
             global $beanList;
-	        global $beanFiles;
+            global $beanFiles;
 
             $bean = $beanList[$_REQUEST['module']];
             require_once($beanFiles[$bean]);
@@ -743,7 +779,7 @@ function get_field_order_mapping($name='',$reorderArr = '', $exclude = true){
         $lname = strtolower($name);
         if(!empty($field_order_array[$lname])) {
 	        foreach($field_order_array[$lname] as $fk=> $fv){
-	
+
 	            //if the value exists as a key in the passed in array, add to temp array and remove from reorder array.
 	            //Do not force into the temp array as we don't want to violate acl's
 	            if(array_key_exists($fk,$newReorder)){
@@ -780,3 +816,4 @@ function get_field_order_mapping($name='',$reorderArr = '', $exclude = true){
     }
 
 }
+?>

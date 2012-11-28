@@ -2,7 +2,7 @@
 if(!defined('sugarEntry') || !sugarEntry) die('Not A Valid Entry Point');
 /*********************************************************************************
  * SugarCRM Community Edition is a customer relationship management program developed by
- * SugarCRM, Inc. Copyright (C) 2004-2011 SugarCRM Inc.
+ * SugarCRM, Inc. Copyright (C) 2004-2012 SugarCRM Inc.
  * 
  * This program is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Affero General Public License version 3 as published by the
@@ -50,11 +50,15 @@ class iFrameDashlet extends Dashlet {
         parent::Dashlet($id);
         $this->isConfigurable = true;
 
-        if(empty($options['title'])) {
-            $this->title = translate('LBL_DASHLET_TITLE', 'Home');
-            $this->title = translate('LBL_DASHLET_DISCOVER_SUGAR_PRO', 'Home');
+        if(!empty($options['titleLabel'])) {
+        	$this->title = translate($options['titleLabel'], 'Home');
         } else {
-            $this->title = $options['title'];
+	        if(empty($options['title'])) {
+	            $this->title = translate('LBL_DASHLET_TITLE', 'Home');
+	            $this->title = translate('LBL_DASHLET_DISCOVER_SUGAR_PRO', 'Home');
+	        } else {
+	            $this->title = $options['title'];
+	        }
         }
         if(empty($options['url'])) {
             $this->url = $this->defaultURL;
@@ -125,10 +129,15 @@ class iFrameDashlet extends Dashlet {
 
         $sugar_edition = 'COM';
 
+
         $out_url = str_replace(
             array('@@LANG@@','@@VER@@','@@EDITION@@'),
             array($GLOBALS['current_language'],$GLOBALS['sugar_config']['sugar_version'],$sugar_edition),
             $this->url);
-        return parent::display() . "<iframe class='teamNoticeBox' src='".$out_url."' height='".$this->height."px'></iframe>";
+        $title = $this->title;
+        if(empty($title)){
+            $title = 'empty';
+        }
+        return parent::display() . "<iframe class='teamNoticeBox' title='{$title}' src='{$out_url}' height='{$this->height}px'></iframe>";
     }
 }

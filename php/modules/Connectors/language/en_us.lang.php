@@ -2,7 +2,7 @@
 if(!defined('sugarEntry') || !sugarEntry) die('Not A Valid Entry Point');
 /*********************************************************************************
  * SugarCRM Community Edition is a customer relationship management program developed by
- * SugarCRM, Inc. Copyright (C) 2004-2011 SugarCRM Inc.
+ * SugarCRM, Inc. Copyright (C) 2004-2012 SugarCRM Inc.
  * 
  * This program is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Affero General Public License version 3 as published by the
@@ -85,7 +85,7 @@ $mod_strings = array (
     'LBL_RECNAME' => 'Company Name',
     'LBL_RESET_TO_DEFAULT' => 'Reset to Default',
     'LBL_RESET_TO_DEFAULT_CONFIRM' => 'Are you sure you want to reset to the default configuration?',
-    'LBL_RESET_BUTTON_TITLE' => 'Reset [Alt+R]',
+    'LBL_RESET_BUTTON_TITLE' => 'Reset',
 	'LBL_RESULT_LIST' => 'Data List',
     'LBL_RUN_WIZARD' => 'Run Wizard',
     'LBL_SAVE' => 'Save',
@@ -115,6 +115,8 @@ $mod_strings = array (
     'ERROR_NO_SEARCHDEFS_MAPPING' => 'Error: There are no search fields defined for the module and connector.  Please contact the system administrator.',
     'ERROR_NO_FIELDS_MAPPED' => 'Error: You must map at least one Connector field to a module field for each module entry.',
     'ERROR_NO_DISPLAYABLE_MAPPED_FIELDS' => 'Error: There are no module fields that have been mapped for display in the results.  Please contact the system administrator.',
+	'LBL_INFO_INLINE' => 'Info' /*for 508 compliance fix*/,
+	'LBL_CLOSE' => 'Close' /*for 508 compliance fix*/,
 );
 
 ?>

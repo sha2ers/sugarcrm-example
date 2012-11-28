@@ -1,6 +1,6 @@
 /*********************************************************************************
  * SugarCRM Community Edition is a customer relationship management program developed by
- * SugarCRM, Inc. Copyright (C) 2004-2011 SugarCRM Inc.
+ * SugarCRM, Inc. Copyright (C) 2004-2012 SugarCRM Inc.
  *
  * This program is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Affero General Public License version 3 as published by the
@@ -43,7 +43,8 @@ if(word.indexOf('%')>0){fragment1=word.substr(0,word.indexOf('%'));fragment2=wor
 return words;}
 function ie_test_open_popup_with_submit(module_name,action,pageTarget,width,height,mail_server,protocol,port,login,password,mailbox,ssl,personal,formName,ie_id)
 {if(!formName)formName="testSettingsView";var words=getEncryptedPassword(login,password,mailbox);var isPersonal=(personal)?'true':'false';if(!isDataValid(formName,true)){return;}
-ie_id=(typeof document.getElementById(formName).ie_id!='undefined')?document.getElementById(formName).ie_id:'';URL='index.php?'
+if(typeof(ie_id)=='undefined'||ie_id=='')
+ie_id=(typeof document.getElementById(formName).ie_id!='undefined')?document.getElementById(formName).ie_id.value:'';URL='index.php?'
 +'module='+module_name
 +'&to_pdf=1'
 +'&action='+action
@@ -53,7 +54,7 @@ ie_id=(typeof document.getElementById(formName).ie_id!='undefined')?document.get
 +'&email_user='+words[0]
 +'&protocol='+protocol
 +'&port='+port
-+'&email_password='+words[1]
++'&email_password='+encodeURIComponent(words[1])
 +'&mailbox='+words[2]
 +'&ssl='+ssl
 +'&ie_id='+ie_id
@@ -80,7 +81,7 @@ function getFoldersListForInboundAccount(module_name,action,pageTarget,width,hei
 +'&email_user='+words[0]
 +'&protocol='+protocol
 +'&port='+port
-+'&email_password='+words[1]
++'&email_password='+encodeURIComponent(words[1])
 +'&mailbox='+words[2]
 +'&ssl='+ssl
 +'&personal='+isPersonal
