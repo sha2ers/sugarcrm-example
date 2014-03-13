@@ -1,7 +1,7 @@
 Quickstart
 ==========
 
-1) Create an account at http://openshift.redhat.com/
+1) Create an account at https://www.openshift.com
 2) Create a php-5.3 application and attach the mysql cartridge to it:
     $ rhc app create sugarcrm php-5.3 mysql-5.1 
 3) Add this upstream sugarcrm repo
