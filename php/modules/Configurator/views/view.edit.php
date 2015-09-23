@@ -2,7 +2,7 @@
 if(!defined('sugarEntry') || !sugarEntry) die('Not A Valid Entry Point');
 /*********************************************************************************
  * SugarCRM Community Edition is a customer relationship management program developed by
- * SugarCRM, Inc. Copyright (C) 2004-2012 SugarCRM Inc.
+ * SugarCRM, Inc. Copyright (C) 2004-2013 SugarCRM Inc.
  * 
  * This program is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Affero General Public License version 3 as published by the
@@ -51,6 +51,11 @@ require_once('modules/Leads/Lead.php');
 class ConfiguratorViewEdit extends ViewEdit
 {
     /**
+     * @var Configurator
+     */
+    protected $configurator;
+
+    /**
 	 * @see SugarView::preDisplay()
 	 */
 	public function preDisplay()
@@ -71,6 +76,22 @@ class ConfiguratorViewEdit extends ViewEdit
     	   $mod_strings['LBL_SYSTEM_SETTINGS']
     	   );
     }
+
+    public function __construct()
+    {
+        $this->configurator = new Configurator;
+    }
+
+    public function process()
+    {   
+        if (isset($this->errors['company_logo']))
+        {
+            $this->configurator->errors['company_logo'] = $this->errors['company_logo'];
+            unset($this->errors['company_logo']);
+        }
+
+        return parent::process();
+    }
     
 	/**
 	 * @see SugarView::display()
@@ -79,7 +100,7 @@ class ConfiguratorViewEdit extends ViewEdit
 	{
 	    global $current_user, $mod_strings, $app_strings, $app_list_strings, $sugar_config, $locale;
 	    
-	    $configurator = new Configurator();
+	    $configurator = $this->configurator;
         $sugarConfig = SugarConfig::getInstance();
         $focus = new Administration();
         $configurator->parseLoggerSettings();

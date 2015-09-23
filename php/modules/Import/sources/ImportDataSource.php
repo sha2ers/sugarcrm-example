@@ -3,7 +3,7 @@ if(!defined('sugarEntry') || !sugarEntry) die('Not A Valid Entry Point');
 
 /*********************************************************************************
  * SugarCRM Community Edition is a customer relationship management program developed by
- * SugarCRM, Inc. Copyright (C) 2004-2012 SugarCRM Inc.
+ * SugarCRM, Inc. Copyright (C) 2004-2013 SugarCRM Inc.
  * 
  * This program is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Affero General Public License version 3 as published by the
@@ -333,13 +333,14 @@ abstract class ImportDataSource implements Iterator
 
     public function __get($var)
     {
-        if( isset($_REQUEST[$var]) )
+        if (isset($_REQUEST[$var])) {
             return $_REQUEST[$var];
-        else if( isset($this->_localeSettings[$var]) )
+        } elseif (isset($this->_localeSettings[$var])) {
             return $this->_localeSettings[$var];
-        else
+        } elseif (isset($this->$var)) {
             return $this->$var;
+        }
+        return null;
     }
-    
 }
  

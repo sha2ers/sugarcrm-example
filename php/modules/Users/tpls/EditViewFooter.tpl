@@ -1,7 +1,7 @@
 {*
 /*********************************************************************************
  * SugarCRM Community Edition is a customer relationship management program developed by
- * SugarCRM, Inc. Copyright (C) 2004-2012 SugarCRM Inc.
+ * SugarCRM, Inc. Copyright (C) 2004-2013 SugarCRM Inc.
  * 
  * This program is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Affero General Public License version 3 as published by the
@@ -116,8 +116,9 @@
                                 </th>
                             </tr>
                         </table>
-                            <!-- hide field if user is admin -->
-                            <div id='generate_password_old_password' {if ($IS_ADMIN)} style='display:none' {/if}>
+                            <!-- hide field if user is admin that is not editing themselves -->
+                            <div id='generate_password_old_password' {if ($IS_ADMIN && !$ADMIN_EDIT_SELF)} style='display:none' {/if}>
+
                                  <table width='100%' cellspacing='0' cellpadding='0' border='0' >
                                     <tr>
                                         <td width='35%' scope="row">

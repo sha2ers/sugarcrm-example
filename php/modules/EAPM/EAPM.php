@@ -1,7 +1,7 @@
 <?PHP
 /*********************************************************************************
  * SugarCRM Community Edition is a customer relationship management program developed by
- * SugarCRM, Inc. Copyright (C) 2004-2012 SugarCRM Inc.
+ * SugarCRM, Inc. Copyright (C) 2004-2013 SugarCRM Inc.
  * 
  * This program is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Affero General Public License version 3 as published by the
@@ -70,6 +70,7 @@ class EAPM extends Basic {
 		var $consumer_key;
 		var $consumer_secret;
 		var $disable_row_level_security = true;
+    public static $passwordPlaceholder = "::PASSWORD::";
 
 	function bean_implements($interface){
 		switch($interface){
@@ -95,7 +96,7 @@ class EAPM extends Basic {
            if ( !$includeInactive ) {
                $queryArray['validated'] = 1;
            }
-           $eapmBean = $eapmBean->retrieve_by_string_fields($queryArray);
+           $eapmBean = $eapmBean->retrieve_by_string_fields($queryArray, false);
            
            // Don't cache the include inactive results
            if ( !$includeInactive ) {
@@ -138,6 +139,11 @@ class EAPM extends Basic {
        if ( !is_admin($GLOBALS['current_user']) ) {
            $this->assigned_user_id = $GLOBALS['current_user']->id;
        }
+
+       if (!empty($this->password) && $this->password == self::$passwordPlaceholder) {
+           $this->password = empty($this->fetched_row['password']) ? '' : $this->fetched_row['password'];
+       }
+
        $parentRet = parent::save($check_notify);
 
        // Nuke the EAPM cache for this record

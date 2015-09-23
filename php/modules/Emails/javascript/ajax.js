@@ -1,6 +1,6 @@
 /*********************************************************************************
  * SugarCRM Community Edition is a customer relationship management program developed by
- * SugarCRM, Inc. Copyright (C) 2004-2012 SugarCRM Inc.
+ * SugarCRM, Inc. Copyright (C) 2004-2013 SugarCRM Inc.
  * 
  * This program is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Affero General Public License version 3 as published by the
@@ -726,10 +726,13 @@ AjaxObject.detailView = {
 		var editForm = document.getElementById('form_EmailQCView_' + ret.module);
 		if (editForm) {
 		  editForm.module.value = 'Emails';
-		  var count = SUGAR.EmailAddressWidget.count[ret.module] ? SUGAR.EmailAddressWidget.count[ret.module] : 0;
+		  var count = 0;
+          if (SUGAR.EmailAddressWidget.count[ret.module]) {
+              count = SUGAR.EmailAddressWidget.count[ret.module] - 1;
+          }
           var tableId = YAHOO.util.Dom.getElementsByClassName('emailaddresses', 'table', editForm)[0];
           tableId = tableId ? tableId.id : tableId;
-		  var instId = ret.module + (count - 1);
+		  var instId = ret.module + count;
 		  SED.quickCreateEmailsToAdd = ret.emailAddress;
 		  SED.quickCreateEmailCallback = function(instId, tableId) {
               //try to fill up the email address if and only if emailwidget is existed in the form

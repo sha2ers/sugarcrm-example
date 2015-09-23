@@ -3,7 +3,7 @@ if(!defined('sugarEntry') || !sugarEntry) die('Not A Valid Entry Point');
 
 /*********************************************************************************
  * SugarCRM Community Edition is a customer relationship management program developed by
- * SugarCRM, Inc. Copyright (C) 2004-2012 SugarCRM Inc.
+ * SugarCRM, Inc. Copyright (C) 2004-2013 SugarCRM Inc.
  * 
  * This program is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Affero General Public License version 3 as published by the
@@ -44,12 +44,11 @@ class ViewSourceProperties extends ViewList {
  	function ViewSourceProperties(){
  		parent::ViewList();
  	}
-    
- 	function process() {
- 	    parent::process();
- 	}
- 	
-    function display() {
+
+    public function display()
+    {
+        global $sugar_config;
+
 		require_once('include/connectors/sources/SourceFactory.php');
 		require_once('include/connectors/utils/ConnectorUtils.php');
 		
@@ -65,7 +64,17 @@ class ViewSourceProperties extends ViewList {
 	    	$label = isset($connector_language[$field_id]) ? $connector_language[$field_id] : $field_id;
 	        $required_fields[$field_id]=$label;
 	    }
-    	
+
+        // treat string as a template (the string resource plugin is unavailable in the current Smarty version)
+        if (isset($connector_language['LBL_LICENSING_INFO'])) {
+            $siteUrl = rtrim($sugar_config['site_url'], '/');
+            $connector_language['LBL_LICENSING_INFO'] = str_replace(
+                '{$SITE_URL}',
+                $siteUrl,
+                $connector_language['LBL_LICENSING_INFO']
+            );
+        }
+
     	$this->ss->assign('required_properties', $required_fields);
     	$this->ss->assign('source_id', $source_id);
     	$this->ss->assign('properties', $properties);
@@ -78,4 +87,3 @@ class ViewSourceProperties extends ViewList {
     }
 }
 
-?>

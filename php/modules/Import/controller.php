@@ -3,7 +3,7 @@ if(!defined('sugarEntry') || !sugarEntry) die('Not A Valid Entry Point');
 
 /*********************************************************************************
  * SugarCRM Community Edition is a customer relationship management program developed by
- * SugarCRM, Inc. Copyright (C) 2004-2012 SugarCRM Inc.
+ * SugarCRM, Inc. Copyright (C) 2004-2013 SugarCRM Inc.
  * 
  * This program is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Affero General Public License version 3 as published by the
@@ -57,7 +57,14 @@ class ImportController extends SugarController
     {
         global $mod_strings;
 
-        $this->importModule = isset($_REQUEST['import_module']) ? $_REQUEST['import_module'] : '';
+        if (!isset($_REQUEST['import_module'])) {
+            $_REQUEST['message'] = $mod_strings['LBL_ERROR_IMPORTS_NOT_SET_UP'];
+            $this->view = 'error';
+            $this->_processed = true;
+            return; // there is no module to load
+        }
+
+        $this->importModule = $_REQUEST['import_module'];
 
         $this->bean = loadBean($this->importModule);
         if ( $this->bean ) {
@@ -72,10 +79,11 @@ class ImportController extends SugarController
                 }
             }
         }
-        
-        if ( !$this->bean ) {
+
+        if ( !$this->bean && $this->importModule != "Administration") {
             $_REQUEST['message'] = $mod_strings['LBL_ERROR_IMPORTS_NOT_SET_UP'];
             $this->view = 'error';
+            $this->_processed = true;
         }
         else
             $GLOBALS['FOCUS'] = $this->bean;
@@ -239,6 +247,16 @@ class ImportController extends SugarController
     {
         echo getControl($_REQUEST['import_module'],$_REQUEST['field_name']);
         exit;
+    }
+
+    public function action_AuthenticatedSources()
+    {
+        $this->view = 'authenticatedsources';
+    }
+
+    public function action_RevokeAccess()
+    {
+        $this->view = 'revokeaccess';
     }
 }
 ?>

@@ -1,7 +1,7 @@
 <?PHP
 /*********************************************************************************
  * SugarCRM Community Edition is a customer relationship management program developed by
- * SugarCRM, Inc. Copyright (C) 2004-2012 SugarCRM Inc.
+ * SugarCRM, Inc. Copyright (C) 2004-2013 SugarCRM Inc.
  * 
  * This program is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Affero General Public License version 3 as published by the
@@ -68,6 +68,9 @@ class EAPMController extends SugarController
 
     public function pre_save()
     {
+        if (!empty($_POST['password']) && $_POST['password'] == EAPM::$passwordPlaceholder) {
+            unset($_POST['password']);
+        }
         parent::pre_save();
         $this->api = ExternalAPIFactory::loadAPI($this->bean->application,true);
         if(empty($this->api)) {
@@ -123,8 +126,16 @@ class EAPMController extends SugarController
             // To prevent the normal handler from issuing a header call and destroying our neat little javascript we'll
             // end right here.
             sugar_die('');
-        } else {
-            return;
+        } elseif ($this->api->authMethod == 'oauth2' && !$this->bean->deleted) {
+
+            $client = $this->api->getClient();
+            $loginUrl = $client->createAuthUrl();
+
+            echo '<script src="' . getJSPath('modules/EAPM/EAMPOauth.js') . '" type="text/javascript"></script><script type="text/javascript">EAMPOauth.startOauthAuthentication("' . $loginUrl . '","index.php?module=EAPM&action=oauth&record='.$this->bean->id . '");</script>';
+
+            // To prevent the normal handler from issuing a header call and destroying our neat little javascript we'll
+            // end right here.
+            sugar_cleanup(true);
         }
     }
 
@@ -189,6 +200,23 @@ class EAPMController extends SugarController
             $this->action_oauth();
         }
 	}
+
+    /** {@inheritdoc} */
+    protected function action_delete()
+    {
+        if ($this->bean->application == 'Google') {
+            require_once 'include/externalAPI/Google/ExtAPIGoogle.php';
+            $api = new ExtAPIGoogle();
+            $api->revokeToken();
+        } else {
+            parent::action_delete();
+        }
+    }
+
+    public function action_GoogleOauth2Redirect()
+    {
+        $this->view = 'googleoauth2redirect';
+    }
 
     protected function post_QuickSave(){
         $this->post_save();

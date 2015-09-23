@@ -2,7 +2,7 @@
 if(!defined('sugarEntry') || !sugarEntry) die('Not A Valid Entry Point');
 /*********************************************************************************
  * SugarCRM Community Edition is a customer relationship management program developed by
- * SugarCRM, Inc. Copyright (C) 2004-2012 SugarCRM Inc.
+ * SugarCRM, Inc. Copyright (C) 2004-2013 SugarCRM Inc.
  * 
  * This program is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Affero General Public License version 3 as published by the
@@ -190,7 +190,10 @@ require_once 'include/HTTP_WebDAV_Server/Server.php';
             // if we haven't found a user, then return 404
             if ( empty($this->user_focus->id) || $this->user_focus->id == -1)
             {
-                $this->http_status("404 Not Found");
+                $this->http_status('401 Unauthorized');
+                if (!isset($query_arr['noAuth'])) {
+                    header('WWW-Authenticate: Basic realm="'.($this->http_auth_realm).'"');
+                }
                 return;
             }
 

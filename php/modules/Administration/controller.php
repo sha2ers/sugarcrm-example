@@ -2,7 +2,7 @@
 if(!defined('sugarEntry') || !sugarEntry) die('Not A Valid Entry Point');
 /*********************************************************************************
  * SugarCRM Community Edition is a customer relationship management program developed by
- * SugarCRM, Inc. Copyright (C) 2004-2012 SugarCRM Inc.
+ * SugarCRM, Inc. Copyright (C) 2004-2013 SugarCRM Inc.
  * 
  * This program is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Affero General Public License version 3 as published by the
@@ -102,12 +102,31 @@ class AdministrationController extends SugarController
 	    	 require_once('modules/Home/UnifiedSearchAdvanced.php');
 	    	 $unifiedSearchAdvanced = new UnifiedSearchAdvanced();
 	    	 $unifiedSearchAdvanced->saveGlobalSearchSettings();
-	    	    echo "true";
+
+             $return = 'true';
+            echo $return;
     	 }
          catch (Exception $ex)
          {
     	 	 echo "false";
     	 }
+    }
+
+    /**
+     *
+     * Merge current FTS config with the new passed parameters:
+     *
+     * We want to merge the current $sugar_config settings with those passed in
+     * to be able to add additional parameters which are currently not supported
+     * in the UI (i.e. additional curl settings for elastic search for auth)
+     *
+     * @param array $config
+     * @return array
+     */
+    protected function mergeFtsConfig($type, $newConfig)
+    {
+        $currentConfig = SugarConfig::getInstance()->get("full_text_engine.{$type}", array());
+        return array_merge($currentConfig, $newConfig);
     }
 
     public function action_UpdateAjaxUI()

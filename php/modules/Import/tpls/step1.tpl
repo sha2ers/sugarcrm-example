@@ -2,7 +2,7 @@
 
 /*********************************************************************************
  * SugarCRM Community Edition is a customer relationship management program developed by
- * SugarCRM, Inc. Copyright (C) 2004-2012 SugarCRM Inc.
+ * SugarCRM, Inc. Copyright (C) 2004-2013 SugarCRM Inc.
  * 
  * This program is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Affero General Public License version 3 as published by the
@@ -56,6 +56,9 @@
 {/if}
 {$INSTRUCTION}
 
+<script>
+    var externalApis = {$EXTERNAL_APIS|@json};
+</script>
 <form enctype="multipart/form-data" name="importstep1" method="post" action="index.php" id="importstep1">
 <input type="hidden" name="module" value="Import">
 <input type="hidden" name="action" value="Step2">

@@ -1,7 +1,7 @@
 {*
 /*********************************************************************************
  * SugarCRM Community Edition is a customer relationship management program developed by
- * SugarCRM, Inc. Copyright (C) 2004-2012 SugarCRM Inc.
+ * SugarCRM, Inc. Copyright (C) 2004-2013 SugarCRM Inc.
  * 
  * This program is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Affero General Public License version 3 as published by the
@@ -36,12 +36,13 @@
 
 *}
 
-<script type="text/javascript" src="modules/EAPM/EAPMEdit.js"></script>
-<script type="text/javascript" src="cache/include/externalAPI.cache.js?s={$SUGAR_VERSION}&c={$JS_CUSTOM_VERSION}"></script>
+<script type="text/javascript" src="{sugar_getjspath file='modules/EAPM/EAPMEdit.js'}"></script>
+<script type="text/javascript" src="{sugar_getjspath file='cache/include/externalAPI.cache.js'}"></script>
 <script type="text/javascript">
 EAPMFormName = 'EditView';
 EAPMOAuthNotice = '{$MOD.LBL_OAUTH_SAVE_NOTICE}';
 EAPMBAsicAuthNotice = '{$MOD.LBL_BASIC_SAVE_NOTICE}';
+EAPMBClickToEdit = '<span class="button">{$MOD.LBL_CLICK_TO_EDIT}</span>';
 YAHOO.util.Event.onDOMReady(function() {ldelim}
 EAPMEditStart(
 {if is_admin($current_user) } true {else} false {/if}

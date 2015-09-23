@@ -1,7 +1,7 @@
 <?php
 /*********************************************************************************
  * SugarCRM Community Edition is a customer relationship management program developed by
- * SugarCRM, Inc. Copyright (C) 2004-2012 SugarCRM Inc.
+ * SugarCRM, Inc. Copyright (C) 2004-2013 SugarCRM Inc.
  * 
  * This program is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Affero General Public License version 3 as published by the
@@ -66,9 +66,9 @@ class MBPackage{
      * Will override currently loaded string to reflect undeployed label changes.
      * $app_list_strings
      * @return 
-     * @param $languge String language identifyer
+     * @param $language String language identifier
      */
-    function loadModuleTitles($languge = '') 
+    function loadModuleTitles($language = '')
     {
         if (empty($language))
         {

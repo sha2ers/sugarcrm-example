@@ -3,7 +3,7 @@ if(!defined('sugarEntry') || !sugarEntry) die('Not A Valid Entry Point');
 
 /*********************************************************************************
  * SugarCRM Community Edition is a customer relationship management program developed by
- * SugarCRM, Inc. Copyright (C) 2004-2012 SugarCRM Inc.
+ * SugarCRM, Inc. Copyright (C) 2004-2013 SugarCRM Inc.
  * 
  * This program is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Affero General Public License version 3 as published by the
@@ -111,6 +111,8 @@ class EAPMViewEdit extends ViewEdit {
     }
 
  	function display() {
+        $this->bean->password = empty($this->bean->password) ? '' : EAPM::$passwordPlaceholder;
+
         $this->ss->assign('return_id', $this->_returnId);
 
         $cancelUrl = "index.php?action=EditView&module=Users&record={$this->_returnId}#tab5";
